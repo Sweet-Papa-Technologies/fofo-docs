@@ -49,6 +49,16 @@ Major features include:
 - The tool must ignore irrelevant files (.gitignore, .DS_Store, etc.)
 - The tool should ignore files and folders defined in the .fofoignore or .gitignore file
 - The tool should attempt to create hyperlinks to other objects in the documentation
+- Ability to deal with LONG files incrementally
+- Tool must efficiently handle API calls to the LLM
+- Ignores files over a certain size
+- App should be aware of team context, tools, and other useful information
+- Project name should be inferred from:
+    - package.json, if available
+    - .git folder, if available
+    - user is prompted to enter the project name
+- The tool should show the status of progress as it processes each file
+
 
 ## Design
 - The tool will be written in TypeScript
@@ -78,12 +88,15 @@ interface ProjectSummary {
     projectDescription: string;
     projectLocation: string;
     codeFiles: CodeFileSummary[];
+    ragData: ragData[];
+    teamContext: string;
 }
 
 interface CodeFileSummary {
     fileName: string;
     fileLocation: string;
     codeSummary: string;
+    language: string;
     ecexutionFlow: ExecutionFlow[];
     codeObjects: CodeObject[];
 }
@@ -112,6 +125,16 @@ interface FunctionReturn {
     example: string;
 }
 
+interface ragData {
+    metadata: {
+        codeChunkLineStart: number;
+        codeChunkLineEnd: number;
+        codeObjects: CodeObject[];
+        codeChunkSummary: string;
+    }
+    embeddings?: any[];
+}
+
 interface CodeObject {
     name: string;
     type: CodeObjectType;
@@ -132,16 +155,44 @@ interface CodeObject {
     isAsync: boolean;
 }
 ```
-        
-### Functional Components and Features
+# Considerations / Specifications
+Vector Database and Vector Hosting: Perhaps something hosted in GCP via Cloud Run and setup persistent storage. For now, we will use a local chromaDB instance, and export final results for later use:
+    - Windows: `C:\Users\<username>\AppData\Local\FoFoDocs\ChromaDB`
+    - MacOS: `/Users/<username>/Library/Application Support/FoFoDocs/ChromaDB`
+    - Linux: `/home/<username>/.local/share/FoFoDocs/ChromaDB`
+
+App will be a command line app written in Typescript
+
+.fofoignore.json file will be a JSON file with the following structure:
+```json
+{
+    "excludedFiles": [
+        ".gitignore",
+        ".DS_Store"
+    ],
+    "excludedFolders": [
+        "node_modules",
+        "dist"
+    ]
+}
+```
+
+### General To-Do List
+- Generate list of excluded files for a default .fofoignore file
+- Decide maximum file size to process (default 750KB)
+
+### Functional Components and Features:
 
 1. **Code Parsing Engine:**
     - Core component responsible for reading and analyzing source code files.
-    - Handles language-specific syntax and structures.
-    - Identifies code objects (classes, functions, variables, types, comments).
-    - Extracts relevant information (names, descriptions, parameters, return types).
-    - Potentially uses language-specific parsing libraries (e.g., TypeScript parsers).
-
+        - Identifies language of the code
+        - Generates list of files, excludes files and folders in .fofoignore or .gitignore and by size
+        - Token Counting Function for Strings
+        - Parses large files incrementally to avoid performance issues.
+            - Identifies code objects (classes, functions, variables, types, comments).
+            - Extracts relevant information (names, descriptions, parameters, return types).
+            - Saves information to RAG system for future queries.
+        
 2. **Language Level Model (LLM) Interface:**
     - Integrates with the LLM (Gemini Flash or Gemini Pro 1.5) for code understanding and documentation generation.
     - Sends structured code information to the LLM.
@@ -158,47 +209,34 @@ interface CodeObject {
     - Enables RAG (Retrieval-Augmented Generation) functionality.
     - Allows for searching and querying existing documentation.
 
-5. **User Interface (Optional):**
-    - Provides a visual interface for users to interact with FoFo Docs.
-    - Allows users to select code repositories, files, or specific objects for documentation generation.
-    - Displays generated documentation in a user-friendly format.
-    - Could be a web-based interface or a command-line tool.
-
 **Step-by-Step Workflow Outline:**
 
 1. **Initialization:**
     - User selects a code repository or specific files to process.
-    - FoFo Docs reads project configuration files (e.g., `.fofoignore` or `.gitignore`) to determine exclusions.
+    - User provides project name
+    - FoFo Docs reads project configuration files (e.g., `.fofoignore.json` or `.gitignore`) to determine exclusions.
     - A list of files to be processed is created.
 
 2. **Code Parsing:**
     - The Code Parsing Engine iterates through each selected file.
-    - It identifies and extracts information for each code object (class, function, variable, type, comment, etc.).
-    - It creates structured JSON representations of the code objects based on the defined schemas.
+        - Code is broken down into bite size logical chunks if OVER a certain token size: 1000 tokens
+            - It identifies and extracts information for each code object (class, function, variable, type, comment, etc.).
+                - Injects information about the team and project context
+                - Injects existing data from local RAG database
+            - It creates structured JSON representations of the code objects based on the defined schemas.
+            - Saves the data to RAG system for future queries
 
 3. **LLM Interaction:**
     - The structured JSON code objects are sent to the LLM.
     - The LLM processes the code objects and generates detailed documentation in JSON format based on the provided schemas.
-    - The LLM response is sent back to FoFo Docs.
+    - The LLM response is parsed and validated.
+    - The LLM response is sent back
 
 4. **Documentation Generation:**
-    - FoFo Docs receives the JSON documentation from the LLM.
-    - The Documentation Generator transforms the JSON into a readable format (e.g., Markdown, HTML).
-    - It applies templates, formatting, and cross-linking.
-    - It generates the final documentation files.
-
-5. **Vector Database Storage (Optional):**
-    - The generated documentation is converted into vector embeddings.
-    - The embeddings are stored in the Vector Database along with the original documentation.
-
-6. **Presentation (Optional):**
-    - If a User Interface is present, the generated documentation is displayed to the user.
-    - The user can browse, search, and interact with the documentation.
-
-7. **RAG Functionality (Optional):**
-    - If a User Interface is present, users can ask questions or make queries related to the code.
-    - The Vector Database retrieves relevant documentation passages based on the query.
-    - The LLM generates answers based on the retrieved passages.
+    - FoFo Docs receives the JSON documentation from the LLM for each page in the project
+    - The Documentation Generator transforms the JSON into a readable set of documentation files, both MD and HTML
+        - It applies templates, formatting, and cross-linking.
+        - It generates the final documentation files in a folder called output, with a subfolder that has the same name as the project and a timestamp
 
 **Additional Considerations:**
 
@@ -207,3 +245,139 @@ interface CodeObject {
 - **Testing:** Develop comprehensive tests to ensure the accuracy and reliability of the documentation generation process.
 
 Let me know if you'd like a more detailed breakdown of any specific component or workflow step. 
+
+### Required LLM Prompts:
+Refer to: [prompts/generateObservations](prompts/generateObservations)
+
+#### Generate Code Summary 
+- Single Prompt 
+- Base 854 tokens
+- Core Example Total Tokens In:
+    - 3507 tokens - short text - 40 secs => Around the maximum limit -> output max is 8k tokens
+    - 5740 tokens - medium text - 60 secs => Can't process, too long
+
+```plaintext
+
+In the following code snippet, please identify all of the following:
+- Classes
+- Functions
+- Variables
+- Types
+- Comments
+- Imports
+- Exports
+
+Also please provide a general summary of the code and the execution flow based on code and conditional / if statements.
+
+Please respond with a JSON object containing the identified code objects, their descriptions, and a markdown string containing a summary of the file and what it does. ONLY respond with this JSON object, nothing else. For example:
+{
+    "classes": [
+        {
+            "name": "ClassName",
+            "description": "Description of the class",
+            "codeSnippet": "class ClassName { ... }",
+            "codeLine": 10,
+            "codeIndent": 0,
+            "fileName": "example.js",
+            "fileLocation": "/path/to/example.js",
+            "subObjects": []
+        }
+    ],
+    "functions": [
+        {
+            "name": "functionName",
+            "description": "Description of the function",
+            "codeSnippet": "function functionName() { ... }",
+            "codeLine": 20,
+            "codeIndent": 2,
+            "fileName": "example.js",
+            "fileLocation": "/path/to/example.js",
+            "subObjects": [],
+            "functionParameters": [
+                {
+                    "name": "param1",
+                    "type": "string",
+                    "description": "Description of the parameter",
+                    "example": "exampleValue"
+                }
+            ],
+            "functionReturns": {
+                "type": "string",
+                "description": "Description of the return value",
+                "example": "exampleReturn"
+            }
+        }
+    ],
+    "variables": [
+        {
+            "name": "variableName",
+            "description": "Description of the variable",
+            "codeSnippet": "let variableName = ...;",
+            "codeLine": 30,
+            "codeIndent": 2,
+            "fileName": "example.js",
+            "fileLocation": "/path/to/example.js",
+            "subObjects": []
+        }
+    ],
+    "types": [
+        {
+            "name": "TypeName",
+            "description": "Description of the type",
+            "codeSnippet": "type TypeName = ...;",
+            "codeLine": 40,
+            "codeIndent": 2,
+            "fileName": "example.js",
+            "fileLocation": "/path/to/example.js",
+            "subObjects": []
+        }
+    ],
+    "comments": [
+        {
+            "content": "This is a comment",
+            "codeLine": 50,
+            "codeIndent": 0,
+            "fileName": "example.js",
+            "fileLocation": "/path/to/example.js"
+        }
+    ],
+    "imports": [
+        {
+            "name": "importName",
+            "description": "Description of the import",
+            "codeSnippet": "import importName from 'module';
+            "codeLine": 60,
+            "codeIndent": 0,
+            "fileName": "example.js",
+            "fileLocation": "/path/to/example.js",
+            "subObjects": []
+        }
+    ],
+    "exports": [
+        {
+            "name": "exportName",
+            "description": "Description of the export",
+            "codeSnippet": "export { exportName };",
+            "codeLine": 70,
+            "codeIndent": 0,
+            "fileName": "example.js",
+            "fileLocation": "/path/to/example.js",
+            "subObjects": []
+        }
+    ],
+    "codeSummary": "##Execution Flow\n\n1. The app... etc"
+}
+
+--
+Context about the project and team that this code is related to:
+<supplemental context>
+
+-- 
+Relevant Code Previously Parsed:
+<relevant code>
+
+--
+Code:
+<code snippet>
+
+```
