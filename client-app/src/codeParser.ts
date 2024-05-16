@@ -13,11 +13,11 @@ export async function parseCodebase(
 ): Promise<ProjectSummary> {
     const projectSummary: ProjectSummary = {
         projectName: projectName,
-        projectDescription: '', // Placeholder, will be updated later
+        projectDescription: '', 
         projectLocation: projectPath,
         codeFiles: [],
-        ragData: [], // Placeholder, will be updated during parsing
-        teamContext: '', // Placeholder, could be fetched from external sources
+        ragData: [], 
+        teamContext: '', // Placeholder, TODO==> Add support for team context
     };   
 
     const ignorePatterns = ['node_modules/**', 'dist/**', ...(await getIgnoredFiles(projectPath))];
