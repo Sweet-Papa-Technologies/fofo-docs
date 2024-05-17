@@ -1,13 +1,13 @@
 {
   "name": "fofo-docs",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "description": "Tool to generate user documentation for code repositories.",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:dev:bad-params": "npx ts-node src/index.ts",
     "test:dev:good-params": "npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output --test true",
-    "test:docs:gen": "npx ts-node src/index.ts fofo-doc -g './sample-output/projectContext.json' --output ./test-output",
+    "test:docs:gen": "npx ts-node src/index.ts fofo-doc -g './test-output/projectContext-2024-05-17T17-38-07-340Z-gpt-4o.json' --output ./test-output",
     "dev:single-file": "npx ts-node src/index.ts fofo-doc --input './src/shared.ts' --output ./test-output",
     "dev": "npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output"
   },

@@ -1,6 +1,6 @@
 import { ProjectSummary, RagData } from "./objectSchemas";
 import 'dotenv/config'
-import { ChromaClient, GoogleGenerativeAiEmbeddingFunction, CloudClient, Collection } from 'chromadb'
+import { ChromaClient, GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, Collection } from 'chromadb'
 
 const apiPass = process.env.API_PASS || ''
 const apiUser = process.env.API_USER || ''
@@ -13,7 +13,21 @@ if (!apiPass || !apiUser || !geminiKey || !apiURL) {
     process.exit(1)
 }
 
-const embedder = new GoogleGenerativeAiEmbeddingFunction({googleApiKey: geminiKey})
+const embedderMode = process.env.EMBEDDER_MODE || 'GCP'
+
+let embedder:any|undefined=undefined
+
+switch (embedderMode) {
+    case 'GCP':
+        embedder = new GoogleGenerativeAiEmbeddingFunction({googleApiKey: geminiKey})
+        break
+    case 'OpenAI':
+        embedder = new OpenAIEmbeddingFunction({openai_api_key: process.env.OPENAI_API_KEY || '', openai_organization_id: process.env.OPENAI_ORG_ID || ''})
+        break
+    default:
+        embedder = new GoogleGenerativeAiEmbeddingFunction({googleApiKey: geminiKey})
+}
+
 
 // const chromaSettings = {
 //     path: apiURL,

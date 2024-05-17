@@ -3,7 +3,7 @@ export type CodeObjects = 'classes' | 'functions' | 'variables' | 'types' | 'com
 
 export interface ProjectSummary {
     projectName: string;
-    projectDescription: string;
+    projectDescription: codeSummary
     projectLocation: string;
     codeFiles: CodeFileSummary[];
     ragData: RagData[];
@@ -33,10 +33,8 @@ export interface RagData {
 }
 
 export interface codeSummary {
-    summary: string,
-    goal?: string,
-    features?: string,
-    functions?: []
+    goal: string,
+    features_functions: string,
   }
 export interface CodeFileSummary {
     fileName: string;
@@ -74,10 +72,11 @@ export interface FunctionReturn {
 export interface CodeObject {
     name: string;
     type: CodeObjectType;
-    objectDescription: string;
+    description: string;
     codeSnippet: string;
     codeLine: number;
     codeIndent: number;
+    content?:string;
     fileName: string;
     fileLocation: string;
     subObjects?: CodeObject[];
@@ -90,3 +89,5 @@ export interface CodeObject {
     isPrivate: boolean;
     isAsync: boolean;
 }
+
+export type CodeObjectTypes = 'name' | 'type' | 'description' | 'codeSnippet' | 'codeLine' | 'codeIndent' | 'fileName' | 'fileLocation' | 'subObjects' | 'parentObject' | 'functionParameters' | 'functionReturns' | 'isExported' | 'isFunction' | 'isClass' | 'isPrivate' | 'isAsync'

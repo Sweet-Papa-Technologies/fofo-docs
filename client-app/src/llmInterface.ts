@@ -102,7 +102,7 @@ type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
 
 // OpenAI Settings
 const openai = new OpenAI({
-  organization: "org-AJuc7Pqai9CXwN0oppvHSwYk",
+  organization: process.env.OPENAI_ORG_ID,
   apiKey: process.env.OPENAI_API_KEY
 });
 
@@ -400,15 +400,14 @@ export async function infer(
 
       if (bFixed == true) {
         console.debug("JSON was fixed! Checking that everything else is OK now.");
-        console.debug(res.length);
 
         // Check if Object malformed into an Array some how...
         if (Array.isArray(res) === true && res.length >= 1) {
           console.log("This looks like a fixed JSON object!");
-          if ("classes" in res[0] === false) {
-            console.warn("This object does not look correct!");
-            console.warn(res);
-          }
+          // if ("classes" in res[0] === false) {
+          //   console.warn("This object does not look correct!");
+          //   console.warn(res);
+          // }
 
           const newData = res[0];
 
@@ -456,18 +455,6 @@ export async function infer(
           console.log("This looks like a fixed JSON object, but it is empty!");
           console.warn(res);
         }
-
-        // Check if the object has the expected keys
-        if ("classes" in res === false) {
-          console.log(
-            "This was a fixed JSON object, with a single key as expected!"
-          );
-          console.warn(
-            "This object does not look correct though, an expected key is missing!"
-          );
-          console.warn(res);
-        }
-
       }
 
       return res;
@@ -490,7 +477,16 @@ export async function getCodeSummaryFromLLM(
   codeToSummarize: string,
   model: string = textModel
 ): Promise<codeSummary> {
-  const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: \n\n\`\`\`json\n${codeToSummarize}\n\`\`\``;
+  const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: 
+  Please respond with a JSON object as follows:
+  {
+    "goal": "The goal of the code",
+    "features_functions": "Any relevant features",
+  }
+
+  ### Code To Sumnarize:
+  ${codeToSummarize}
+  `
   const codeSummary = await infer(
     question,
     "JSON object",
@@ -510,7 +506,7 @@ export async function callLLM(
   filePath: string,
   bRAG = false,
   model: string = textModel
-): Promise<CodeObject> {
+): Promise<any> {
   if (bRAG === true) {
     // Take 400 characters of relevant code
     const relevantCode = await searchRAG(projectContext.projectName, code); // Placeholder, implement searchRAG function
@@ -532,7 +528,7 @@ export async function callLLM(
   const getFileNameFromPath = (path: string) => path.split("/").pop() || "";
   const fileName = getFileNameFromPath(filePath);
 
-  // 2. Call OpenAI
+  // 2. Call AI API
   const response = await infer(
     prompt,
     "JSON object",
@@ -564,7 +560,7 @@ export async function callLLM(
   }
 
   // 3. Parse and Validate Response
-  let codeObjects: CodeObject = response;
+  let codeObjects: any = response;
 
   // 4. Enhance with filePath
   if (!codeObjects.fileName) codeObjects.fileName = fileName;

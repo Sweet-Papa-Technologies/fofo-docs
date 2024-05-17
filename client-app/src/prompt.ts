@@ -3,32 +3,27 @@ export const codeSummary = `
     
     ##Execution Flow\n\n1. The app... etc
 `
-
-export const promptTemplate = `
-You will be asked to provide a JSON object that contains the identified code objects in the code snippet attached at the bottom of this request.
+import { CodeObjects } from "./objectSchemas";
+const generalPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => {
+    const fileName = filePath.split('/').pop();
+    return`
+You will be asked to provide a JSON object that contains the identified ${type} objects in the code snippet attached at the bottom of this request.
 
 ## Context
 - Project and Team Context: 
-<supplemental context>
+${context}
 
 ## Previously Parsed Code
 - Relevant Code:
-<relevant code>
+${relevantCode}
 
 ## Task
-In the following code snippet, please identify all of the following:
-- Classes
-- Functions
-- Variables
-- Types
-- Interfaces
-- Comments
-- Imports
-- Exports
+In the following code snippet, please identify all of the ${type} objects.
 
 ## Response Format
-Respond ONLY with a JSON object containing the identified code objects and their descriptions. Here is an example of the required format:
+Respond ONLY with a JSON object containing the identified ${type} objects and their descriptions. Here is an example of the required format:
 
+${type === 'classes' ? `
 {
     "classes": [
         {
@@ -38,11 +33,13 @@ Respond ONLY with a JSON object containing the identified code objects and their
             "codeSnippet": "class ClassName { ... }",
             "codeLine": 10,
             "codeIndent": 0,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js",
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}",
             "subObjects": []
         }
-    ],
+    ]
+}` : type === 'functions' ? `
+{
     "functions": [
         {
             "name": "functionName",
@@ -51,8 +48,11 @@ Respond ONLY with a JSON object containing the identified code objects and their
             "codeSnippet": "function functionName() { ... }",
             "codeLine": 20,
             "codeIndent": 2,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js",
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}",
+            "isExported": false,
+            "isPrivate": false,
+            "isAsync": false
             "functionParameters": [
                 {
                     "name": "param1",
@@ -68,7 +68,9 @@ Respond ONLY with a JSON object containing the identified code objects and their
                 "example": "exampleReturn"
             }
         }
-    ],
+    ]
+}` : type === 'variables' ? `
+{
     "variables": [
         {
             "name": "variableName",
@@ -77,10 +79,14 @@ Respond ONLY with a JSON object containing the identified code objects and their
             "codeSnippet": "let variableName = ...;",
             "codeLine": 30,
             "codeIndent": 2,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js",
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}",
+            "isExported": false,
+            "isPrivate": false
         }
-    ],
+    ]
+}` : type === 'types' ? `
+{
     "types": [
         {
             "name": "TypeName",
@@ -88,10 +94,12 @@ Respond ONLY with a JSON object containing the identified code objects and their
             "codeSnippet": "type TypeName = ...;",
             "codeLine": 40,
             "codeIndent": 2,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js",
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}",
         }
-    ],
+    ]
+}` : type === 'interfaces' ? `
+{
     "interfaces": [
         {
             "name": "InterfaceName",
@@ -100,20 +108,24 @@ Respond ONLY with a JSON object containing the identified code objects and their
             "codeSnippet": "interface InterfaceName { ... }",
             "codeLine": 65,
             "codeIndent": 0,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js",
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}",
         }
-    ],
+    ]
+}` : type === 'comments' ? `
+{
     "comments": [
         {
             "content": "This is a comment",
             type: "comment",
             "codeLine": 50,
             "codeIndent": 0,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js"
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}"
         }
-    ],
+    ]
+}` : type === 'imports' ? `
+{
     "imports": [
         {
             "name": "importName",
@@ -122,10 +134,12 @@ Respond ONLY with a JSON object containing the identified code objects and their
             "codeSnippet": "import importName from 'module';",
             "codeLine": 60,
             "codeIndent": 0,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js",
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}",
         }
-    ],
+    ]
+}` : type === 'exports' ? `
+{
     "exports": [
         {
             "name": "exportName",
@@ -134,31 +148,46 @@ Respond ONLY with a JSON object containing the identified code objects and their
             "codeSnippet": "export { exportName };",
             "codeLine": 70,
             "codeIndent": 0,
-            "fileName": "example.js",
-            "fileLocation": "/path/to/example.js",
+            "fileName": "${fileName}",
+            "fileLocation": "${filePath}",
         }
-    ]    
+    ]
+}` : ''
 }
 
-## Code Snippet
-- File Path: <file path>
-<code snippet>
-`;
+## Code Snippet for file: ${fileName}
+- File Path: ${filePath}
+${codeSnippet}
+`}
 
+export const classesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'classes');
 
+export const functionsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'functions');
+
+export const variablesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'variables');
+
+export const typesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'types');
+
+export const interfacesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'interfaces');
+
+export const commentsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'comments');
+
+export const importsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'imports');
+
+export const exportsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'exports');
 
 // export const promptTemplate = `
 // You will be asked to provide a JSON object that contains the identified code objects in the code snippet attached at the bottom of this request.
 
-// --
-// Here is some context about the project and team that this code is related to:
+// ## Context
+// - Project and Team Context: 
 // <supplemental context>
 
-// -- 
-// Here is some relevant Code Previously Parsed:
+// ## Previously Parsed Code
+// - Relevant Code:
 // <relevant code>
 
-// --
+// ## Task
 // In the following code snippet, please identify all of the following:
 // - Classes
 // - Functions
@@ -169,30 +198,33 @@ Respond ONLY with a JSON object containing the identified code objects and their
 // - Imports
 // - Exports
 
-// Please respond with a JSON object containing the identified code objects, their descriptions. ONLY respond with this JSON object, nothing else. For example:
+// ## Response Format
+// Respond ONLY with a JSON object containing the identified code objects and their descriptions. Here is an example of the required format:
+
 // {
 //     "classes": [
 //         {
 //             "name": "ClassName",
+//             "type": "class",
 //             "description": "Description of the class",
 //             "codeSnippet": "class ClassName { ... }",
 //             "codeLine": 10,
 //             "codeIndent": 0,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js",
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}",
 //             "subObjects": []
 //         }
 //     ],
 //     "functions": [
 //         {
 //             "name": "functionName",
+//             "type": "function",
 //             "description": "Description of the function",
 //             "codeSnippet": "function functionName() { ... }",
 //             "codeLine": 20,
 //             "codeIndent": 2,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js",
-//             "subObjects": [],
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}",
 //             "functionParameters": [
 //                 {
 //                     "name": "param1",
@@ -202,6 +234,7 @@ Respond ONLY with a JSON object containing the identified code objects and their
 //                 }
 //             ],
 //             "functionReturns": {
+//                 "name": "returnVal1",
 //                 "type": "string",
 //                 "description": "Description of the return value",
 //                 "example": "exampleReturn"
@@ -211,13 +244,13 @@ Respond ONLY with a JSON object containing the identified code objects and their
 //     "variables": [
 //         {
 //             "name": "variableName",
+//             "type": "variable",
 //             "description": "Description of the variable",
 //             "codeSnippet": "let variableName = ...;",
 //             "codeLine": 30,
 //             "codeIndent": 2,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js",
-//             "subObjects": []
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}",
 //         }
 //     ],
 //     "types": [
@@ -227,62 +260,65 @@ Respond ONLY with a JSON object containing the identified code objects and their
 //             "codeSnippet": "type TypeName = ...;",
 //             "codeLine": 40,
 //             "codeIndent": 2,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js",
-//             "subObjects": []
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}",
 //         }
 //     ],
 //     "interfaces": [
 //         {
 //             "name": "InterfaceName",
+//             "type": "interface",
 //             "description": "Description of the interface",
 //             "codeSnippet": "interface InterfaceName { ... }",
 //             "codeLine": 65,
 //             "codeIndent": 0,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js",
-//             "subObjects": []
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}",
 //         }
 //     ],
 //     "comments": [
 //         {
 //             "content": "This is a comment",
+//             type: "comment",
 //             "codeLine": 50,
 //             "codeIndent": 0,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js"
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}"
 //         }
 //     ],
 //     "imports": [
 //         {
 //             "name": "importName",
+//             "type": "import",
 //             "description": "Description of the import",
-//             "codeSnippet": "import importName from 'module';
+//             "codeSnippet": "import importName from 'module';",
 //             "codeLine": 60,
 //             "codeIndent": 0,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js",
-//             "subObjects": []
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}",
 //         }
 //     ],
 //     "exports": [
 //         {
 //             "name": "exportName",
+//             "type": "export",
 //             "description": "Description of the export",
 //             "codeSnippet": "export { exportName };",
 //             "codeLine": 70,
 //             "codeIndent": 0,
-//             "fileName": "example.js",
-//             "fileLocation": "/path/to/example.js",
-//             "subObjects": []
+//             "fileName": "${fileName}",
+//             "fileLocation": "${filePath}",
 //         }
 //     ]    
 // }
 
-// --
-// Code: <file path>
+// ## Code Snippet
+// - File Path: <file path>
 // <code snippet>
 // `;
+
+
+
 
 export const getLanguageTypeFromFile = (filePath: string) => {
     return `Based on the file name and path, guess the programming language (i.e. JavaScript, TypeScript, Python, etc.): 
