@@ -22,7 +22,7 @@ switch (embedderMode) {
         embedder = new GoogleGenerativeAiEmbeddingFunction({googleApiKey: geminiKey})
         break
     case 'OpenAI':
-        embedder = new OpenAIEmbeddingFunction({openai_api_key: process.env.OPENAI_API_KEY || '', openai_organization_id: process.env.OPENAI_ORG_ID || ''})
+        embedder = new OpenAIEmbeddingFunction({openai_api_key: process.env.OPENAI_API_KEY || '', openai_organization_id: process.env.OPENAI_ORG_ID || '', openai_model: "text-embedding-3-small"})
         break
     default:
         embedder = new GoogleGenerativeAiEmbeddingFunction({googleApiKey: geminiKey})

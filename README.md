@@ -1,6 +1,9 @@
 # FoFo Docs
 Tool to generate user documentation for code repositories.
 
+# Example Output:
+[Example Output](example_docs/README.md)
+
 ## Roadmap 
 - [ ] Create PoC
     - [ ] Implement LLM Support
@@ -20,6 +23,9 @@ Tool to generate user documentation for code repositories.
 
 # General To-Do List
 - [ ] Change ChromeDB to use local storage by default
+- [ ] Add ability to set pause between requests to avoid rate limiting; settable in .env
+- [ ] Allow for custom glob patterns to be passed in for file selection via .fofoinclude file
+- [ ] Batch API Calls to avoid rate limiting and speed up processing
 
 # Getting Started:
 
