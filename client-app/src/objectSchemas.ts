@@ -1,4 +1,5 @@
 export type CodeObjectType = 'class' | 'function' | 'variable' | 'type' | 'comment' | 'import' | 'export' | 'interface' | 'constructor';
+export type CodeObjects = 'classes' | 'functions' | 'variables' | 'types' | 'comments' | 'imports' | 'exports' | 'interfaces' | 'fileName' | 'fileLocation'
 
 export interface ProjectSummary {
     projectName: string;
@@ -7,6 +8,15 @@ export interface ProjectSummary {
     codeFiles: CodeFileSummary[];
     ragData: RagData[];
     teamContext: string;
+}
+
+export interface models {
+    name: string,
+    model: any,
+}
+export interface modelServiceConfig {
+    models: models[],
+    endpoint?:string 
 }
 
 export interface RagData {
@@ -22,13 +32,19 @@ export interface RagData {
     documentData: any
 }
 
+export interface codeSummary {
+    summary: string,
+    goal?: string,
+    features?: string,
+    functions?: []
+  }
 export interface CodeFileSummary {
     fileName: string;
     fileLocation: string;
-    codeSummary: string;
+    codeSummary: codeSummary;
     language: string;
     executionFlow: ExecutionFlow[];
-    codeObjects: CodeObject[];
+    codeObjects: CodeObject;
 }
 
 export interface ExecutionFlow {
@@ -64,7 +80,7 @@ export interface CodeObject {
     codeIndent: number;
     fileName: string;
     fileLocation: string;
-    subObjects: CodeObject[];
+    subObjects?: CodeObject[];
     parentObject?: CodeObject;
     functionParameters?: FunctionParameter[];
     functionReturns?: FunctionReturn;

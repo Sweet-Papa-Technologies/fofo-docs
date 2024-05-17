@@ -55,6 +55,7 @@ program
       }
 
       // Generate documentation
+      
       try {
         const bGenerated = await generateDocumentation(outputDir, null, jsonFile);
         if (!bGenerated) {
@@ -73,6 +74,7 @@ program
     }
 
     // 1. Parse Codebase
+    const startTime = Date.now();
     try {
       const parsedCodebase = await parseCodebase(projectPath, projectName);
       parsedCodebase.projectName = projectName;
@@ -96,6 +98,10 @@ program
     }
 
     console.log("Documentation generation complete!");
+    const endTime = Date.now();
+    const totalTime = endTime - startTime;
+    console.log(`Total Time: ${totalTime / 1000}s`);
+    
   });
 
 program.parse();

@@ -1,6 +1,7 @@
-import { CodeObject, ProjectSummary } from "./objectSchemas";
+import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
 import fs from 'fs';
 import path from 'path';
+import "dotenv/config";
 
 const backupDirectory = path.join(__dirname, 'backup');
 
@@ -24,11 +25,9 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
         let fileContent = `# ${file.fileName}\n`;
         fileContent += `\n**File Location:** ${file.fileLocation}`;
         fileContent += `\n**Language:** ${file.language}`;
-        fileContent += `\n**Summary:** ${file.codeSummary}\n`;
-
-        file.codeObjects.forEach(codeObject => {
-            fileContent += generateCodeObjectContent(codeObject, 0);
-        });
+        fileContent += `\n**Summary:** ${file.codeSummary.summary}\n`;
+        fileContent += generateCodeObjectContent(file.codeObjects, 0);
+        
 
         // Make sure the folder path for the file exists
         const fileFolder = path.dirname(filePath);
@@ -38,7 +37,6 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
         } catch (err) {
             console.error(`Error creating folder for ${file.fileName}`);
         }
-
 
         fs.writeFileSync(filePath, fileContent);
     });
@@ -50,20 +48,21 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
 
 function generateCodeObjectContent(codeObject: CodeObject, indent: number): string {
     const indentation = '  '.repeat(indent);
-    let content = `\n${indentation}## ${codeObject.name}`;
-    content += `\n${indentation}**Type:** ${codeObject.type}`;
-    content += `\n${indentation}**Description:** ${codeObject.objectDescription}`;
-    content += `\n${indentation}**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet}\n\`\`\``;
-    content += `\n${indentation}**Line:** ${codeObject.codeLine}`;
-    content += `\n${indentation}**Indent:** ${codeObject.codeIndent}`;
-    content += `\n${indentation}**Location:** ${codeObject.fileName} (${codeObject.fileLocation})`;
-    content += `\n${indentation}**Exported:** ${codeObject.isExported}`;
-    content += `\n${indentation}**Function:** ${codeObject.isFunction}`;
-    content += `\n${indentation}**Class:** ${codeObject.isClass}`;
-    content += `\n${indentation}**Private:** ${codeObject.isPrivate}`;
-    content += `\n${indentation}**Async:** ${codeObject.isAsync}`;
 
-    if (codeObject.functionParameters) {
+    let content = `\n${indentation}## ${codeObject.name || 'Unnamed Code Object'}`;
+    content += `\n${indentation}**Type:** ${codeObject.type || 'undefined'}`;
+    content += `\n${indentation}**Description:** ${codeObject.objectDescription || 'undefined'}`;
+    content += `\n${indentation}**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet || 'undefined'}\n\`\`\``;
+    content += `\n${indentation}**Line:** ${codeObject.codeLine !== undefined ? codeObject.codeLine : 'undefined'}`;
+    content += `\n${indentation}**Indent:** ${codeObject.codeIndent !== undefined ? codeObject.codeIndent : 'undefined'}`;
+    content += `\n${indentation}**Location:** ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'undefined'})`;
+    content += `\n${indentation}**Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'undefined'}`;
+    content += `\n${indentation}**Function:** ${codeObject.isFunction !== undefined ? codeObject.isFunction : 'undefined'}`;
+    content += `\n${indentation}**Class:** ${codeObject.isClass !== undefined ? codeObject.isClass : 'undefined'}`;
+    content += `\n${indentation}**Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'undefined'}`;
+    content += `\n${indentation}**Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'undefined'}`;
+
+    if (codeObject.functionParameters && codeObject.functionParameters.length > 0) {
         content += `\n${indentation}**Function Parameters:**`;
         codeObject.functionParameters.forEach(param => {
             content += `\n${indentation}- **${param.name}** (${param.type}): ${param.description} \n Example: ${param.example}`;
@@ -77,31 +76,26 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
         content += `\n${indentation}- **Example:** ${codeObject.functionReturns.example}`;
     }
 
-    try {
-        if (codeObject.subObjects?.length > 0) {
-            content += `\n${indentation}**Sub Objects:**`;
-            codeObject.subObjects?.forEach(subObj => {
-                content += generateCodeObjectContent(subObj, indent + 1);
-            });
-        }
-    } catch (error) {
-        console.warn(`Error generating sub objects for ${codeObject.name}`);
+    if (codeObject.subObjects && codeObject.subObjects.length > 0) {
+        content += `\n${indentation}**Sub Objects:**`;
+        codeObject.subObjects.forEach(subObj => {
+            content += generateCodeObjectContent(subObj, indent + 1);
+        });
     }
-   
 
     return content;
 }
 
-export async function generateDocumentation( folderPath: string, projectContext: ProjectSummary|null=null, jsonFile?:string): Promise<boolean> {
+export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {
 
     if (!fs.existsSync(folderPath)) {
-        try{
+        try {
             fs.mkdirSync(folderPath, {
                 recursive: true
             });
         } catch (err) {
             console.error(err);
-            console.log("Using Backup Directory")
+            console.log("Using Backup Directory");
 
             if (!fs.existsSync(backupDirectory)) {
                 fs.mkdirSync(backupDirectory, {
@@ -110,8 +104,8 @@ export async function generateDocumentation( folderPath: string, projectContext:
             }
 
             if (!fs.existsSync(backupDirectory)) {
-                console.error("Backup Directory does not exist. We could not make it!")
-                return false
+                console.error("Backup Directory does not exist. We could not make it!");
+                return false;
             }
 
             folderPath = backupDirectory;
@@ -120,27 +114,31 @@ export async function generateDocumentation( folderPath: string, projectContext:
 
     // Check to make sure the filepath is writeable before proceeding
     try {
-        fs.accessSync(folderPath
-        , fs.constants.W_OK);
+        fs.accessSync(folderPath, fs.constants.W_OK);
     } catch (err) {
         console.error(`Cannot write to ${folderPath}. Please check the path and try again.`);
         return false;
     }
 
+
+
     // Save projectContext to a JSON file
     if (!jsonFile) {
-        const projectContextPath = path.join(folderPath, 'projectContext.json');
+
+        const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const model= process.env.LLM_TO_USE || 'ml';
+        const projectContextPath = path.join(folderPath, `projectContext-${timeStamp}-${model}.json`);
+        jsonFile = projectContextPath;
 
         try {
-            fs.writeFileSync(projectContextPath, JSON.stringify(projectContext, null, 4));
+            fs.writeFileSync(jsonFile, JSON.stringify(projectContext, null, 4));
         } catch (err) {
             console.error(`Error writing project context to ${projectContextPath}`);
-            
         }
     } else {
         const projectContextPath = jsonFile;
 
-        if (!projectContext){
+        if (!projectContext) {
             try {
                 projectContext = JSON.parse(fs.readFileSync(projectContextPath, 'utf-8')) as ProjectSummary;
             } catch (err) {
@@ -156,5 +154,5 @@ export async function generateDocumentation( folderPath: string, projectContext:
     }
     jsonToMarkdown(projectContext, folderPath);
 
-    return true
+    return true;
 }

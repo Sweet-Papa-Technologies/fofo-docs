@@ -66,10 +66,12 @@ export async function saveToVectorDatabase(projectName:string, code: string, rag
 
     const meta = ragData.metadata as any
 
+    const filename = meta.filename
+
     delete meta.codeObjects
 
 
-    const collection = await load_create_collection(projectName)
+    const collection = await load_create_collection(`${projectName}`)
 
     const embeddings = await embedder.generate([code])
     console.log(embeddings)
@@ -80,7 +82,7 @@ export async function saveToVectorDatabase(projectName:string, code: string, rag
     }
 
     const res = await collection.add({
-        ids: [`${projectName}-${ragData.metadata.codeChunkId}`],
+        ids: [`${projectName}-${filename}-${ragData.metadata.codeChunkId}`],
         documents: [
             code
         ],

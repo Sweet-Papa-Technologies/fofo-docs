@@ -8,6 +8,7 @@
     "test:dev:bad-params": "npx ts-node src/index.ts",
     "test:dev:good-params": "npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output --test true",
     "test:docs:gen": "npx ts-node src/index.ts fofo-doc -g './sample-output/projectContext.json' --output ./test-output",
+    "dev:single-file": "npx ts-node src/index.ts fofo-doc --input './src/shared.ts' --output ./test-output",
     "dev": "npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output"
   },
   "author": "Forrester Terry (fterry@sweetpapatechnologies.com)",
@@ -21,7 +22,9 @@
     "dotenv": "^16.4.5",
     "glob": "^10.3.15",
     "js-yaml": "^4.1.0",
-    "jsonrepair": "^3.8.0"
+    "jsonrepair": "^3.8.0",
+    "ollama": "^0.5.1",
+    "openai": "^4.47.1"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
