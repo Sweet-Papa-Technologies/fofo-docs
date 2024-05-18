@@ -107,9 +107,8 @@ const openai = new OpenAI({
 });
 
 // OLLAMA Settings
-const ollama = new Ollama({ host: endpoints.OLLAMA });
+const ollama = new Ollama({ host: endpoints.OLLAMA })
 const contextLength = 32000; // Works with 24GB GPU - RTX 4090
-
 // Vertex Settings:
 const project = "sweet-papa-technologies";
 const location = "us-central1";
@@ -270,7 +269,9 @@ export async function infer(
       prompt: promptNew,
       stream: false,
       system: systemPrompt,
+      keep_alive: 9000,
       options: {
+        
         // temperature: 0.3,
         // top_p: 0.95,
         // top_k: 0.95,
