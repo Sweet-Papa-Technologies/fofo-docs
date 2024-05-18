@@ -32,19 +32,24 @@ FoFo Docs is a tool to generate user documentation for code repositories. It wor
 
 ### Immediate To-Do
 - [ ] [BUG]: Fix issue with duplicate information in output
+- [X] [ENHANCEMENT]: Remove unnecessary information from input/output; comments, etc.
 - [ ] [ENHANCEMENT]: Revise and update output template for MD documentation
     - [ ] Define useful sections for documentation
     - [ ] Regroup sections based off content
     - [ ] Improve styling and readability
 - [ ] [ENHANCEMENT]: Update the README.md template to include more information
+- [ ] [ENHANCEMENT]: Ability to disable embedding generation / RAG functionality via `.env`
 - [ ] [FEATURE]: Add support for HTML output
 - [ ] [FEATURE]: Add support parsing Python projects
+- [ ] [FEATURE]: Create logging function and detailed logs, summaries (e.g. cost report, token usage, etc)
+- [ ] [ENHANCEMENT]: Add sanity check to see if collected data is actually within the file, or if the model hallucinated it
 
 ### Upcoming To-Do
 
 - [ ] [ENHANCEMENT]: Change ChromaDB to use local storage by default
-- [ ] [FEATURE]: Add ability to set pause between requests to avoid rate limiting; settable in .env
-- [ ] [FEATURE]: Allow for custom glob patterns to be passed in for file selection via .fofoinclude file
+- [ ] [BUG]: Code lines and indents are incorrect; build function to manually check for first logical occurrence to determine line number/indentation
+- [ ] [FEATURE]: Add ability to set pause between requests to avoid rate limiting; settable in `.env`
+- [ ] [FEATURE]: Allow for custom glob patterns to be passed in for file selection via `.fofoinclude` file
 - [ ] [ENHANCEMENT]: Batch API Calls to avoid rate limiting and speed up processing
 - [ ] [ENHANCEMENT]: Use RAG to prevent model from generating duplicate information to begin with
 
@@ -153,3 +158,17 @@ Please report any bugs or issues to the GitHub repository:
 
 ### Pull Requests:
 Please feel free to create feature branches from main, and then submit a pull request back to main.
+
+## Cost Report:
+
+Notes: **Embedding** generation and **inference** were performed via OpenAI's API
+- Embedding might be worth excluding, and taking out of the equation
+
+### OpenAI (via v1.0.X-alpha) - May 17, 2024:
+- Cost to generate documentation for THIS entire project, using the `GPT-4o` model: `TBD`
+
+### Google Vertex AI (via v1.0.X-alpha) - May 17, 2024:
+- Cost to generate documentation for THIS entire project, using the `Gemini Flash` model: `TBD`
+
+### Ollama (via v1.0.X-alpha) - May 17, 2024:
+- Cost to generate documentation for THIS entire project, using the `phi3:latest` model: `TBD`

@@ -1,5 +1,5 @@
-export type CodeObjectType = 'class' | 'function' | 'variable' | 'type' | 'comment' | 'import' | 'export' | 'interface' | 'constructor';
-export type CodeObjects = 'classes' | 'functions' | 'variables' | 'types' | 'comments' | 'imports' | 'exports' | 'interfaces' | 'fileName' | 'fileLocation'
+export type CodeObjectType = 'class' | 'function' | 'variable' | 'type' | 'import' | 'export' | 'interface' | 'constructor';
+export type CodeObjects = 'classes' | 'functions' | 'variables' | 'types' | 'imports' | 'exports' | 'interfaces' | 'fileName' | 'fileLocation'
 
 export interface ProjectSummary {
     projectName: string;
