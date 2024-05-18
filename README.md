@@ -1,6 +1,8 @@
 # FoFo Docs
 Tool to generate user documentation for code repositories.
 
+<img src="example_docs/fofo-docs-lighter.png" alt="drawing" width="500px" height="250px"/>
+
 # Example Output:
 [Example Output](example_docs/README.md)
 
