@@ -30,13 +30,7 @@ FoFo Docs is a tool to generate user documentation for code repositories. It wor
     - [ ] PDF
 
 
-### Immediate To-Do
-- [ ] [BUG]: Fix issue with duplicate information in output
-- [X] [ENHANCEMENT]: Remove unnecessary information from input/output; comments, etc.
-- [ ] [ENHANCEMENT]: Revise and update output template for MD documentation
-    - [ ] Define useful sections for documentation
-    - [ ] Regroup sections based off content
-    - [ ] Improve styling and readability
+### Immediate To-Do - View completed items in Changelog section below: [Change Log](#change-log)
 - [ ] [ENHANCEMENT]: Update the README.md template to include more information
 - [ ] [ENHANCEMENT]: Ability to disable embedding generation / RAG functionality via `.env`
 - [ ] [FEATURE]: Add support for HTML output
@@ -45,7 +39,6 @@ FoFo Docs is a tool to generate user documentation for code repositories. It wor
 - [ ] [ENHANCEMENT]: Add sanity check to see if collected data is actually within the file, or if the model hallucinated it
 
 ### Upcoming To-Do
-
 - [ ] [ENHANCEMENT]: Change ChromaDB to use local storage by default
 - [ ] [BUG]: Code lines and indents are incorrect; build function to manually check for first logical occurrence to determine line number/indentation
 - [ ] [FEATURE]: Add ability to set pause between requests to avoid rate limiting; settable in `.env`
@@ -172,3 +165,17 @@ Notes: **Embedding** generation and **inference** were performed via OpenAI's AP
 
 ### Ollama (via v1.0.X-alpha) - May 17, 2024:
 - Cost to generate documentation for THIS entire project, using the `phi3:latest` model: `TBD`
+
+## Change Log:
+
+### v1.0.1-alpha:
+- [X] [FEATURE] Added support for generating documentation for multiple files
+- [X] [FEATURE] Added support for generating documentation for a single file
+
+### v1.0.1-alpha2:
+- [X] [BUG]: Fix issue with duplicate information in output
+- [X] [ENHANCEMENT]: Remove unnecessary information from input/output; comments, etc.
+- [X] [ENHANCEMENT]: Revise and update output template for MD documentation
+    - [X] Define useful sections for documentation
+    - [X] Regroup sections based off content
+    - [X] Improve styling and readability

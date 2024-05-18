@@ -1,6 +1,6 @@
-# src/codeParser.ts
+# src/codeParser.ts - fofo-docs
 
-**Summary:** The goal of the code block is to process code files, generate summaries using language models, and save relevant data to a vector database while handling ignored files and checking file sizes.
+**Summary:** The code checks if a file is too long based on token count or file size.
 
 - **File Location:** .//src/codeParser.ts
 - **Language:** TypeScript
@@ -9,13 +9,45 @@
 - [variables](#variables)
 - [imports](#imports)
 - [exports](#exports)
-- [interfaces](#interfaces)
 ## functions
 🔧 **FUNCTIONS**
 
+
+### genCodeChunkObj - [FUNCTION]
+------------------------------------------------------------
+**Description:** Processes each chunk's code objects and updates the project summary.
+**Code Snippet:**
+```
+async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string):Promise<CodeObject>{ ... }
+```
+- **Line:** 32
+- **Indent:** 0
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** true
+
+
+###### Function Parameters:
+- **projectSummary** (ProjectSummary): Summary of the project. 
+ Example: projectSummary
+- **filePath** (string): Path to the file being processed. 
+ Example: './/src/codeParser.ts'
+- **chunk** (string): Chunk of code to process. 
+ Example: chunk
+###### Function Returns:
+- **Type:** CodeObject
+- **Description:** Processed code objects for the chunk.
+- **Example:** chunkCodeObjects
+
 ### mergeObjectArrays - [FUNCTION]
-- **Description:** Merges arrays within an incoming code object into the existing code object and removes duplicates.
-- **Line:** 72
+------------------------------------------------------------
+**Description:** Merges incoming code object's key-array pairs with the existing code object array.
+**Code Snippet:**
+```
+export function mergeObjectArrays(codeObjArray: CodeObject, newCodeObj: any): CodeObject { ... }
+```
+- **Line:** 73
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** true
@@ -23,22 +55,24 @@
 - **Async:** false
 
 
-**Code Snippet:**
-```
-export function mergeObjectArrays(codeObjArray: CodeObject, newCodeObj: any): CodeObject { ... }
-```
 ###### Function Parameters:
-- **codeObjArray** (CodeObject): Existing code object array to be merged. 
- Example: { functions: [], classes: [], ... }
-- **newCodeObj** (any): New code object array to merge into the existing array. 
- Example: { functions: [], classes: [], ... }
+- **codeObjArray** (CodeObject): Existing code object array. 
+ Example: codeObjArray
+- **newCodeObj** (any): New code object to merge. 
+ Example: newCodeObj
 ###### Function Returns:
 - **Type:** CodeObject
-- **Description:** Merged code object after removing duplicates.
-- **Example:** { functions: [], classes: [], ... }
+- **Description:** Merged code object array.
+- **Example:** mergedCodeObj
+
 ### parseCodebase - [FUNCTION]
-- **Description:** Parses the codebase to generate a summary of the project.
-- **Line:** 32
+------------------------------------------------------------
+**Description:** Parses the codebase located at the given project path and generates a summary of the project.
+**Code Snippet:**
+```
+export async function parseCodebase(projectPath: string, projectName: string): Promise<ProjectSummary> { ... }
+```
+- **Line:** 30
 - **Indent:** 2
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** true
@@ -46,43 +80,24 @@ export function mergeObjectArrays(codeObjArray: CodeObject, newCodeObj: any): Co
 - **Async:** true
 
 
-**Code Snippet:**
-```
-export async function parseCodebase(projectPath: string, projectName: string): Promise<ProjectSummary> { ... }
-```
 ###### Function Parameters:
-- **projectPath** (string): The path to the project to be parsed. 
+- **projectPath** (string): The path to the project directory or file. 
  Example: /path/to/project
 - **projectName** (string): The name of the project. 
  Example: MyProject
 ###### Function Returns:
 - **Type:** ProjectSummary
-- **Description:** A summary of the project with metadata and analysis.
+- **Description:** A summary of the project including its name, description, location, code files, and other metadata.
 - **Example:** [object Object]
+
 ### getIgnoredFiles - [FUNCTION]
-- **Description:** Retrieves a list of ignored files based on various .gitignore and .fofoignore files in specified paths.
-- **Line:** 73
-- **Indent:** 2
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** true
-
-
+------------------------------------------------------------
+**Description:** Reads and returns a list of file patterns to ignore based on .gitignore and .fofoignore files in various paths.
 **Code Snippet:**
 ```
 async function getIgnoredFiles(projectPath: string): Promise<string[]> { ... }
 ```
-###### Function Parameters:
-- **projectPath** (string): The base path of the project. 
- Example: /user/project/
-###### Function Returns:
-- **Type:** Promise<string[]>
-- **Description:** A promise that resolves to an array of ignore patterns extracted from .gitignore and .fofoignore files.
-- **Example:** ["node_modules/", ".env"]
-### getFileSizeInKB - [FUNCTION]
-- **Description:** Calculates the file size in kilobytes for a given file path.
-- **Line:** 118
+- **Line:** 88
 - **Indent:** 2
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
@@ -90,19 +105,21 @@ async function getIgnoredFiles(projectPath: string): Promise<string[]> { ... }
 - **Async:** true
 
 
+###### Function Parameters:
+- **projectPath** (string): The path of the project to check for ignore files. 
+ Example: /path/to/project
+###### Function Returns:
+- **Type:** string[]
+- **Description:** An array of file patterns to ignore.
+- **Example:** node_modules,dist
+
+### getFileSizeInKB - [FUNCTION]
+------------------------------------------------------------
+**Description:** Returns the size of a file in kilobytes.
 **Code Snippet:**
 ```
 async function getFileSizeInKB(filePath: string): Promise<number> { ... }
 ```
-###### Function Parameters:
-- **filePath** (string): The path to the file. 
- Example: /user/project/file.txt
-###### Function Returns:
-- **Type:** Promise<number>
-- **Description:** A promise that resolves to the file size in kilobytes.
-- **Example:** 4.5
-### isFileTooLarge - [FUNCTION]
-- **Description:** Determines if a file exceeds the specified file size or character limit.
 - **Line:** 123
 - **Indent:** 2
 - **Location:** codeParser.ts (.//src/codeParser.ts)
@@ -111,69 +128,52 @@ async function getFileSizeInKB(filePath: string): Promise<number> { ... }
 - **Async:** true
 
 
+###### Function Parameters:
+- **filePath** (string): The path of the file to check the size of. 
+ Example: /path/to/file.txt
+###### Function Returns:
+- **Type:** number
+- **Description:** The size of the file in kilobytes.
+- **Example:** 1024
+
+### isFileTooLarge - [FUNCTION]
+------------------------------------------------------------
+**Description:** Checks if a file is too large based on its size in kilobytes and the number of characters.
 **Code Snippet:**
 ```
 async function isFileTooLarge(filePath: string, maxFileSizeKB: number, maxChars: number = 300): Promise<boolean> { ... }
 ```
+- **Line:** 128
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** true
+
+
 ###### Function Parameters:
-- **filePath** (string): The path to the file. 
- Example: /user/project/file.txt
-- **maxFileSizeKB** (number): The maximum allowed file size in kilobytes. 
- Example: 512
-- **maxChars** (number): The maximum allowed number of characters in the file content (default is 300). 
+- **filePath** (string): The path of the file to check. 
+ Example: /path/to/file.txt
+- **maxFileSizeKB** (number): The maximum file size in kilobytes. 
+ Example: 1024
+- **maxChars** (number): The maximum number of characters allowed in the file. 
  Example: 300
 ###### Function Returns:
-- **Type:** Promise<boolean>
-- **Description:** A promise that resolves to true if the file exceeds the specified size or character limit, otherwise false.
+- **Type:** boolean
+- **Description:** Whether the file is too large.
 - **Example:** true
-### getIgnoredFiles - [FUNCTION]
-- **Description:** Asynchronously retrieves a list of ignored file patterns from .gitignore and .fofoignore files.
-- **Line:** 83
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export async function getIgnoredFiles(projectPath: string): Promise<string[]> { ... }
-```
-### getFileSizeInKB - [FUNCTION]
-- **Description:** Asynchronously gets the size of a specified file in kilobytes.
-- **Line:** 116
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export async function getFileSizeInKB(filePath: string): Promise<number> { ... }
-```
-### isFileTooLarge - [FUNCTION]
-- **Description:** Asynchronously checks if a file exceeds a given size and character limit.
-- **Line:** 121
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export async function isFileTooLarge(filePath: string, maxFileSizeKB: number, maxChars: number = 300): Promise<boolean> { ... }
-```
 ## variables
 🧮 **VARIABLES**
 
-### breakNum - [VARIABLE]
-- **Description:** Number of tokens to break the chunks into, fetched from environment variable or defaults to 400.
-- **Line:** 30
+
+### llmToUse - [VARIABLE]
+------------------------------------------------------------
+**Description:** Specifies the language model to use, retrieved from environment variables.
+**Code Snippet:**
+```
+const llmToUse = process.env.LLM_TO_USE || undefined;
+```
+- **Line:** 23
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
@@ -181,55 +181,63 @@ export async function isFileTooLarge(filePath: string, maxFileSizeKB: number, ma
 - **Async:** Not Available
 
 
+
+### breakNum - [VARIABLE]
+------------------------------------------------------------
+**Description:** Specifies the maximum token split value, retrieved from environment variables or defaults to 400.
 **Code Snippet:**
 ```
 const breakNum = Number(process.env.MAX_TOKEN_SPLIT) || 400;
 ```
-### objectKeys - [VARIABLE]
-- **Description:** Keys of code objects that are processed in the code chunk.
-- **Line:** 36
-- **Indent:** 1
+- **Line:** 24
+- **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### objectKeys - [VARIABLE]
+------------------------------------------------------------
+**Description:** An array of code object types to be processed.
 **Code Snippet:**
 ```
-const objectKeys: CodeObjects[] = ['classes', 'functions', 'variables', 'types', 'interfaces', 'comments', 'imports', 'exports'];
+const objectKeys:CodeObjects[] = ['classes', 'functions', 'variables', 'types', 'interfaces', 'imports', 'exports']
 ```
-### chunkCodeObjectsAny - [VARIABLE]
-- **Description:** Temporary storage for code objects identified in a code chunk.
-- **Line:** 37
+- **Line:** 30
 - **Indent:** 1
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### chunkCodeObjectsAny - [VARIABLE]
+------------------------------------------------------------
+**Description:** An object to store the code objects for each chunk.
 **Code Snippet:**
 ```
 const chunkCodeObjectsAny = {} as any;
 ```
+- **Line:** 31
+- **Indent:** 1
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
 ### promptTemplate - [VARIABLE]
-- **Description:** Template for generating LLM prompts, which will be filled based on the type of code object being processed.
-- **Line:** 39
-- **Indent:** 2
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** A template string for generating prompts based on the type of code object.
 **Code Snippet:**
 ```
-let promptTemplate = '';
+let promptTemplate = ""
 ```
-### ignorePatterns - [VARIABLE]
-- **Description:** Patterns to ignore files/directories while parsing.
-- **Line:** 33
+- **Line:** 34
 - **Indent:** 2
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
@@ -237,55 +245,95 @@ let promptTemplate = '';
 - **Async:** Not Available
 
 
+
+### mergedCodeObj - [VARIABLE]
+------------------------------------------------------------
+**Description:** An object to store the merged code objects.
 **Code Snippet:**
 ```
-const ignorePatterns = [
+const mergedCodeObj: any = codeObjArray;
 ```
+- **Line:** 71
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### mergedCodeKeys - [VARIABLE]
+------------------------------------------------------------
+**Description:** An array of keys from the merged code objects.
+**Code Snippet:**
+```
+const mergedCodeKeys = Object.keys(mergedCodeObj);
+```
+- **Line:** 86
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### foundKeys - [VARIABLE]
+------------------------------------------------------------
+**Description:** An array to store unique keys found in the merged code object.
+**Code Snippet:**
+```
+const foundKeys: string[] = [];
+```
+- **Line:** 1
+- **Indent:** 4
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### projectSummary - [VARIABLE]
+------------------------------------------------------------
+**Description:** An object to store the summary of the project being parsed.
+**Code Snippet:**
+```
+const projectSummary: ProjectSummary = { projectName: projectName, projectDescription: {} as codeSummary, projectLocation: projectPath, codeFiles: [], ragData: [], teamContext: "", };
+```
+- **Line:** 27
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
 ### filePaths - [VARIABLE]
-- **Description:** Array of file paths to be processed.
-- **Line:** 38
-- **Indent:** 2
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** An array to store the paths of the files to be parsed.
 **Code Snippet:**
 ```
 let filePaths: string[] = [];
 ```
-### file - [VARIABLE]
-- **Description:** File name extracted from the project path.
-- **Line:** 49
-- **Indent:** 4
+- **Line:** 41
+- **Indent:** 2
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
 - **Private:** false
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-const file = projectPath.split("/").pop();
-```
+
 ### fullFilePath - [VARIABLE]
-- **Description:** Full path of the file being processed.
-- **Line:** 66
-- **Indent:** 4
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** A variable to store the full path of the file being parsed.
 **Code Snippet:**
 ```
 const fullFilePath = `${projectPath}/${filePath}`;
 ```
-### fileLanguage - [VARIABLE]
-- **Description:** Language type inferred from the file.
-- **Line:** 69
+- **Line:** 71
 - **Indent:** 4
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
@@ -293,41 +341,63 @@ const fullFilePath = `${projectPath}/${filePath}`;
 - **Async:** Not Available
 
 
+
+### fileLanguage - [VARIABLE]
+------------------------------------------------------------
+**Description:** A variable to store the inferred language of the file being parsed.
 **Code Snippet:**
 ```
-const fileLanguage = await infer(
+const fileLanguage = await infer( getLanguageTypeFromFile(fullFilePath), "TEXT STRING", "language", false, undefined, undefined, llmToUse );
 ```
-### codeChunks - [VARIABLE]
-- **Description:** Array of code chunks split from the file content.
-- **Line:** 89
-- **Indent:** 6
+- **Line:** 74
+- **Indent:** 4
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
 - **Private:** false
 - **Async:** Not Available
 
 
+
+### codeFileSummary - [VARIABLE]
+------------------------------------------------------------
+**Description:** An object to store the summary of the code file being parsed.
 **Code Snippet:**
 ```
-const codeChunks = breakCodeIntoChunks(fileContent, breakNum); // 1000 tokens per chunk
+const codeFileSummary: CodeFileSummary = { fileName: filePath, fileLocation: fullFilePath, codeSummary: {} as codeSummary, language: fileLanguage.language || "Unknown", executionFlow: [], codeObjects: {} as CodeObject, };
 ```
-### getCurrentLineEndLineBasedOnChunk - [VARIABLE]
-- **Description:** Function to get the start and end lines of the current chunk.
-- **Line:** 90
-- **Indent:** 6
+- **Line:** 79
+- **Indent:** 4
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### currentLine - [VARIABLE]
+------------------------------------------------------------
+**Description:** A variable to keep track of the current line number while parsing the file.
 **Code Snippet:**
 ```
-const getCurrentLineEndLineBasedOnChunk = (chunk: string) => {
+let currentLine = 0;
 ```
+- **Line:** 86
+- **Indent:** 4
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
 ### endLine - [VARIABLE]
-- **Description:** End line number of the current chunk.
-- **Line:** 103
+------------------------------------------------------------
+**Description:** The ending line number of the current code chunk.
+**Code Snippet:**
+```
+const endLine = getCurrentLineEndLineBasedOnChunk(chunk).end;
+```
+- **Line:** 5
 - **Indent:** 8
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
@@ -335,27 +405,31 @@ const getCurrentLineEndLineBasedOnChunk = (chunk: string) => {
 - **Async:** Not Available
 
 
+
+### chunkCodeObjects - [VARIABLE]
+------------------------------------------------------------
+**Description:** The code objects generated from the current code chunk.
 **Code Snippet:**
 ```
-const endLine = getCurrentLineEndLineBasedOnChunk(chunk).end;
+const chunkCodeObjects = await genCodeChunkObj(projectSummary, fullFilePath, chunk);
 ```
-### chunk - [VARIABLE]
-- **Description:** Individual chunk of code being processed
-- **Line:** 10
-- **Indent:** 10
+- **Line:** 7
+- **Indent:** 8
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
 - **Private:** false
 - **Async:** Not Available
 
 
+
+### fileContent - [VARIABLE]
+------------------------------------------------------------
+**Description:** The content of the file read as a string.
 **Code Snippet:**
 ```
-documentData: chunk,
+const fileContent = await readFile(fullFilePath, "utf-8");
 ```
-### codeObjects - [VARIABLE]
-- **Description:** Chunk of code objects generated for a file
-- **Line:** 28
+- **Line:** 25
 - **Indent:** 6
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** false
@@ -363,15 +437,161 @@ documentData: chunk,
 - **Async:** Not Available
 
 
+
+### codeObjects - [VARIABLE]
+------------------------------------------------------------
+**Description:** The code objects generated from the entire file content.
 **Code Snippet:**
 ```
 const codeObjects = await genCodeChunkObj(projectSummary, fullFilePath, fileContent);
 ```
+- **Line:** 26
+- **Indent:** 6
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### codeDescription - [VARIABLE]
+------------------------------------------------------------
+**Description:** A string that accumulates the code summaries of all code files.
+**Code Snippet:**
+```
+let codeDescription = '';
+```
+- **Line:** 48
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### basePath - [VARIABLE]
+------------------------------------------------------------
+**Description:** The base path of the project directory.
+**Code Snippet:**
+```
+const basePath = projectPath.split("/").slice(0, -1).join("/");
+```
+- **Line:** 75
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### executionPath - [VARIABLE]
+------------------------------------------------------------
+**Description:** The current working directory of the process.
+**Code Snippet:**
+```
+const executionPath = process.cwd();
+```
+- **Line:** 76
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### pathsToCheck - [VARIABLE]
+------------------------------------------------------------
+**Description:** An array of file paths to check for ignore patterns.
+**Code Snippet:**
+```
+const pathsToCheck = [ `${basePath}/.gitignore`, `${basePath}/.fofoignore`, `${executionPath}/.gitignore`, `${executionPath}/.fofoignore`, ];
+```
+- **Line:** 80
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### fofoignoreContent - [VARIABLE]
+------------------------------------------------------------
+**Description:** The content of the .fofoignore file read as a string.
+**Code Snippet:**
+```
+const fofoignoreContent = await readFile( path, "utf-8" );
+```
+- **Line:** 87
+- **Indent:** 8
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### gitignoreContent - [VARIABLE]
+------------------------------------------------------------
+**Description:** The content of the .gitignore file read as a string.
+**Code Snippet:**
+```
+const gitignoreContent = await readFile( path, "utf-8" );
+```
+- **Line:** 95
+- **Indent:** 8
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### tooLong - [VARIABLE]
+------------------------------------------------------------
+**Description:** Indicates if the number of tokens in the file exceeds the maximum allowed characters
+**Code Snippet:**
+```
+const tooLong = getTokens(file) > maxChars;
+```
+- **Line:** 3
+- **Indent:** 2
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
 ## imports
 📥 **IMPORTS**
 
+
+### readFile - [IMPORT]
+------------------------------------------------------------
+**Description:** Imports the 'readFile' function from 'fs/promises' for reading files asynchronously.
+**Code Snippet:**
+```
+import { readFile, stat } from "fs/promises";
+```
+- **Line:** 2
+- **Indent:** 0
+- **Location:** codeParser.ts (.//src/codeParser.ts)
+- **Exported:** Not Available
+- **Private:** Not Available
+- **Async:** Not Available
+
+
+
 ### CodeFileSummary - [IMPORT]
-- **Description:** Imports the 'CodeFileSummary' type from the './objectSchemas' module
+------------------------------------------------------------
+**Description:** Imports the 'CodeFileSummary' type from './objectSchemas'.
+**Code Snippet:**
+```
+import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, codeSummary } from "./objectSchemas";
+```
 - **Line:** 3
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
@@ -380,82 +600,14 @@ const codeObjects = await genCodeChunkObj(projectSummary, fullFilePath, fileCont
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, codeSummary } from "./objectSchemas";
-```
-### CodeObject - [IMPORT]
-- **Description:** Imports the 'CodeObject' type from the './objectSchemas' module
-- **Line:** 3
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
 
-
-**Code Snippet:**
-```
-import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, codeSummary } from "./objectSchemas";
-```
-### CodeObjects - [IMPORT]
-- **Description:** Imports the 'CodeObjects' type from the './objectSchemas' module
-- **Line:** 3
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, codeSummary } from "./objectSchemas";
-```
-### ProjectSummary - [IMPORT]
-- **Description:** Imports the 'ProjectSummary' type from the './objectSchemas' module
-- **Line:** 3
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, codeSummary } from "./objectSchemas";
-```
-### RagData - [IMPORT]
-- **Description:** Imports the 'RagData' type from the './objectSchemas' module
-- **Line:** 3
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, codeSummary } from "./objectSchemas";
-```
-### codeSummary - [IMPORT]
-- **Description:** Imports the 'codeSummary' function from the './objectSchemas' module
-- **Line:** 3
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, codeSummary } from "./objectSchemas";
-```
 ### infer - [IMPORT]
-- **Description:** Imports the 'infer' function from the './llmInterface' module
+------------------------------------------------------------
+**Description:** Imports the 'infer' function from './llmInterface'.
+**Code Snippet:**
+```
+import { infer, callLLM, getCodeSummaryFromLLM } from "./llmInterface";
+```
 - **Line:** 4
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
@@ -464,40 +616,14 @@ import { CodeFileSummary, CodeObject, CodeObjects, ProjectSummary, RagData, code
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import { infer, callLLM, getCodeSummaryFromLLM } from "./llmInterface";
-```
-### callLLM - [IMPORT]
-- **Description:** Imports the 'callLLM' function from the './llmInterface' module
-- **Line:** 4
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
 
-
-**Code Snippet:**
-```
-import { infer, callLLM, getCodeSummaryFromLLM } from "./llmInterface";
-```
-### getCodeSummaryFromLLM - [IMPORT]
-- **Description:** Imports the 'getCodeSummaryFromLLM' function from the './llmInterface' module
-- **Line:** 4
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { infer, callLLM, getCodeSummaryFromLLM } from "./llmInterface";
-```
 ### getLanguageTypeFromFile - [IMPORT]
-- **Description:** Imports the 'getLanguageTypeFromFile' function from the './prompt' module
+------------------------------------------------------------
+**Description:** Imports the 'getLanguageTypeFromFile' function from './prompt'.
+**Code Snippet:**
+```
+import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, importsPrompt, exportsPrompt } from "./prompt";
+```
 - **Line:** 5
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
@@ -506,124 +632,14 @@ import { infer, callLLM, getCodeSummaryFromLLM } from "./llmInterface";
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### classesPrompt - [IMPORT]
-- **Description:** Imports the 'classesPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
 
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### functionsPrompt - [IMPORT]
-- **Description:** Imports the 'functionsPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### variablesPrompt - [IMPORT]
-- **Description:** Imports the 'variablesPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### typesPrompt - [IMPORT]
-- **Description:** Imports the 'typesPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### interfacesPrompt - [IMPORT]
-- **Description:** Imports the 'interfacesPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### commentsPrompt - [IMPORT]
-- **Description:** Imports the 'commentsPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### importsPrompt - [IMPORT]
-- **Description:** Imports the 'importsPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
-### exportsPrompt - [IMPORT]
-- **Description:** Imports the 'exportsPrompt' function from the './prompt' module
-- **Line:** 5
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPrompt, typesPrompt, interfacesPrompt, commentsPrompt, importsPrompt, exportsPrompt } from "./prompt";
-```
 ### saveToVectorDatabase - [IMPORT]
-- **Description:** Imports the 'saveToVectorDatabase' function from the './vectorDB' module
+------------------------------------------------------------
+**Description:** Imports the 'saveToVectorDatabase' function from './vectorDB'.
+**Code Snippet:**
+```
+import { saveToVectorDatabase } from "./vectorDB";
+```
 - **Line:** 6
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
@@ -632,12 +648,14 @@ import { getLanguageTypeFromFile, classesPrompt, functionsPrompt, variablesPromp
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import { saveToVectorDatabase } from "./vectorDB";
-```
+
 ### breakCodeIntoChunks - [IMPORT]
-- **Description:** Imports the 'breakCodeIntoChunks' function from the './shared' module
+------------------------------------------------------------
+**Description:** Imports the 'breakCodeIntoChunks' function from './shared'.
+**Code Snippet:**
+```
+import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
+```
 - **Line:** 7
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
@@ -646,40 +664,14 @@ import { saveToVectorDatabase } from "./vectorDB";
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
-```
-### getFileContentLen - [IMPORT]
-- **Description:** Imports the 'getFileContentLen' function from the './shared' module
-- **Line:** 7
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
 
-
-**Code Snippet:**
-```
-import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
-```
-### getTokens - [IMPORT]
-- **Description:** Imports the 'getTokens' function from the './shared' module
-- **Line:** 7
-- **Indent:** 0
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
-```
 ### dotenv/config - [IMPORT]
-- **Description:** Imports the 'dotenv/config' module to load environment variables
+------------------------------------------------------------
+**Description:** Imports the 'dotenv/config' module to load environment variables from a .env file.
+**Code Snippet:**
+```
+import "dotenv/config";
+```
 - **Line:** 9
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
@@ -688,16 +680,18 @@ import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import "dotenv/config";
-```
 ## exports
 📤 **EXPORTS**
 
+
 ### mergeObjectArrays - [EXPORT]
-- **Description:** This function merges incoming CodeObject arrays with existing ones by combining arrays with the same keys and ensuring no duplicates.
-- **Line:** 61
+------------------------------------------------------------
+**Description:** Function to merge incoming code objects with existing code objects, handling both new and existing keys.
+**Code Snippet:**
+```
+export function mergeObjectArrays(codeObjArray: CodeObject, newCodeObj: any): CodeObject { ... }
+```
+- **Line:** 67
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** Not Available
@@ -705,16 +699,15 @@ import "dotenv/config";
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-export function mergeObjectArrays(
-  codeObjArray: CodeObject,
-  newCodeObj: any
-): CodeObject {
-```
+
 ### parseCodebase - [EXPORT]
-- **Description:** Asynchronous function to parse the codebase and return a project summary.
-- **Line:** 25
+------------------------------------------------------------
+**Description:** Asynchronously parses the codebase at the given project path and returns a summary of the project.
+**Code Snippet:**
+```
+export async function parseCodebase(projectPath: string, projectName: string): Promise<ProjectSummary> { ... }
+```
+- **Line:** 36
 - **Indent:** 0
 - **Location:** codeParser.ts (.//src/codeParser.ts)
 - **Exported:** Not Available
@@ -722,55 +715,3 @@ export function mergeObjectArrays(
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-export async function parseCodebase(
-  projectPath: string,
-  projectName: string
-): Promise<ProjectSummary> {
-```
-## interfaces
-🌉 **INTERFACES**
-
-### ProjectSummary - [INTERFACE]
-- **Description:** Represents the summary of a project, including its name, description, location, code files, RAG data, and team context.
-- **Line:** 25
-- **Indent:** 2
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-interface ProjectSummary { projectName: string; projectDescription: codeSummary; projectLocation: string; codeFiles: string[]; ragData: RagData[]; teamContext: string; }
-```
-### CodeFileSummary - [INTERFACE]
-- **Description:** Represents the summary of a code file, including its name, location, summary, language, execution flow, and code objects.
-- **Line:** 59
-- **Indent:** 4
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-interface CodeFileSummary { fileName: string; fileLocation: string; codeSummary: codeSummary; language: string; executionFlow: string[]; codeObjects: CodeObject; }
-```
-### RagData - [INTERFACE]
-- **Description:** Represents RAG (Risk Assessment Grid) data, containing metadata for the code chunk.
-- **Line:** 100
-- **Indent:** 6
-- **Location:** codeParser.ts (.//src/codeParser.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-interface RagData { metadata: { filename: string; codeChunkId: number; codeChunkLineStart: number; codeChunkLineEnd: number; } }
-```

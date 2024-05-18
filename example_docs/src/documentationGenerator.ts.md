@@ -1,6 +1,6 @@
-# src/documentationGenerator.ts
+# src/documentationGenerator.ts - fofo-docs
 
-**Summary:** The code aims to generate documentation for a project, including creating necessary directories and handling JSON context files.
+**Summary:** The code aims to generate documentation for a project by saving the project context to a JSON file and converting it to Markdown format.
 
 - **File Location:** .//src/documentationGenerator.ts
 - **Language:** TypeScript
@@ -13,32 +13,15 @@
 ## functions
 🔧 **FUNCTIONS**
 
+
 ### jsonToMarkdown - [FUNCTION]
-- **Description:** Converts a JSON project summary into Markdown format and writes it to specified output folder.
-- **Line:** 10
-- **Indent:** 0
-- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** false
-
-
+------------------------------------------------------------
+**Description:** Converts a project summary object into a markdown documentation format and saves it to the specified output folder.
 **Code Snippet:**
 ```
 function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) { ... }
 ```
-###### Function Parameters:
-- **projectSummary** (ProjectSummary): The summary of the project to be converted into Markdown 
- Example: exampleProjectSummary
-- **outputFolder** (string): The output folder where the Markdown files will be saved 
- Example: exampleOutputFolder
-###### Function Returns:
-- **Type:** void
-- **Description:** This function does not return a value
-- **Example:** null
-### generateCodeObjectContent - [FUNCTION]
-- **Description:** Generates formatted content for a code object based on its properties and indentation level.
-- **Line:** 78
+- **Line:** 8
 - **Indent:** 0
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
@@ -46,64 +29,111 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) { 
 - **Async:** false
 
 
+###### Function Parameters:
+- **projectSummary** (ProjectSummary): The summary of the project including details like project name, description, team context, and code files. 
+ Example: { projectName: 'ExampleProject', projectDescription: { goal: '...', features_functions: '...' }, teamContext: '...', codeFiles: [...] }
+- **outputFolder** (string): The directory where the markdown files will be saved. 
+ Example: "./output"
+###### Function Returns:
+- **Type:** void
+- **Description:** This function does not return a value.
+- **Example:** N/A
+
+### duplicateCheck - [FUNCTION]
+------------------------------------------------------------
+**Description:** Checks if a given code object is a duplicate based on its name, content, and type.
+**Code Snippet:**
+```
+const duplicateCheck = (obj: CodeObject, type: CodeObjectType): boolean => { ... }
+```
+- **Line:** 70
+- **Indent:** 8
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** true
+- **Async:** false
+
+
+###### Function Parameters:
+- **obj** (CodeObject): The code object to check for duplication. 
+ Example: { name: 'exampleFunction', codeSnippet: 'function exampleFunction() { ... }', type: 'function' }
+- **type** (CodeObjectType): The type of the code object (e.g., class, function, variable). 
+ Example: "function"
+###### Function Returns:
+- **Type:** boolean
+- **Description:** Returns true if the code object is a duplicate, otherwise false.
+- **Example:** true
+
+### generateCodeObjectContent - [FUNCTION]
+------------------------------------------------------------
+**Description:** Generates content for a given code object with specified indentation.
 **Code Snippet:**
 ```
 function generateCodeObjectContent(codeObject: CodeObject, indent: number): string { ... }
 ```
-###### Function Parameters:
-- **codeObject** (CodeObject): The code object to be formatted 
- Example: exampleCodeObject
-- **indent** (number): The indentation level for nested content 
- Example: 2
-###### Function Returns:
-- **Type:** string
-- **Description:** The formatted string representation of the code object
-- **Example:** formattedContent
-### getEmoji - [FUNCTION]
-- **Description:** Returns the corresponding emoji for a given string type.
-- **Line:** 9
-- **Indent:** 0
+- **Line:** 87
+- **Indent:** 1
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
 - **Private:** false
 - **Async:** false
 
 
+###### Function Parameters:
+- **codeObject** (CodeObject): The code object to generate content for. 
+ Example: { name: 'example', type: 'function', description: 'An example function', codeSnippet: 'function example() { ... }', codeLine: 10, codeIndent: 2, fileName: 'example.ts', fileLocation: './src/example.ts', isExported: true, isPrivate: false, isAsync: false }
+- **indent** (number): The level of indentation to apply to the generated content. 
+ Example: 2
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated content for the code object.
+- **Example:** ### example - [FUNCTION]
+---
+**Description:** An example function
+**Code Snippet:**
+
+function example() { ... }
+```
+- **Line:** 10
+- **Indent:** 2
+- **Location:** example.ts (./src/example.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+
+### getEmoji - [FUNCTION]
+------------------------------------------------------------
+**Description:** Returns an emoji based on the type of code object.
 **Code Snippet:**
 ```
 function getEmoji(type: string): string { ... }
 ```
-###### Function Parameters:
-- **type** (string): The type for which the corresponding emoji is required. 
- Example: functions
-###### Function Returns:
-- **Type:** string
-- **Description:** The corresponding emoji for the given type.
-- **Example:** 🔧
-### capitalizeFirstLetter - [FUNCTION]
-- **Description:** Capitalizes the first letter of a given string.
-- **Line:** 24
-- **Indent:** 0
+- **Line:** 142
+- **Indent:** 1
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
 - **Private:** false
 - **Async:** false
 
 
-**Code Snippet:**
-```
-function capitalizeFirstLetter(string: string): string { ... }
-```
 ###### Function Parameters:
-- **string** (string): The string to capitalize. 
- Example: example
+- **type** (string): The type of code object. 
+ Example: functions
 ###### Function Returns:
 - **Type:** string
-- **Description:** The input string with its first letter capitalized.
-- **Example:** Example
+- **Description:** The emoji corresponding to the code object type.
+- **Example:** 🔧
+
 ### generateDocumentation - [FUNCTION]
-- **Description:** Generates documentation for the project and saves the project context as a JSON file.
-- **Line:** 28
+------------------------------------------------------------
+**Description:** Generates documentation for a project by saving the project context to a JSON file and converting it to Markdown.
+**Code Snippet:**
+```
+export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> { ... }
+```
+- **Line:** 10
 - **Indent:** 0
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** true
@@ -111,132 +141,137 @@ function capitalizeFirstLetter(string: string): string { ... }
 - **Async:** true
 
 
-**Code Snippet:**
-```
-export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> { ... }
-```
 ###### Function Parameters:
-- **folderPath** (string): The path to the folder where the documentation should be generated. 
- Example: ./docs
-- **projectContext** (ProjectSummary | null): The project summary context to be documented. 
+- **folderPath** (string): The path to the folder where the documentation will be generated. 
+ Example: /path/to/folder
+- **projectContext** (ProjectSummary | null): The project context to be documented. If null, it will be read from the JSON file. 
  Example: null
-- **jsonFile** (string): Optional path to the JSON file where the project context should be saved. 
- Example: projectContext.json
+- **jsonFile** (string): Optional path to an existing JSON file containing the project context. 
+ Example: /path/to/projectContext.json
 ###### Function Returns:
 - **Type:** boolean
-- **Description:** Indicates whether the documentation generation was successful.
+- **Description:** Returns true if the documentation was successfully generated, otherwise false.
 - **Example:** true
 ## variables
 🧮 **VARIABLES**
 
+
 ### timestamp - [VARIABLE]
-- **Description:** A timestamp string created from the current date
-- **Line:** 10
-- **Indent:** 1
-- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** Current timestamp formatted as a string.
 **Code Snippet:**
 ```
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 ```
-### projectFolder - [VARIABLE]
-- **Description:** The path of the project folder combining output folder and timestamp-ed project name
-- **Line:** 11
+- **Line:** 10
 - **Indent:** 1
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### projectFolder - [VARIABLE]
+------------------------------------------------------------
+**Description:** Path to the project folder.
 **Code Snippet:**
 ```
 const projectFolder = path.join(outputFolder, `${projectSummary.projectName}-${timestamp}`);
 ```
-### toc - [VARIABLE]
-- **Description:** An array to store table of contents entries
-- **Line:** 14
+- **Line:** 11
 - **Indent:** 1
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### toc - [VARIABLE]
+------------------------------------------------------------
+**Description:** Table of contents as an array of strings.
 **Code Snippet:**
 ```
 const toc: string[] = [];
 ```
-### fileName - [VARIABLE]
-- **Description:** The name of a file with .md extension
-- **Line:** 23
-- **Indent:** 2
+- **Line:** 14
+- **Indent:** 1
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### fileName - [VARIABLE]
+------------------------------------------------------------
+**Description:** Name of the markdown file for each code file.
 **Code Snippet:**
 ```
 const fileName = `${file.fileName}.md`;
 ```
-### filePath - [VARIABLE]
-- **Description:** The complete path of the markdown file in the project folder
-- **Line:** 24
+- **Line:** 22
 - **Indent:** 2
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### filePath - [VARIABLE]
+------------------------------------------------------------
+**Description:** Path to the markdown file for each code file.
 **Code Snippet:**
 ```
 const filePath = path.join(projectFolder, fileName);
 ```
+- **Line:** 23
+- **Indent:** 2
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
 ### fileContent - [VARIABLE]
-- **Description:** The content of a markdown file that includes summary and TOC
+------------------------------------------------------------
+**Description:** Content of the markdown file for each code file.
+**Code Snippet:**
+```
+let fileContent = `# ${file.fileName} - ${projectSummary.projectName}
+`;
+```
 - **Line:** 25
 - **Indent:** 2
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-let fileContent = `# ${file.fileName}\n`;
-```
+
 ### sectionLinks - [VARIABLE]
-- **Description:** An array to store links to different sections of the markdown file
-- **Line:** 35
-- **Indent:** 2
-- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** Array of section links for the table of contents.
 **Code Snippet:**
 ```
 const sectionLinks: string[] = [];
 ```
-### sectionContent - [VARIABLE]
-- **Description:** An object to store content for different sections such as classes, functions, etc.
-- **Line:** 37
+- **Line:** 32
 - **Indent:** 2
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### sectionContent - [VARIABLE]
+------------------------------------------------------------
+**Description:** Object to hold different sections of content.
 **Code Snippet:**
 ```
 const sectionContent = {
@@ -250,37 +285,175 @@ const sectionContent = {
     interfaces: ''
 };
 ```
-### fileFolder - [VARIABLE]
-- **Description:** The directory path of the file
-- **Line:** 66
+- **Line:** 34
 - **Indent:** 2
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### duplicateTracking - [VARIABLE]
+------------------------------------------------------------
+**Description:** Object to track duplicates of different code objects.
+**Code Snippet:**
+```
+const duplicateTracking: dupTrack = {
+    classes: [],
+    functions: [],
+    variables: [],
+    types: [],
+    comments: [],
+    imports: [],
+    exports: [],
+    interfaces: []
+};
+```
+- **Line:** 50
+- **Indent:** 2
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### duplicateCheck - [VARIABLE]
+------------------------------------------------------------
+**Description:** Function to check for duplicates in code objects.
+**Code Snippet:**
+```
+const duplicateCheck = (obj: CodeObject, type: CodeObjectType): boolean => {
+    const objName = obj.name;
+    const objContent = obj.codeSnippet;
+    const objType = obj.type;
+
+    if ((objName || objContent) && objType) {
+        const dupObj = {
+            name: objName,
+            content: objContent,
+            type: objType
+        };
+
+        // Check to see if the object already exists in the duplicate tracking
+        let bFound = false;
+        for (const [section, content] of Object.entries(duplicateTracking)) {
+            const contentObj = content as dupObj[];
+
+            // If the same name and the same type, we will go ahead and omit it
+            const found = contentObj.find((item) => (item.name === objName || item.content === objContent) && item.type === objType);
+
+            if (typeof found !== 'undefined') {
+                bFound = true;
+                break;
+            }
+        }
+
+        if (bFound === true) {
+            return true;
+        }
+
+        switch (type) {
+            case 'class':
+                duplicateTracking.classes.push(dupObj);
+                break;
+            case 'function':
+                duplicateTracking.functions.push(dupObj);
+                break;
+            case 'variable':
+                duplicateTracking.variables.push(dupObj);
+                break;
+            case 'type':
+                duplicateTracking.types.push(dupObj);
+                break;
+            // case 'comment':
+            //     duplicateTracking.comments.push(dupObj);
+            //     break;
+            case 'import':
+                duplicateTracking.imports.push(dupObj);
+                break;
+            case 'export':
+                duplicateTracking.exports.push(dupObj);
+                break;
+            case 'interface':
+                duplicateTracking.interfaces.push(dupObj);
+                break;
+            default:
+                break;
+        }
+
+        return false;
+    }
+
+    return false;
+};
+```
+- **Line:** 61
+- **Indent:** 2
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### baseObject - [VARIABLE]
+------------------------------------------------------------
+**Description:** Holds the code objects from the file.
+**Code Snippet:**
+```
+const baseObject = file.codeObjects as any;
+```
+- **Line:** 1
+- **Indent:** 12
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### obj - [VARIABLE]
+------------------------------------------------------------
+**Description:** Holds the array of code objects for a specific key.
+**Code Snippet:**
+```
+const obj = baseObject[key] as any[];
+```
+- **Line:** 2
+- **Indent:** 12
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### fileFolder - [VARIABLE]
+------------------------------------------------------------
+**Description:** Holds the directory path of the file.
 **Code Snippet:**
 ```
 const fileFolder = path.dirname(filePath);
 ```
-### tocPath - [VARIABLE]
-- **Description:** The path for the Table of Contents file (README.md)
-- **Line:** 75
-- **Indent:** 1
+- **Line:** 37
+- **Indent:** 8
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### tocPath - [VARIABLE]
+------------------------------------------------------------
+**Description:** Holds the path to the README.md file in the project folder.
 **Code Snippet:**
 ```
 const tocPath = path.join(projectFolder, 'README.md');
 ```
-### content - [VARIABLE]
-- **Description:** Holds the content being generated for the documentation.
-- **Line:** 2
+- **Line:** 47
 - **Indent:** 4
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
@@ -288,14 +461,15 @@ const tocPath = path.join(projectFolder, 'README.md');
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-content += `
-${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Not Available'}`;
-```
+
 ### indentation - [VARIABLE]
-- **Description:** Determines the indentation level for the generated content.
-- **Line:** 2
+------------------------------------------------------------
+**Description:** Holds the indentation string based on the indent level.
+**Code Snippet:**
+```
+const indentation = '  '.repeat(indent);
+```
+- **Line:** 53
 - **Indent:** 4
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
@@ -303,86 +477,97 @@ ${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.i
 - **Async:** Not Available
 
 
+
+### fancyBar - [VARIABLE]
+------------------------------------------------------------
+**Description:** Holds a decorative string used in the content.
 **Code Snippet:**
 ```
-content += `
-${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Not Available'}`;
+const fancyBar = '---'.repeat(20);
 ```
-### projectContext - [VARIABLE]
-- **Description:** Holds the project context information for generating the documentation.
-- **Line:** 69
-- **Indent:** 0
-- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {
-```
-### jsonFile - [VARIABLE]
-- **Description:** Optional parameter to specify the JSON file path for saving the project context.
-- **Line:** 69
-- **Indent:** 0
-- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {
-```
-### timeStamp - [VARIABLE]
-- **Description:** Holds the current timestamp formatted for file naming.
-- **Line:** 98
-- **Indent:** 8
+- **Line:** 54
+- **Indent:** 4
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### folderPath - [VARIABLE]
+------------------------------------------------------------
+**Description:** The path to the folder where documentation will be generated.
+**Code Snippet:**
+```
+export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {
+```
+- **Line:** 10
+- **Indent:** 0
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### timeStamp - [VARIABLE]
+------------------------------------------------------------
+**Description:** A timestamp used to create a unique filename.
 **Code Snippet:**
 ```
 const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
 ```
-### model - [VARIABLE]
-- **Description:** Holds the model name from the environment variable or defaults to 'ml'.
-- **Line:** 99
+- **Line:** 38
 - **Indent:** 8
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### model - [VARIABLE]
+------------------------------------------------------------
+**Description:** The model name used in the filename, defaulting to 'ml'.
 **Code Snippet:**
 ```
 const model = process.env.LLM_TO_USE || 'ml';
 ```
-### projectContextPath - [VARIABLE]
-- **Description:** Determines the file path for saving the project context JSON file.
-- **Line:** 100
+- **Line:** 39
 - **Indent:** 8
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### projectContextPath - [VARIABLE]
+------------------------------------------------------------
+**Description:** The path to the project context JSON file.
 **Code Snippet:**
 ```
 const projectContextPath = path.join(folderPath, `projectContext-${timeStamp}-${model}.json`);
 ```
+- **Line:** 40
+- **Indent:** 8
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
 ## imports
 📥 **IMPORTS**
 
-### { CodeObject, ProjectSummary, CodeObjectType } - [IMPORT]
-- **Description:** Imports CodeObject, ProjectSummary, and CodeObjectType from the objectSchemas module.
+
+### CodeObject, ProjectSummary, CodeObjectType - [IMPORT]
+------------------------------------------------------------
+**Description:** Imports the CodeObject, ProjectSummary, and CodeObjectType types from the local objectSchemas module.
+**Code Snippet:**
+```
+import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
+```
 - **Line:** 1
 - **Indent:** 0
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
@@ -391,12 +576,14 @@ const projectContextPath = path.join(folderPath, `projectContext-${timeStamp}-${
 - **Async:** Not Available
 
 
+
+### dotenv/config - [IMPORT]
+------------------------------------------------------------
+**Description:** Imports and configures the dotenv module to load environment variables from a .env file.
 **Code Snippet:**
 ```
-import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
+import "dotenv/config";
 ```
-### "dotenv/config" - [IMPORT]
-- **Description:** Imports and configures dotenv to load environment variables from a .env file.
 - **Line:** 4
 - **Indent:** 0
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
@@ -405,16 +592,15 @@ import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
 - **Async:** Not Available
 
 
+
+### fs - [IMPORT]
+------------------------------------------------------------
+**Description:** Node.js File System module used for file operations such as checking existence, creating directories, and writing files.
 **Code Snippet:**
 ```
-import "dotenv/config";
+import fs from 'fs';
 ```
-## exports
-📤 **EXPORTS**
-
-### generateDocumentation - [EXPORT]
-- **Description:** An asynchronous function to generate documentation for the project.
-- **Line:** 41
+- **Line:** 1
 - **Indent:** 0
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** Not Available
@@ -422,52 +608,73 @@ import "dotenv/config";
 - **Async:** Not Available
 
 
+
+### path - [IMPORT]
+------------------------------------------------------------
+**Description:** Node.js Path module used for handling and transforming file paths.
+**Code Snippet:**
+```
+import path from 'path';
+```
+- **Line:** 2
+- **Indent:** 0
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** Not Available
+- **Private:** Not Available
+- **Async:** Not Available
+
+
+## exports
+📤 **EXPORTS**
+
+
+### generateDocumentation - [EXPORT]
+------------------------------------------------------------
+**Description:** Asynchronous function to generate documentation for a given folder path and project context. It ensures the folder path exists and is writable, saves the project context to a JSON file, and converts the JSON to Markdown.
 **Code Snippet:**
 ```
 export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> { ... }
 ```
+- **Line:** 12
+- **Indent:** 0
+- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
+- **Exported:** Not Available
+- **Private:** Not Available
+- **Async:** Not Available
+
+
 ## interfaces
 🌉 **INTERFACES**
 
-### CodeObject - [INTERFACE]
-- **Description:** Represents a generic code object used within the project.
-- **Line:** 1
-- **Indent:** 0
+
+### dupObj - [INTERFACE]
+------------------------------------------------------------
+**Description:** Interface for tracking duplicate objects with optional name and content, and a required type.
+**Code Snippet:**
+```
+interface dupObj { name?: string; content?: string; type: CodeObjectType; }
+```
+- **Line:** 45
+- **Indent:** 8
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** Not Available
 - **Private:** Not Available
 - **Async:** Not Available
 
 
+
+### dupTrack - [INTERFACE]
+------------------------------------------------------------
+**Description:** Interface for tracking duplicates of various code object types.
 **Code Snippet:**
 ```
-import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
+interface dupTrack { classes: dupObj[]; functions: dupObj[]; variables: dupObj[]; types: dupObj[]; comments: dupObj[]; imports: dupObj[]; exports: dupObj[]; interfaces: dupObj[]; }
 ```
-### ProjectSummary - [INTERFACE]
-- **Description:** Describes the summary structure of a project including its details.
-- **Line:** 1
-- **Indent:** 0
+- **Line:** 50
+- **Indent:** 8
 - **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
 - **Exported:** Not Available
 - **Private:** Not Available
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
-```
-### CodeObjectType - [INTERFACE]
-- **Description:** Defines the different types of code objects that can exist.
-- **Line:** 1
-- **Indent:** 0
-- **Location:** documentationGenerator.ts (.//src/documentationGenerator.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
-```

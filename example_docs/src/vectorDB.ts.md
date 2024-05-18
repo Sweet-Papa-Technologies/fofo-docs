@@ -1,420 +1,361 @@
-# src/vectorDB.ts
+# src/vectorDB.ts - fofo-docs
 
-**Summary:** The code's goal is to interact with a vector database using embeddings generated from either Google or OpenAI embedding functions. It includes functionalities for loading or creating collections, saving data to the database, and searching within the database.
+**Summary:** The code aims to process search results and extract embeddings and document data, then log and return this processed data.
 
 - **File Location:** .//src/vectorDB.ts
 - **Language:** TypeScript
 ## Table of Contents
-- [classes](#classes)
 - [functions](#functions)
 - [variables](#variables)
 - [imports](#imports)
-- [exports](#exports)
-## classes
-📘 **CLASSES**
-
-### ChromaClient - [CLASS]
-- **Description:** Represents a client for interacting with the Chroma database.
-- **Line:** 3
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { ChromaClient, ... } from 'chromadb'
-```
-### GoogleGenerativeAiEmbeddingFunction - [CLASS]
-- **Description:** Represents an embedding function using Google Generative AI.
-- **Line:** 3
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { ..., GoogleGenerativeAiEmbeddingFunction, ... } from 'chromadb'
-```
-### OpenAIEmbeddingFunction - [CLASS]
-- **Description:** Represents an embedding function using OpenAI.
-- **Line:** 3
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { ..., OpenAIEmbeddingFunction, ... } from 'chromadb'
-```
-### Collection - [CLASS]
-- **Description:** Represents a collection in the Chroma database.
-- **Line:** 3
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-import { ..., Collection } from 'chromadb'
-```
 ## functions
 🔧 **FUNCTIONS**
 
+
 ### load_create_collection - [FUNCTION]
-- **Description:** Loads an existing collection or creates a new one if it doesn't exist, using the project name.
-- **Line:** 48
+------------------------------------------------------------
+**Description:** Loads an existing collection or creates a new one if it doesn't exist.
+**Code Snippet:**
+```
+export async function load_create_collection(projectName: string): Promise<Collection | void> { ... }
+```
+- **Line:** 40
 - **Indent:** 0
-- **Location:** vectorDB.ts (./src/vectorDB.ts)
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** true
 - **Private:** false
 - **Async:** true
 
 
-**Code Snippet:**
-```
-export async function load_create_collection(projectName:string): Promise<Collection|void> { ... }
-```
 ###### Function Parameters:
-- **projectName** (string): The name of the project for which to load or create a collection. 
+- **projectName** (string): The name of the project for which the collection is being loaded or created. 
  Example: exampleProject
 ###### Function Returns:
-- **Type:** Collection|void
-- **Description:** The loaded or newly created collection.
-- **Example:** collection
+- **Type:** Collection | void
+- **Description:** The collection object if found or created, otherwise void.
+- **Example:** Collection { name: 'exampleProject', ... }
+
 ### saveToVectorDatabase - [FUNCTION]
-- **Description:** Saves the provided code and associated RAG data to the vector database under the specified project name.
-- **Line:** 82
+------------------------------------------------------------
+**Description:** Saves data to the vector database.
+**Code Snippet:**
+```
+export async function saveToVectorDatabase(projectName: string, code: string, ragData: RagData): Promise<boolean> { ... }
+```
+- **Line:** 78
 - **Indent:** 0
-- **Location:** vectorDB.ts (./src/vectorDB.ts)
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** true
 - **Private:** false
 - **Async:** true
 
 
-**Code Snippet:**
-```
-export async function saveToVectorDatabase(projectName:string, code: string, ragData:RagData): Promise<boolean> { ... }
-```
 ###### Function Parameters:
-- **projectName** (string): The name of the project to which the data will be saved. 
+- **projectName** (string): The name of the project for which the data is being saved. 
  Example: exampleProject
 - **code** (string): The code to be saved in the vector database. 
- Example: exampleCode
+ Example: const x = 10;
 - **ragData** (RagData): The RAG data associated with the code. 
- Example: exampleRagData
+ Example: { metadata: { filename: 'example.ts', codeChunkId: '123' }, ... }
 ###### Function Returns:
 - **Type:** boolean
-- **Description:** Returns true if the data was saved successfully, otherwise false.
+- **Description:** Returns true if the data is saved successfully, otherwise false.
 - **Example:** true
+
 ### searchRAG - [FUNCTION]
-- **Description:** Searches the vector database for RAG data using a search string, within the context of a specified project.
-- **Line:** 120
+------------------------------------------------------------
+**Description:** Searches the RAG data in the vector database.
+**Code Snippet:**
+```
+export async function searchRAG(projectName: string, searchString: string): Promise<RagData> { ... }
+```
+- **Line:** 101
 - **Indent:** 0
-- **Location:** vectorDB.ts (./src/vectorDB.ts)
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** true
 - **Private:** false
 - **Async:** true
 
 
-**Code Snippet:**
-```
-export async function searchRAG(projectName:string, searchString: string): Promise<RagData> { ... }
-```
 ###### Function Parameters:
-- **projectName** (string): The name of the project in which to perform the search. 
+- **projectName** (string): The name of the project for which the search is being performed. 
  Example: exampleProject
-- **searchString** (string): The search string used to query the vector database. 
- Example: exampleSearch
+- **searchString** (string): The search string used to query the RAG data. 
+ Example: example search
 ###### Function Returns:
 - **Type:** RagData
-- **Description:** The resulting RAG data from the search query.
-- **Example:** {}
+- **Description:** The RAG data that matches the search query.
+- **Example:** { metadata: { filename: 'example.ts', codeChunkId: '123' }, ... }
 ## variables
 🧮 **VARIABLES**
 
+
 ### apiPass - [VARIABLE]
-- **Description:** Environment variable for API password.
-- **Line:** 7
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** API password retrieved from environment variables or an empty string if not set.
 **Code Snippet:**
 ```
-const apiPass = process.env.API_PASS || '';
+const apiPass = process.env.API_PASS || "";
 ```
-### apiUser - [VARIABLE]
-- **Description:** Environment variable for API user.
-- **Line:** 8
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-const apiUser = process.env.API_USER || '';
-```
-### geminiKey - [VARIABLE]
-- **Description:** Environment variable for Gemini Key.
 - **Line:** 9
-- **Indent:** 0
+- **Indent:** 1
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### apiUser - [VARIABLE]
+------------------------------------------------------------
+**Description:** API user retrieved from environment variables or an empty string if not set.
 **Code Snippet:**
 ```
-const geminiKey = process.env.GEMINI_KEY || '';
+const apiUser = process.env.API_USER || "";
 ```
-### apiURL - [VARIABLE]
-- **Description:** Environment variable for API URL.
 - **Line:** 10
-- **Indent:** 0
+- **Indent:** 1
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### geminiKey - [VARIABLE]
+------------------------------------------------------------
+**Description:** Gemini API key retrieved from environment variables or an empty string if not set.
 **Code Snippet:**
 ```
-const apiURL = process.env.API_URL || '';
+const geminiKey = process.env.GEMINI_KEY || "";
 ```
+- **Line:** 11
+- **Indent:** 1
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### apiURL - [VARIABLE]
+------------------------------------------------------------
+**Description:** API URL retrieved from environment variables or an empty string if not set.
+**Code Snippet:**
+```
+const apiURL = process.env.API_URL || "";
+```
+- **Line:** 12
+- **Indent:** 1
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
 ### embedderMode - [VARIABLE]
-- **Description:** Environment variable for embedder mode, defaults to 'GCP'.
-- **Line:** 17
-- **Indent:** 0
+------------------------------------------------------------
+**Description:** Embedder mode retrieved from environment variables or defaults to 'GCP'.
+**Code Snippet:**
+```
+const embedderMode = process.env.EMBEDDER_MODE || "GCP";
+```
+- **Line:** 18
+- **Indent:** 1
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-const embedderMode = process.env.EMBEDDER_MODE || 'GCP';
-```
+
 ### embedder - [VARIABLE]
-- **Description:** Variable to hold the embedding function based on embedder mode.
-- **Line:** 19
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** Embedder function initialized based on the embedder mode.
 **Code Snippet:**
 ```
-let embedder:any|undefined=undefined;
+let embedder: any | undefined = undefined;
 ```
-### chromaSettings - [VARIABLE]
-- **Description:** Configuration settings for ChromaClient, set to undefined.
-- **Line:** 36
-- **Indent:** 0
+- **Line:** 20
+- **Indent:** 1
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### chromaSettings - [VARIABLE]
+------------------------------------------------------------
+**Description:** Settings for ChromaClient, currently set to undefined.
 **Code Snippet:**
 ```
 const chromaSettings = undefined;
 ```
-### client - [VARIABLE]
-- **Description:** Instance of ChromaClient initialized with chromaSettings.
-- **Line:** 38
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-const client = new ChromaClient(chromaSettings);
-```
-### name - [VARIABLE]
-- **Description:** Name of the collection used within load_create_collection function.
 - **Line:** 42
 - **Indent:** 1
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### client - [VARIABLE]
+------------------------------------------------------------
+**Description:** Instance of ChromaClient initialized with chromaSettings.
+**Code Snippet:**
+```
+const client = new ChromaClient(chromaSettings);
+```
+- **Line:** 44
+- **Indent:** 1
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### name - [VARIABLE]
+------------------------------------------------------------
+**Description:** Name of the project collection.
 **Code Snippet:**
 ```
 const name = projectName;
 ```
+- **Line:** 49
+- **Indent:** 2
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
 ### collection - [VARIABLE]
-- **Description:** Variable to hold the Collection instance within load_create_collection function.
-- **Line:** 43
-- **Indent:** 1
+------------------------------------------------------------
+**Description:** Collection object for the project, can be undefined.
+**Code Snippet:**
+```
+let collection: Collection | void;
+```
+- **Line:** 50
+- **Indent:** 2
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-let collection:Collection|void;
-```
+
 ### hb - [VARIABLE]
-- **Description:** Variable to hold the result of the client's heartbeat check.
-- **Line:** 45
-- **Indent:** 1
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** Heartbeat response from the database client.
 **Code Snippet:**
 ```
-const hb = await client.heartbeat().catch((err:any) => {
+const hb = await client.heartbeat().catch((err: any) => {
 ```
-### bOK - [VARIABLE]
-- **Description:** Boolean flag indicating success or failure within saveToVectorDatabase function.
-- **Line:** 70
-- **Indent:** 1
+- **Line:** 52
+- **Indent:** 2
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### bOK - [VARIABLE]
+------------------------------------------------------------
+**Description:** Boolean flag indicating the success of the saveToVectorDatabase function.
 **Code Snippet:**
 ```
 let bOK = true;
 ```
-### meta - [VARIABLE]
-- **Description:** RagData metadata cast to any type within saveToVectorDatabase function.
-- **Line:** 72
-- **Indent:** 1
+- **Line:** 83
+- **Indent:** 2
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-const meta = ragData.metadata as any;
-```
-### filename - [VARIABLE]
-- **Description:** Variable to hold the filename extracted from metadata within saveToVectorDatabase function.
-- **Line:** 74
-- **Indent:** 1
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
 
-
-**Code Snippet:**
-```
-const filename = meta.filename;
-```
-### embeddings - [VARIABLE]
-- **Description:** Generated embeddings for the code within saveToVectorDatabase function.
-- **Line:** 78
-- **Indent:** 1
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-const embeddings = await embedder.generate([code]);
-```
-### res - [VARIABLE]
-- **Description:** Result of adding data to the collection within saveToVectorDatabase function.
-- **Line:** 87
-- **Indent:** 1
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-const res = await collection.add({
-```
 ### searchEmbeddings - [VARIABLE]
-- **Description:** Generated embeddings for the search string within searchRAG function.
-- **Line:** 108
-- **Indent:** 1
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** false
-- **Private:** true
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** Embeddings generated for the search string.
 **Code Snippet:**
 ```
 const searchEmbeddings = await embedder.generate([searchString]);
 ```
+- **Line:** 108
+- **Indent:** 2
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
 ### searchResults - [VARIABLE]
-- **Description:** Results of the search query within searchRAG function.
+------------------------------------------------------------
+**Description:** Results from querying the collection with search embeddings.
+**Code Snippet:**
+```
+const searchResults = await collection.query({
+```
 - **Line:** 109
-- **Indent:** 1
+- **Indent:** 2
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### embeddings - [VARIABLE]
+------------------------------------------------------------
+**Description:** Holds the embeddings from searchResults if available, otherwise an empty object.
 **Code Snippet:**
 ```
-const searchResults = await collection.query({queryEmbeddings: searchEmbeddings});
+embeddings: searchResults.embeddings ? ([0] as any) : {},
 ```
-### ragData - [VARIABLE]
-- **Description:** RAG data object to be returned within searchRAG function.
-- **Line:** 115
-- **Indent:** 1
+- **Line:** 1
+- **Indent:** 4
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
 - **Exported:** false
-- **Private:** true
+- **Private:** false
 - **Async:** Not Available
 
 
+
+### documentData - [VARIABLE]
+------------------------------------------------------------
+**Description:** Holds the first document from searchResults if available, otherwise an empty array.
 **Code Snippet:**
 ```
-const ragData = {
+documentData: (searchResults.documents[0] as any) || [],
 ```
+- **Line:** 2
+- **Indent:** 4
+- **Location:** vectorDB.ts (.//src/vectorDB.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
 ## imports
 📥 **IMPORTS**
 
+
 ### ProjectSummary, RagData - [IMPORT]
-- **Description:** Imports ProjectSummary and RagData from the local module objectSchemas.
+------------------------------------------------------------
+**Description:** Imports the ProjectSummary and RagData types from the local objectSchemas module.
+**Code Snippet:**
+```
+import { ProjectSummary, RagData } from "./objectSchemas";
+```
 - **Line:** 1
 - **Indent:** 0
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
@@ -423,12 +364,14 @@ const ragData = {
 - **Async:** Not Available
 
 
+
+### dotenv/config - [IMPORT]
+------------------------------------------------------------
+**Description:** Imports and configures the dotenv module to load environment variables from a .env file.
 **Code Snippet:**
 ```
-import { ProjectSummary, RagData } from "./objectSchemas";
+import "dotenv/config";
 ```
-### dotenv/config - [IMPORT]
-- **Description:** Imports and configures the dotenv package which loads environment variables from a .env file.
 - **Line:** 2
 - **Indent:** 0
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
@@ -437,12 +380,14 @@ import { ProjectSummary, RagData } from "./objectSchemas";
 - **Async:** Not Available
 
 
+
+### ChromaClient, GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, Collection - [IMPORT]
+------------------------------------------------------------
+**Description:** Imports ChromaClient, GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, and Collection from the chromadb module.
 **Code Snippet:**
 ```
-import 'dotenv/config';
+import { ChromaClient, GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, Collection } from "chromadb";
 ```
-### ChromaClient, GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, Collection - [IMPORT]
-- **Description:** Imports ChromaClient, GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, and Collection from the chromadb package.
 - **Line:** 3
 - **Indent:** 0
 - **Location:** vectorDB.ts (.//src/vectorDB.ts)
@@ -451,52 +396,3 @@ import 'dotenv/config';
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import { ChromaClient, GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, Collection } from 'chromadb';
-```
-## exports
-📤 **EXPORTS**
-
-### load_create_collection - [EXPORT]
-- **Description:** Asynchronous function that loads or creates a collection in the Chroma database based on the given project name.
-- **Line:** 36
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export async function load_create_collection(projectName:string): Promise<Collection|void> { ... }
-```
-### saveToVectorDatabase - [EXPORT]
-- **Description:** Asynchronous function that saves code and RAG data to the vector database under a given project name.
-- **Line:** 72
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export async function saveToVectorDatabase(projectName:string, code: string, ragData:RagData): Promise<boolean> { ... }
-```
-### searchRAG - [EXPORT]
-- **Description:** Asynchronous function that searches for RAG data in the vector database using the provided project name and search string.
-- **Line:** 108
-- **Indent:** 0
-- **Location:** vectorDB.ts (.//src/vectorDB.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export async function searchRAG(projectName:string, searchString: string): Promise<RagData> { ... }
-```

@@ -1,6 +1,6 @@
-# src/prompt.ts
+# src/prompt.ts - fofo-docs
 
-**Summary:** The goal of the code is to provide metadata descriptions for various code elements including variables, types, interfaces, comments, imports, and exports. Additionally, it contains a function to guess the programming language based on the file path.
+**Summary:** The code provides a set of functions to generate prompts for different types of code objects (e.g., classes, functions, variables, types, interfaces, comments, imports, exports) and a function to determine the programming language based on the file path.
 
 - **File Location:** .//src/prompt.ts
 - **Language:** TypeScript
@@ -12,9 +12,15 @@
 ## functions
 🔧 **FUNCTIONS**
 
+
 ### generalPrompt - [FUNCTION]
-- **Description:** A function to generate a JSON object response format prompt given various inputs.
-- **Line:** 7
+------------------------------------------------------------
+**Description:** Generates a prompt string for identifying and describing code objects in a given code snippet.
+**Code Snippet:**
+```
+const generalPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => { ... }
+```
+- **Line:** 5
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** false
@@ -22,260 +28,30 @@
 - **Async:** false
 
 
-**Code Snippet:**
-```
-const generalPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => { ... }
-```
 ###### Function Parameters:
-- **context** (string): The context of the project and team 
- Example: 
-- **relevantCode** (string): Previously parsed relevant code 
- Example: 
-- **filePath** (string): The file path of the code snippet 
- Example: 
-- **codeSnippet** (string): The code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code objects to identify 
- Example: 
+- **context** (string): Context of the project and team. 
+ Example: Project and Team Context
+- **relevantCode** (string): Previously parsed relevant code. 
+ Example: Relevant Code
+- **filePath** (string): Path to the file containing the code snippet. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet to be analyzed. 
+ Example: code snippet here
+- **type** (CodeObjects): Type of code objects to identify (e.g., functions, classes). 
+ Example: functions
 ###### Function Returns:
 - **Type:** string
-- **Description:** Returns a template string for generating the JSON object
-- **Example:** 
+- **Description:** Generated prompt string.
+- **Example:** Generated prompt string here
+
 ### classesPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying classes in a code snippet.
-- **Line:** 32
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
+------------------------------------------------------------
+**Description:** Generates a prompt for classes based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const classesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'classes');
 ```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: classes
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### functionsPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying functions in a code snippet.
-- **Line:** 35
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
-**Code Snippet:**
-```
-export const functionsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'functions');
-```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: functions
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### variablesPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying variables in a code snippet.
-- **Line:** 38
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
-**Code Snippet:**
-```
-export const variablesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'variables');
-```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: variables
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### typesPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying types in a code snippet.
-- **Line:** 41
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
-**Code Snippet:**
-```
-export const typesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'types');
-```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: types
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### interfacesPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying interfaces in a code snippet.
-- **Line:** 44
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
-**Code Snippet:**
-```
-export const interfacesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'interfaces');
-```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: interfaces
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### commentsPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying comments in a code snippet.
-- **Line:** 47
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
-**Code Snippet:**
-```
-export const commentsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'comments');
-```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: comments
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### importsPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying imports in a code snippet.
 - **Line:** 50
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
-**Code Snippet:**
-```
-export const importsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'imports');
-```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: imports
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### exportsPrompt - [FUNCTION]
-- **Description:** Generates prompt for identifying exports in a code snippet.
-- **Line:** 53
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** false
-
-
-**Code Snippet:**
-```
-export const exportsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'exports');
-```
-###### Function Parameters:
-- **context** (string): Context information for the prompt 
- Example: Project and team context
-- **relevantCode** (string): Relevant code for context 
- Example: 
-- **filePath** (string): File path of the code snippet 
- Example: ./src/prompt.ts
-- **codeSnippet** (string): The actual code snippet to analyze 
- Example: 
-- **type** (CodeObjects): The type of code object to identify 
- Example: exports
-###### Function Returns:
-- **Type:** string
-- **Description:** Generated prompt
-- **Example:** 
-### getLanguageTypeFromFile - [FUNCTION]
-- **Description:** Guesses the programming language based on the file name and path.
-- **Line:** 1
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** true
@@ -283,6 +59,211 @@ export const exportsPrompt = (context: string, relevantCode: string, filePath: s
 - **Async:** false
 
 
+###### Function Parameters:
+- **context** (string): The context for generating the prompt. 
+ Example: Project and Team Context
+- **relevantCode** (string): The relevant code for generating the prompt. 
+ Example: Previously Parsed Code
+- **filePath** (string): The file path for generating the prompt. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet for generating the prompt. 
+ Example: codeSnippet
+- **type** (CodeObjects): The type of code object for generating the prompt. 
+ Example: classes
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated prompt.
+- **Example:** Generated prompt for classes
+
+### functionsPrompt - [FUNCTION]
+------------------------------------------------------------
+**Description:** Generates a prompt for functions based on the provided context, relevant code, file path, and code snippet.
+**Code Snippet:**
+```
+export const functionsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'functions');
+```
+- **Line:** 52
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **context** (string): The context for generating the prompt. 
+ Example: Project and Team Context
+- **relevantCode** (string): The relevant code for generating the prompt. 
+ Example: Previously Parsed Code
+- **filePath** (string): The file path for generating the prompt. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet for generating the prompt. 
+ Example: codeSnippet
+- **type** (CodeObjects): The type of code object for generating the prompt. 
+ Example: functions
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated prompt.
+- **Example:** Generated prompt for functions
+
+### variablesPrompt - [FUNCTION]
+------------------------------------------------------------
+**Description:** Generates a prompt for variables based on the provided context, relevant code, file path, and code snippet.
+**Code Snippet:**
+```
+export const variablesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'variables');
+```
+- **Line:** 54
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **context** (string): The context for generating the prompt. 
+ Example: Project and Team Context
+- **relevantCode** (string): The relevant code for generating the prompt. 
+ Example: Previously Parsed Code
+- **filePath** (string): The file path for generating the prompt. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet for generating the prompt. 
+ Example: codeSnippet
+- **type** (CodeObjects): The type of code object for generating the prompt. 
+ Example: variables
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated prompt.
+- **Example:** Generated prompt for variables
+
+### typesPrompt - [FUNCTION]
+------------------------------------------------------------
+**Description:** Generates a prompt for types based on the provided context, relevant code, file path, and code snippet.
+**Code Snippet:**
+```
+export const typesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'types');
+```
+- **Line:** 56
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **context** (string): The context for generating the prompt. 
+ Example: Project and Team Context
+- **relevantCode** (string): The relevant code for generating the prompt. 
+ Example: Previously Parsed Code
+- **filePath** (string): The file path for generating the prompt. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet for generating the prompt. 
+ Example: codeSnippet
+- **type** (CodeObjects): The type of code object for generating the prompt. 
+ Example: types
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated prompt.
+- **Example:** Generated prompt for types
+
+### interfacesPrompt - [FUNCTION]
+------------------------------------------------------------
+**Description:** Generates a prompt for interfaces based on the provided context, relevant code, file path, and code snippet.
+**Code Snippet:**
+```
+export const interfacesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'interfaces');
+```
+- **Line:** 58
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **context** (string): The context for generating the prompt. 
+ Example: Project and Team Context
+- **relevantCode** (string): The relevant code for generating the prompt. 
+ Example: Previously Parsed Code
+- **filePath** (string): The file path for generating the prompt. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet for generating the prompt. 
+ Example: codeSnippet
+- **type** (CodeObjects): The type of code object for generating the prompt. 
+ Example: interfaces
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated prompt.
+- **Example:** Generated prompt for interfaces
+
+### importsPrompt - [FUNCTION]
+------------------------------------------------------------
+**Description:** Generates a prompt for imports based on the provided context, relevant code, file path, and code snippet.
+**Code Snippet:**
+```
+export const importsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'imports');
+```
+- **Line:** 62
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **context** (string): The context for generating the prompt. 
+ Example: Project and Team Context
+- **relevantCode** (string): The relevant code for generating the prompt. 
+ Example: Previously Parsed Code
+- **filePath** (string): The file path for generating the prompt. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet for generating the prompt. 
+ Example: codeSnippet
+- **type** (CodeObjects): The type of code object for generating the prompt. 
+ Example: imports
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated prompt.
+- **Example:** Generated prompt for imports
+
+### exportsPrompt - [FUNCTION]
+------------------------------------------------------------
+**Description:** Generates a prompt for exports based on the provided context, relevant code, file path, and code snippet.
+**Code Snippet:**
+```
+export const exportsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'exports');
+```
+- **Line:** 64
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **context** (string): The context for generating the prompt. 
+ Example: Project and Team Context
+- **relevantCode** (string): The relevant code for generating the prompt. 
+ Example: Previously Parsed Code
+- **filePath** (string): The file path for generating the prompt. 
+ Example: .//src/prompt.ts
+- **codeSnippet** (string): The code snippet for generating the prompt. 
+ Example: codeSnippet
+- **type** (CodeObjects): The type of code object for generating the prompt. 
+ Example: exports
+###### Function Returns:
+- **Type:** string
+- **Description:** The generated prompt.
+- **Example:** Generated prompt for exports
+
+### getLanguageTypeFromFile - [FUNCTION]
+------------------------------------------------------------
+**Description:** Guesses the programming language based on the file name and path.
 **Code Snippet:**
 ```
 export const getLanguageTypeFromFile = (filePath: string) => {
@@ -291,12 +272,19 @@ export const getLanguageTypeFromFile = (filePath: string) => {
     
     Please respond with JUST the language name. For example: JavaScript
     `
-
 }
 ```
+- **Line:** 66
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
 ###### Function Parameters:
 - **filePath** (string): The file path to guess the programming language from. 
- Example: /path/to/file.js
+ Example: .//src/prompt.ts
 ###### Function Returns:
 - **Type:** string
 - **Description:** The guessed programming language.
@@ -304,9 +292,15 @@ export const getLanguageTypeFromFile = (filePath: string) => {
 ## variables
 🧮 **VARIABLES**
 
+
 ### codeSummary - [VARIABLE]
-- **Description:** A constant storing the template for creating a summary in markdown format
-- **Line:** 6
+------------------------------------------------------------
+**Description:** A constant string that contains a template for summarizing code in markdown format.
+**Code Snippet:**
+```
+export const codeSummary = `...`;
+```
+- **Line:** 1
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** true
@@ -314,13 +308,15 @@ export const getLanguageTypeFromFile = (filePath: string) => {
 - **Async:** Not Available
 
 
+
+### generalPrompt - [VARIABLE]
+------------------------------------------------------------
+**Description:** A constant function that generates a prompt string based on provided context, relevant code, file path, code snippet, and type.
 **Code Snippet:**
 ```
-export const codeSummary = `...`;
+const generalPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => { ... };
 ```
-### generalPrompt - [VARIABLE]
-- **Description:** A function that generates a prompt template based on given context, relevant code, file path, code snippet, and type
-- **Line:** 9
+- **Line:** 5
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** false
@@ -328,13 +324,15 @@ export const codeSummary = `...`;
 - **Async:** Not Available
 
 
+
+### fileName - [VARIABLE]
+------------------------------------------------------------
+**Description:** A constant string that represents the name of the file extracted from the file path.
 **Code Snippet:**
 ```
-const generalPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => { ... };
+const fileName = filePath.split('/').pop();
 ```
-### fileName - [VARIABLE]
-- **Description:** A constant holding the file name extracted from the given file path
-- **Line:** 11
+- **Line:** 6
 - **Indent:** 1
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** false
@@ -342,178 +340,37 @@ const generalPrompt = (context: string, relevantCode: string, filePath: string, 
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-const fileName = filePath.split('/').pop();
-```
-### classesPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for classes.
-- **Line:** 29
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const classesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'classes');
-```
-### functionsPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for functions.
-- **Line:** 31
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const functionsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'functions');
-```
-### variablesPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for variables.
-- **Line:** 33
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const variablesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'variables');
-```
-### typesPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for types.
-- **Line:** 35
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const typesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'types');
-```
-### interfacesPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for interfaces.
-- **Line:** 37
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const interfacesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'interfaces');
-```
-### commentsPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for comments.
-- **Line:** 39
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const commentsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'comments');
-```
-### importsPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for imports.
-- **Line:** 41
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const importsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'imports');
-```
-### exportsPrompt - [VARIABLE]
-- **Description:** A constant that holds a function call to generalPrompt for exports.
-- **Line:** 43
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** Not Available
-
-
-**Code Snippet:**
-```
-export const exportsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'exports');
-```
 ## imports
 📥 **IMPORTS**
 
+
 ### CodeObjects - [IMPORT]
-- **Description:** Importing the CodeObjects definition from the objectSchemas module.
-- **Line:** 4
-- **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** Imports the CodeObjects type from the objectSchemas module.
 **Code Snippet:**
 ```
 import { CodeObjects } from "./objectSchemas";
 ```
-### importName - [IMPORT]
-- **Description:** Description of the import prompt for CodeObjects
-- **Line:** 1
+- **Line:** 3
 - **Indent:** 0
-- **Location:** prompt.ts (./src/prompt.ts)
+- **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
 - **Private:** Not Available
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-import importName from 'module';
-```
 ## exports
 📤 **EXPORTS**
 
+
 ### codeSummary - [EXPORT]
-- **Description:** Constant export holding a multiline template string intended to guide how to create a summary of the code.
-- **Line:** 6
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** A constant string template for creating a summary of code in markdown format.
 **Code Snippet:**
 ```
-export const codeSummary = `Create a summary of the following code in markdown. ONLY respond with the summary, For example:
-
-##Execution Flow
-
-1. The app... etc
-`
+export const codeSummary = `...`
 ```
-### classesPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying class objects in the provided code.
-- **Line:** 37
+- **Line:** 1
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -521,13 +378,15 @@ export const codeSummary = `Create a summary of the following code in markdown. 
 - **Async:** Not Available
 
 
+
+### classesPrompt - [EXPORT]
+------------------------------------------------------------
+**Description:** A function that generates a prompt for classes based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const classesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'classes');
 ```
-### functionsPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying function objects in the provided code.
-- **Line:** 39
+- **Line:** 70
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -535,13 +394,15 @@ export const classesPrompt = (context: string, relevantCode: string, filePath: s
 - **Async:** Not Available
 
 
+
+### functionsPrompt - [EXPORT]
+------------------------------------------------------------
+**Description:** A function that generates a prompt for functions based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const functionsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'functions');
 ```
-### variablesPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying variable objects in the provided code.
-- **Line:** 41
+- **Line:** 71
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -549,13 +410,15 @@ export const functionsPrompt = (context: string, relevantCode: string, filePath:
 - **Async:** Not Available
 
 
+
+### variablesPrompt - [EXPORT]
+------------------------------------------------------------
+**Description:** A function that generates a prompt for variables based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const variablesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'variables');
 ```
-### typesPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying type objects in the provided code.
-- **Line:** 43
+- **Line:** 72
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -563,13 +426,15 @@ export const variablesPrompt = (context: string, relevantCode: string, filePath:
 - **Async:** Not Available
 
 
+
+### typesPrompt - [EXPORT]
+------------------------------------------------------------
+**Description:** A function that generates a prompt for types based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const typesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'types');
 ```
-### interfacesPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying interface objects in the provided code.
-- **Line:** 45
+- **Line:** 73
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -577,13 +442,15 @@ export const typesPrompt = (context: string, relevantCode: string, filePath: str
 - **Async:** Not Available
 
 
+
+### interfacesPrompt - [EXPORT]
+------------------------------------------------------------
+**Description:** A function that generates a prompt for interfaces based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const interfacesPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'interfaces');
 ```
-### commentsPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying comment objects in the provided code.
-- **Line:** 47
+- **Line:** 74
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -591,27 +458,15 @@ export const interfacesPrompt = (context: string, relevantCode: string, filePath
 - **Async:** Not Available
 
 
-**Code Snippet:**
-```
-export const commentsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'comments');
-```
+
 ### importsPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying import objects in the provided code.
-- **Line:** 49
-- **Indent:** 0
-- **Location:** prompt.ts (.//src/prompt.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
+------------------------------------------------------------
+**Description:** A function that generates a prompt for imports based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const importsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'imports');
 ```
-### exportsPrompt - [EXPORT]
-- **Description:** Function that generates a prompt for identifying export objects in the provided code.
-- **Line:** 51
+- **Line:** 77
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -619,13 +474,15 @@ export const importsPrompt = (context: string, relevantCode: string, filePath: s
 - **Async:** Not Available
 
 
+
+### exportsPrompt - [EXPORT]
+------------------------------------------------------------
+**Description:** A function that generates a prompt for exports based on the provided context, relevant code, file path, and code snippet.
 **Code Snippet:**
 ```
 export const exportsPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => generalPrompt(context, relevantCode, filePath, codeSnippet, 'exports');
 ```
-### getLanguageTypeFromFile - [EXPORT]
-- **Description:** A function that guesses the programming language based on file name and path.
-- **Line:** 1
+- **Line:** 78
 - **Indent:** 0
 - **Location:** prompt.ts (.//src/prompt.ts)
 - **Exported:** Not Available
@@ -633,7 +490,19 @@ export const exportsPrompt = (context: string, relevantCode: string, filePath: s
 - **Async:** Not Available
 
 
+
+### getLanguageTypeFromFile - [EXPORT]
+------------------------------------------------------------
+**Description:** A function that guesses the programming language based on the file name and path.
 **Code Snippet:**
 ```
-export const getLanguageTypeFromFile = (filePath: string) => { ... }
+export const getLanguageTypeFromFile = (filePath: string) => { return `Based on the file name and path, guess the programming language (i.e. JavaScript, TypeScript, Python, etc.): ${filePath} Please respond with JUST the language name. For example: JavaScript ` }
 ```
+- **Line:** 81
+- **Indent:** 0
+- **Location:** prompt.ts (.//src/prompt.ts)
+- **Exported:** Not Available
+- **Private:** Not Available
+- **Async:** Not Available
+
+
