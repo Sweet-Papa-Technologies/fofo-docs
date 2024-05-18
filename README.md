@@ -1,10 +1,12 @@
-# FoFo Docs
-<img src="example_docs/fofo-docs-lighter.png" alt="drawing" width="500px" height="250px"/>
+<img src="example_docs/fofo-docs-lighter.png" alt="drawing" width="500px" height="270px"/>
 
-Tool to generate user documentation for code repositories.
+🚧 **NOTE:**  This project is still in development and is not yet ready for use. You can try ~ if you really want. Got the [Getting Started](#getting-started) and [Usage](#usage) sections to setup and run the app.
 
-## Exapmple:
-[Example Output](example_docs/README.md)
+## About
+FoFo Docs is a tool to generate user documentation for code repositories. It works by passing in a project directory, and then generating documentation for each file in the project. The tool uses a Language Model (LLM) to generate the documentation, and then stores the generated documentation in a JSON file. The JSON file can be used to regenerate the documentation at any time.
+
+### Example Documentation Output :
+[Example Output (generated with v1.0.1-alpha)](example_docs/README.md)
 
 ## Roadmap 
 - [ ] Create PoC
@@ -22,16 +24,33 @@ Tool to generate user documentation for code repositories.
     - [x] TypeScript / JavaScript
     - [ ] Python
     - [ ] TBA
+- [ ] Supported Documentation Formats:
+    - [x] Markdown
+    - [ ] HTML
+    - [ ] PDF
 
-## General To-Do List
-- [ ] Change ChromeDB to use local storage by default
-- [ ] Add ability to set pause between requests to avoid rate limiting; settable in .env
-- [ ] Allow for custom glob patterns to be passed in for file selection via .fofoinclude file
-- [ ] Batch API Calls to avoid rate limiting and speed up processing
+
+### Immediate To-Do
+- [ ] [BUG]: Fix issue with duplicate information in output
+- [ ] [ENHANCEMENT]: Revise and update output template for MD documentation
+    - [ ] Define useful sections for documentation
+    - [ ] Regroup sections based off content
+    - [ ] Improve styling and readability
+- [ ] [ENHANCEMENT]: Update the README.md template to include more information
+- [ ] [FEATURE]: Add support for HTML output
+- [ ] [FEATURE]: Add support parsing Python projects
+
+### Upcoming To-Do
+
+- [ ] [ENHANCEMENT]: Change ChromaDB to use local storage by default
+- [ ] [FEATURE]: Add ability to set pause between requests to avoid rate limiting; settable in .env
+- [ ] [FEATURE]: Allow for custom glob patterns to be passed in for file selection via .fofoinclude file
+- [ ] [ENHANCEMENT]: Batch API Calls to avoid rate limiting and speed up processing
+- [ ] [ENHANCEMENT]: Use RAG to prevent model from generating duplicate information to begin with
 
 ## Getting Started:
 
-NOTE: This project is still in development and is not yet ready for use. You can try, if you really want.
+🚧 NOTE: This project is still in development and is not yet ready for use. You can try, if you really want.
 
 ### Setup Dependencies
 - Clone the repository
@@ -95,20 +114,31 @@ MAX_TOKEN_SPLIT=500
 ```
 
 ## Usage:
+From the client-app directory, run the following command:
 
-### Generate Documentation for all files in a folder:
+`npx ts-node src/index.ts [<project-name>] [--input 'path/To/FileOrFolder'][-g path/To/JSON.json] [--output 'path/To/Output/Folder']`
+
+### Command Parameters:
+- `project-name`: The name of the project (required)
+- `--input`: The path to the file or folder you want to generate documentation for (required, or use `-g` instead)
+- `--output`: The path to the folder where you want to store the generated documentation 
+- `-g`: The path to the JSON file containing the project context (Use this, or use `--input`)
+
+### Examples
+
+#### Generate Documentation for all files in a folder:
 `npx ts-node src/index.ts <project-name> --input 'path/To/Folder' --output 'path/To/Output/Folder'`
-##### Example:
+###### Example:
 ```npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output```
 
-### Regenerate the documentation for the project by running the following command:
+#### Regenerate the documentation for the project by running the following command:
 `npx ts-node src/index.ts <project-name> -g 'path/To/Data/Json.json' --output 'path/To/Output/Folder'`
-##### Example:
+###### Example:
 ```npx ts-node src/index.ts fofo-doc -g './test-output/projectContext-2024-05-17T17-38-07-340Z-gpt-4o.json' --output ./test-output```
 
-### Generate documentation for a specific file by running the following command:
+#### Generate documentation for a specific file by running the following command:
 `npx ts-node src/index.ts <project-name> --input 'path/To/File.ts' --output 'path/To/Output/Folder'`
-#### Example:
+##### Example:
 ```npx ts-node src/index.ts fofo-doc --input './src/shared.ts' --output ./test-output```
 
 ## File Exclusions:
