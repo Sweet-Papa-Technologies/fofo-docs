@@ -3,7 +3,7 @@
 
 Tool to generate user documentation for code repositories.
 
-# Example Output:
+## Exapmple:
 [Example Output](example_docs/README.md)
 
 ## Roadmap 
@@ -23,17 +23,17 @@ Tool to generate user documentation for code repositories.
     - [ ] Python
     - [ ] TBA
 
-# General To-Do List
+## General To-Do List
 - [ ] Change ChromeDB to use local storage by default
 - [ ] Add ability to set pause between requests to avoid rate limiting; settable in .env
 - [ ] Allow for custom glob patterns to be passed in for file selection via .fofoinclude file
 - [ ] Batch API Calls to avoid rate limiting and speed up processing
 
-# Getting Started:
+## Getting Started:
 
 NOTE: This project is still in development and is not yet ready for use. You can try, if you really want.
 
-## Setup Dependencies
+### Setup Dependencies
 - Clone the repository
 - CD into "client-app" and Run `npm install` to install dependencies
     - Ensure you have Node.js installed on your machine, and can call `npx` from the command line
@@ -41,12 +41,12 @@ NOTE: This project is still in development and is not yet ready for use. You can
     - Example server located in the "sample_backend" directory
     - Otherwise you can follow the instructions here: [ChromaDB](https://docs.trychroma.com/deployment/aws#docker)
 
-## Configure Environment
+### Configure Environment
 - Create a `.env` file in the client-app directory
 - Fill out required ENV Variables
 (Todo: Add ENV Variables List Here)
 
-### .env Example:
+#### .env Example:
 ```
 # OPENAI AI Settings
 OPENAI_API_KEY=
@@ -94,28 +94,28 @@ EMBEDDER_MODE=OPENAI
 MAX_TOKEN_SPLIT=500 
 ```
 
-# Usage:
+## Usage:
 
-## Generate Documentation for all files in a folder:
+### Generate Documentation for all files in a folder:
 `npx ts-node src/index.ts <project-name> --input 'path/To/Folder' --output 'path/To/Output/Folder'`
-#### Example:
+##### Example:
 ```npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output```
 
-## Regenerate the documentation for the project by running the following command:
+### Regenerate the documentation for the project by running the following command:
 `npx ts-node src/index.ts <project-name> -g 'path/To/Data/Json.json' --output 'path/To/Output/Folder'`
-#### Example:
+##### Example:
 ```npx ts-node src/index.ts fofo-doc -g './test-output/projectContext-2024-05-17T17-38-07-340Z-gpt-4o.json' --output ./test-output```
 
-## Generate documentation for a specific file by running the following command:
+### Generate documentation for a specific file by running the following command:
 `npx ts-node src/index.ts <project-name> --input 'path/To/File.ts' --output 'path/To/Output/Folder'`
 #### Example:
 ```npx ts-node src/index.ts fofo-doc --input './src/shared.ts' --output ./test-output```
 
-# File Exclusions:
+## File Exclusions:
 Add files or folders you want to ignore to: `client-app/.fofoignore`
 Files in the .gitignore will be ignored automatically
 
-# Bug Reporting and Pull Requests:
+## Bug Reporting and Pull Requests:
 
 ### Bugs:
 Please report any bugs or issues to the GitHub repository: 
