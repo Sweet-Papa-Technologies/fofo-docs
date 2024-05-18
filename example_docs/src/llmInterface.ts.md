@@ -1,12 +1,13 @@
 # src/llmInterface.ts - fofo-docs
 
-**Summary:** The goal of the code is to prepare a prompt with relevant context and code snippet, call an AI API to get a response, handle rate limits, and enhance the response with file path information.
+**Summary:** The code is designed to interact with various language models (LLMs) to generate responses based on provided prompts. It supports multiple backends including OLLAMA, VERTEX, and OPENAI, and includes functions for validating and fixing JSON, parsing YAML, and generating responses from LLMs.
 
 - **File Location:** .//src/llmInterface.ts
 - **Language:** TypeScript
 ## Table of Contents
 - [functions](#functions)
 - [variables](#variables)
+- [types](#types)
 - [imports](#imports)
 - [exports](#exports)
 ## functions
@@ -15,13 +16,13 @@
 
 ### getModelBackend - [FUNCTION]
 ------------------------------------------------------------
-**Description:** Retrieves the backend type for a given model based on the selected model name.
+**Description:** Retrieves the backend type for a given model.
 **Code Snippet:**
 ```
 const getModelBackend = (selectedModel: string) => { ... }
 ```
 - **Line:** 79
-- **Indent:** 2
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -29,11 +30,11 @@ const getModelBackend = (selectedModel: string) => { ... }
 
 
 ###### Function Parameters:
-- **selectedModel** (string): The name of the selected model. 
- Example: gpt-4o
+- **selectedModel** (string): The model for which the backend type is to be retrieved. 
+ Example: textModel
 ###### Function Returns:
 - **Type:** llm_modes
-- **Description:** The backend type associated with the selected model.
+- **Description:** The backend type for the given model.
 - **Example:** OLLAMA
 
 ### validateJSON - [FUNCTION]
@@ -43,8 +44,8 @@ const getModelBackend = (selectedModel: string) => { ... }
 ```
 function validateJSON(jsonString: string): boolean { ... }
 ```
-- **Line:** 10
-- **Indent:** 2
+- **Line:** 160
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -56,7 +57,7 @@ function validateJSON(jsonString: string): boolean { ... }
  Example: {"key": "value"}
 ###### Function Returns:
 - **Type:** boolean
-- **Description:** Returns true if the JSON string is valid, otherwise false.
+- **Description:** True if the string is a valid JSON, otherwise false.
 - **Example:** true
 
 ### fixJSON - [FUNCTION]
@@ -66,8 +67,8 @@ function validateJSON(jsonString: string): boolean { ... }
 ```
 function fixJSON(jsonString: string): string { ... }
 ```
-- **Line:** 18
-- **Indent:** 2
+- **Line:** 168
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -79,18 +80,18 @@ function fixJSON(jsonString: string): string { ... }
  Example: {"key": "value"
 ###### Function Returns:
 - **Type:** string
-- **Description:** Returns the repaired JSON string.
+- **Description:** The repaired JSON string.
 - **Example:** {"key": "value"}
 
 ### parseYaml - [FUNCTION]
 ------------------------------------------------------------
-**Description:** Parses a YAML string and converts it into a JSON object.
+**Description:** Converts a YAML string into a JSON object.
 **Code Snippet:**
 ```
 export function parseYaml(yamlString: string): any { ... }
 ```
-- **Line:** 26
-- **Indent:** 2
+- **Line:** 176
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** true
 - **Private:** false
@@ -98,11 +99,11 @@ export function parseYaml(yamlString: string): any { ... }
 
 
 ###### Function Parameters:
-- **yamlString** (string): The YAML string to be parsed. 
+- **yamlString** (string): The YAML string to be converted. 
  Example: key: value
 ###### Function Returns:
 - **Type:** any
-- **Description:** Returns the parsed JSON object.
+- **Description:** The resulting JSON object.
 - **Example:** {"key": "value"}
 
 ### parseText - [FUNCTION]
@@ -112,8 +113,8 @@ export function parseYaml(yamlString: string): any { ... }
 ```
 export function parseText(text: string, resKey = "response"): any { ... }
 ```
-- **Line:** 36
-- **Indent:** 2
+- **Line:** 185
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** true
 - **Private:** false
@@ -122,13 +123,13 @@ export function parseText(text: string, resKey = "response"): any { ... }
 
 ###### Function Parameters:
 - **text** (string): The text string to be converted. 
- Example: This is a sample text.
-- **resKey** (string): The key to be used in the resulting JSON object. 
+ Example: This is a response.
+- **resKey** (string): The key for the resulting JSON object. 
  Example: response
 ###### Function Returns:
 - **Type:** any
-- **Description:** Returns the JSON object with the specified key.
-- **Example:** {"response": "This is a sample text."}
+- **Description:** The resulting JSON object.
+- **Example:** {"response": "This is a response."}
 
 ### wait - [FUNCTION]
 ------------------------------------------------------------
@@ -137,8 +138,8 @@ export function parseText(text: string, resKey = "response"): any { ... }
 ```
 async function wait(ms: number) { ... }
 ```
-- **Line:** 44
-- **Indent:** 2
+- **Line:** 192
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -150,55 +151,17 @@ async function wait(ms: number) { ... }
  Example: 1000
 ###### Function Returns:
 - **Type:** Promise<void>
-- **Description:** Returns a promise that resolves after the specified time.
+- **Description:** A promise that resolves after the specified time.
 - **Example:** Promise<void>
 
 ### infer - [FUNCTION]
 ------------------------------------------------------------
-**Description:** Generates a response based on the provided prompt and model.
+**Description:** Infers a response from a given prompt using a specified model.
 **Code Snippet:**
 ```
-export async function infer(prompt: string, responseMode: "JSON object" | "YAML object" | "TEXT STRING" = "JSON object", responseKey?: string, bPro = false, bRetry = true, supplementalData?: any, model: string = textModel): Promise<any> { ... }
+export async function infer( ... ) { ... }
 ```
-- **Line:** 48
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** true
-- **Private:** false
-- **Async:** true
-
-
-###### Function Parameters:
-- **prompt** (string): The prompt to be used for generating the response. 
- Example: What is the capital of France?
-- **responseMode** ("JSON object" | "YAML object" | "TEXT STRING"): The format of the response. 
- Example: "JSON object"
-- **responseKey** (string): The key to be used in the response object. 
- Example: response
-- **bPro** (boolean): Flag to indicate if the pro version should be used. 
- Example: false
-- **bRetry** (boolean): Flag to indicate if retries should be allowed. 
- Example: true
-- **supplementalData** (any): Additional data to be used in the response generation. 
- Example: {"context": "additional context"}
-- **model** (string): The model to be used for generating the response. 
- Example: textModel
-###### Function Returns:
-- **Type:** Promise<any>
-- **Description:** Returns a promise that resolves to the generated response.
-- **Example:** {"response": "Paris"}
-
-### getCodeSummaryFromLLM - [FUNCTION]
-------------------------------------------------------------
-**Description:** Asynchronously gets a code summary from a language model by sending a prompt with the code to summarize.
-**Code Snippet:**
-```
-export async function getCodeSummaryFromLLM(
-  codeToSummarize: string,
-  model: string = textModel
-): Promise<codeSummary> { ... }
-```
-- **Line:** 52
+- **Line:** 194
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** true
@@ -207,44 +170,89 @@ export async function getCodeSummaryFromLLM(
 
 
 ###### Function Parameters:
-- **codeToSummarize** (string): The code block that needs to be summarized. 
- Example: const x = 10;
-- **model** (string): The model to use for summarization, defaults to textModel. 
+- **prompt** (string): The prompt to be sent to the model. 
+ Example: What is the capital of France?
+- **responseMode** ("JSON object" | "YAML object" | "TEXT STRING"): The format of the response. 
+ Example: "JSON object"
+- **responseKey** (string): The key for the response (only applicable for TEXT STRING responseMode). 
+ Example: response
+- **bPro** (boolean): Flag to use advanced model. 
+ Example: false
+- **bRetry** (boolean): Flag to retry on failure. 
+ Example: true
+- **supplementalData** (any): Additional data to be used in the inference. 
+ Example: {}
+- **model** (string): The model to be used for inference. 
  Example: textModel
 ###### Function Returns:
-- **Type:** Promise<codeSummary>
-- **Description:** A promise that resolves to a code summary object.
-- **Example:** { goal: 'Summarize the code', features_functions: 'Describes features and functions' }
+- **Type:** Promise<any>
+- **Description:** The response from the model.
+- **Example:** {"response": "Paris"}
 
-### getFileNameFromPath - [FUNCTION]
+### getCodeSummaryFromLLM - [FUNCTION]
 ------------------------------------------------------------
-**Description:** Extracts the file name from a given file path.
+**Description:** Gets a summary of the given code from the LLM.
 **Code Snippet:**
 ```
-const getFileNameFromPath = (path: string) => path.split("/").pop() || "";
+export async function getCodeSummaryFromLLM( ... ) { ... }
 ```
-- **Line:** 20
-- **Indent:** 2
+- **Line:** 431
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
+- **Exported:** true
 - **Private:** false
-- **Async:** false
+- **Async:** true
 
 
 ###### Function Parameters:
-- **path** (string): The file path from which to extract the file name. 
- Example: /path/to/file.txt
+- **codeToSummarize** (string): The code to be summarized. 
+ Example: function example() { ... }
+- **model** (string): The model to be used for summarization. 
+ Example: textModel
 ###### Function Returns:
-- **Type:** string
-- **Description:** The extracted file name.
-- **Example:** file.txt
+- **Type:** Promise<codeSummary>
+- **Description:** The summary of the code.
+- **Example:** {"goal": "Summarize code", "features_functions": "Summarizes code features"}
+
+### callLLM - [FUNCTION]
+------------------------------------------------------------
+**Description:** Calls the LLM with a given prompt template and project context.
+**Code Snippet:**
+```
+export async function callLLM( ... ) { ... }
+```
+- **Line:** 451
+- **Indent:** 0
+- **Location:** llmInterface.ts (.//src/llmInterface.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** true
+
+
+###### Function Parameters:
+- **promptTemplate** (string): The template for the prompt. 
+ Example: Summarize the following code: <code snippet>
+- **projectContext** (ProjectSummary): The context of the project. 
+ Example: {"teamContext": "Team info"}
+- **code** (string): The code to be analyzed. 
+ Example: function example() { ... }
+- **filePath** (string): The path to the file containing the code. 
+ Example: .//src/llmInterface.ts
+- **bRAG** (boolean): Flag to use RAG (Retrieval-Augmented Generation). 
+ Example: false
+- **model** (string): The model to be used for the call. 
+ Example: textModel
+###### Function Returns:
+- **Type:** Promise<any>
+- **Description:** The response from the LLM.
+- **Example:** {"response": "Summary of code"}
 ## variables
 🧮 **VARIABLES**
 
 
 ### retries - [VARIABLE]
 ------------------------------------------------------------
-**Description:** A counter for the number of retries.
+**Description:** A counter to keep track of the number of retries for certain operations.
 **Code Snippet:**
 ```
 let retries = 0;
@@ -260,7 +268,7 @@ let retries = 0;
 
 ### endpoints - [VARIABLE]
 ------------------------------------------------------------
-**Description:** An object containing the endpoint URLs for different services.
+**Description:** An object containing the endpoint URLs for different model services.
 **Code Snippet:**
 ```
 const endpoints = { OLLAMA: process.env.OLLAMA_SERVER_URL || "http://infinity.local:11434" };
@@ -276,7 +284,7 @@ const endpoints = { OLLAMA: process.env.OLLAMA_SERVER_URL || "http://infinity.lo
 
 ### systemPrompt - [VARIABLE]
 ------------------------------------------------------------
-**Description:** A system prompt string for the developer AI.
+**Description:** A system prompt string used for initializing the AI model.
 **Code Snippet:**
 ```
 const systemPrompt = "You are a developer A.I. that summarizes and analyzes code. Please answer all questions asked of you exactly as presented.";
@@ -292,12 +300,12 @@ const systemPrompt = "You are a developer A.I. that summarizes and analyzes code
 
 ### MODEL_MODES - [VARIABLE]
 ------------------------------------------------------------
-**Description:** An array of objects representing different model modes.
+**Description:** An array of objects representing different model modes and their configurations.
 **Code Snippet:**
 ```
-const MODEL_MODES = [ ... ];
+const MODEL_MODES = [ { name: "qwen:32b-chat-v1.5-q4_0", model: "qwen:32b-chat-v1.5-q4_0", backend: "OLLAMA" }, ... ];
 ```
-- **Line:** 38
+- **Line:** 39
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
@@ -306,12 +314,12 @@ const MODEL_MODES = [ ... ];
 
 
 
-### openai - [VARIABLE]
+### secretSauce - [VARIABLE]
 ------------------------------------------------------------
-**Description:** An instance of the OpenAI class configured with organization and API key.
+**Description:** An object containing configuration settings for the AI model.
 **Code Snippet:**
 ```
-const openai = new OpenAI({ organization: process.env.OPENAI_ORG_ID, apiKey: process.env.OPENAI_API_KEY });
+const secretSauce = { temperature: 0.3, top_p: 0.2 };
 ```
 - **Line:** 79
 - **Indent:** 0
@@ -322,12 +330,12 @@ const openai = new OpenAI({ organization: process.env.OPENAI_ORG_ID, apiKey: pro
 
 
 
-### ollama - [VARIABLE]
+### openai - [VARIABLE]
 ------------------------------------------------------------
-**Description:** An instance of the Ollama class configured with the host endpoint.
+**Description:** An instance of the OpenAI class initialized with organization and API key.
 **Code Snippet:**
 ```
-const ollama = new Ollama({ host: endpoints.OLLAMA });
+const openai = new OpenAI({ organization: process.env.OPENAI_ORG_ID, apiKey: process.env.OPENAI_API_KEY });
 ```
 - **Line:** 84
 - **Indent:** 0
@@ -338,14 +346,30 @@ const ollama = new Ollama({ host: endpoints.OLLAMA });
 
 
 
-### contextLength - [VARIABLE]
+### ollama - [VARIABLE]
 ------------------------------------------------------------
-**Description:** A constant representing the context length for the model.
+**Description:** An instance of the Ollama class initialized with the host endpoint.
 **Code Snippet:**
 ```
-const contextLength = 8000;
+const ollama = new Ollama({ host: endpoints.OLLAMA });
 ```
-- **Line:** 85
+- **Line:** 89
+- **Indent:** 0
+- **Location:** llmInterface.ts (.//src/llmInterface.ts)
+- **Exported:** false
+- **Private:** false
+- **Async:** Not Available
+
+
+
+### contextLength - [VARIABLE]
+------------------------------------------------------------
+**Description:** A constant representing the context length for the AI model.
+**Code Snippet:**
+```
+const contextLength = 16000;
+```
+- **Line:** 90
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
@@ -361,7 +385,7 @@ const contextLength = 8000;
 ```
 const project = "sweet-papa-technologies";
 ```
-- **Line:** 88
+- **Line:** 93
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
@@ -377,7 +401,7 @@ const project = "sweet-papa-technologies";
 ```
 const location = "us-central1";
 ```
-- **Line:** 89
+- **Line:** 94
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
@@ -386,15 +410,15 @@ const location = "us-central1";
 
 
 
-### yaml - [VARIABLE]
+### textModel - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Library used for parsing YAML strings.
+**Description:** A constant representing the text model for Vertex AI.
 **Code Snippet:**
 ```
-const obj = yaml.load(yamlString) as any;
+const textModel = "gemini-1.5-flash-preview-0514";
 ```
-- **Line:** 28
-- **Indent:** 4
+- **Line:** 95
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -402,15 +426,15 @@ const obj = yaml.load(yamlString) as any;
 
 
 
-### llm_modes - [VARIABLE]
+### textModelAdvanced - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Type representing the different modes of the language model.
+**Description:** A constant representing the advanced text model for Vertex AI.
 **Code Snippet:**
 ```
-const modelBackend:llm_modes = getModelBackend(model);
+const textModelAdvanced = "gemini-1.5-pro-preview-0514";
 ```
-- **Line:** 45
-- **Indent:** 2
+- **Line:** 96
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -418,15 +442,15 @@ const modelBackend:llm_modes = getModelBackend(model);
 
 
 
-### ollamaResponse - [VARIABLE]
+### vertexWAIT - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Stores the response from the ollama.generate function call.
+**Description:** A constant representing the wait time for Vertex AI operations.
 **Code Snippet:**
 ```
-const ollamaResponse = await ollama.generate({ model: model, prompt: promptNew, stream: false, system: systemPrompt, keep_alive: 9000, options: { ...secretSauce, num_ctx: contextLength, }, });
+const vertexWAIT = 5000;
 ```
-- **Line:** 3
-- **Indent:** 4
+- **Line:** 97
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -434,15 +458,15 @@ const ollamaResponse = await ollama.generate({ model: model, prompt: promptNew, 
 
 
 
-### request - [VARIABLE]
+### vertexAI - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Holds the request payload for the VERTEX model backend.
+**Description:** An instance of the VertexAI class initialized with project and location.
 **Code Snippet:**
 ```
-const request = { contents: [{ role: "user", parts: [{ text: promptNew }] }], };
+const vertexAI = new VertexAI({ project: project, location: location });
 ```
-- **Line:** 11
-- **Indent:** 4
+- **Line:** 99
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -450,15 +474,15 @@ const request = { contents: [{ role: "user", parts: [{ text: promptNew }] }], };
 
 
 
-### genFunction - [VARIABLE]
+### safetySettings - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Function to generate content, which can be either generativeModel or generateModelAdv based on the bPro flag.
+**Description:** An array of objects representing safety settings for the AI model.
 **Code Snippet:**
 ```
-let genFunction = generativeModel;
+const safetySettings = [ { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE }, ... ];
 ```
-- **Line:** 15
-- **Indent:** 4
+- **Line:** 101
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -466,15 +490,15 @@ let genFunction = generativeModel;
 
 
 
-### result - [VARIABLE]
+### generativeModel - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Stores the result from the genFunction.generateContent function call.
+**Description:** An instance of a generative model from Vertex AI with specific settings.
 **Code Snippet:**
 ```
-const result = await genFunction.generateContent(request);
+const generativeModel = vertexAI.getGenerativeModel({ model: textModel, safetySettings: safetySettings, "generationConfig": { temperature: secretSauce.temperature, topP: secretSauce.top_p } });
 ```
-- **Line:** 20
-- **Indent:** 4
+- **Line:** 112
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
@@ -482,258 +506,37 @@ const result = await genFunction.generateContent(request);
 
 
 
-### completion - [VARIABLE]
+### generateModelAdv - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Stores the completion response from the openai.chat.completions.create function call.
+**Description:** An instance of an advanced generative model from Vertex AI with specific settings.
 **Code Snippet:**
 ```
-const completion = await openai.chat.completions.create({ ...secretSauce, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: promptNew} ], model: model, });
+const generateModelAdv = vertexAI.getGenerativeModel({ model: textModelAdvanced, safetySettings: safetySettings, "generationConfig": { temperature: secretSauce.temperature, topP: secretSauce.top_p } });
 ```
-- **Line:** 43
-- **Indent:** 4
+- **Line:** 118
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** false
 - **Private:** false
 - **Async:** Not Available
 
 
+## types
+🏷️ **TYPES**
 
-### endTime - [VARIABLE]
+
+### llm_modes - [TYPE]
 ------------------------------------------------------------
-**Description:** Stores the current timestamp at the end of the process.
+**Description:** Defines the possible modes for the language model backend.
 **Code Snippet:**
 ```
-const endTime = Date.now();
+type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
 ```
-- **Line:** 58
-- **Indent:** 2
+- **Line:** 86
+- **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### totalTime - [VARIABLE]
-------------------------------------------------------------
-**Description:** Calculates the total time taken for the process by subtracting startTime from endTime.
-**Code Snippet:**
-```
-const totalTime = endTime - startTime;
-```
-- **Line:** 59
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### newData - [VARIABLE]
-------------------------------------------------------------
-**Description:** Holds the first element of the parsed JSON array if it exists.
-**Code Snippet:**
-```
-const newData = res[0];
-```
-- **Line:** 14
-- **Indent:** 10
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### keys - [VARIABLE]
-------------------------------------------------------------
-**Description:** Holds the keys of the newData object.
-**Code Snippet:**
-```
-const keys = Object.keys(newData);
-```
-- **Line:** 17
-- **Indent:** 10
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### expectedKeys - [VARIABLE]
-------------------------------------------------------------
-**Description:** Holds the expected keys for the JSON object.
-**Code Snippet:**
-```
-const expectedKeys: CodeObjects[] = ["classes", "functions", "variables", "types", "interfaces", "imports", "exports"];
-```
-- **Line:** 19
-- **Indent:** 10
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### fixedData - [VARIABLE]
-------------------------------------------------------------
-**Description:** Holds the fixed JSON object if the original object is missing keys.
-**Code Snippet:**
-```
-const fixedData = {} as any;
-```
-- **Line:** 27
-- **Indent:** 12
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### e - [VARIABLE]
-------------------------------------------------------------
-**Description:** Holds the error object if JSON parsing fails.
-**Code Snippet:**
-```
-catch (e: any) {
-```
-- **Line:** 43
-- **Indent:** 6
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### question - [VARIABLE]
-------------------------------------------------------------
-**Description:** Holds the prompt question to be sent to the LLM for summarizing code.
-**Code Snippet:**
-```
-const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: \n  Please respond with a JSON object as follows:\n  {\n    \"goal\": \"String summarizing what the code is about, and the goal\",\n    \"features_functions\": \"String describing any relevant features\",\n  }\n\n  ### Code To Sumnarize:\n  ${codeToSummarize}\n  `;
-```
-- **Line:** 67
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### codeSummary - [VARIABLE]
-------------------------------------------------------------
-**Description:** Holds the summary of the code returned by the LLM.
-**Code Snippet:**
-```
-const codeSummary = await infer(question, "JSON object", undefined, false, undefined, undefined, model);
-```
-- **Line:** 75
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### promptTemplate - [VARIABLE]
-------------------------------------------------------------
-**Description:** Template for the prompt that will be sent to the AI API, with placeholders for relevant code and context.
-**Code Snippet:**
-```
-promptTemplate = promptTemplate.replace("<relevant code>", "");
-```
-- **Line:** 6
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### prompt - [VARIABLE]
-------------------------------------------------------------
-**Description:** Final prompt string after replacing placeholders with actual values.
-**Code Snippet:**
-```
-const prompt = promptTemplate.replace("<supplemental context>", projectContext.teamContext).replace("<code snippet>", code).replace("<file path>", filePath);
-```
-- **Line:** 16
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### getFileNameFromPath - [VARIABLE]
-------------------------------------------------------------
-**Description:** Function to extract the file name from a given file path.
-**Code Snippet:**
-```
-const getFileNameFromPath = (path: string) => path.split("/").pop() || "";
-```
-- **Line:** 22
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### fileName - [VARIABLE]
-------------------------------------------------------------
-**Description:** Extracted file name from the given file path.
-**Code Snippet:**
-```
-const fileName = getFileNameFromPath(filePath);
-```
-- **Line:** 23
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### response - [VARIABLE]
-------------------------------------------------------------
-**Description:** Response from the AI API call.
-**Code Snippet:**
-```
-const response = await infer(prompt, "JSON object", undefined, true, true, { fileLocation: filePath, fileName: fileName }, model).catch((error) => { console.error("Error calling API:", error); return { error: error }; });
-```
-- **Line:** 27
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
-- **Async:** Not Available
-
-
-
-### codeObjects - [VARIABLE]
-------------------------------------------------------------
-**Description:** Parsed and validated response from the AI API.
-**Code Snippet:**
-```
-let codeObjects: any = response;
-```
-- **Line:** 39
-- **Indent:** 2
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** false
-- **Private:** false
+- **Exported:** Not Available
+- **Private:** Not Available
 - **Async:** Not Available
 
 
@@ -765,6 +568,38 @@ import { CodeObject, CodeObjectType, CodeObjects, ProjectSummary, codeSummary, m
 import { searchRAG } from "./vectorDB";
 ```
 - **Line:** 7
+- **Indent:** 0
+- **Location:** llmInterface.ts (.//src/llmInterface.ts)
+- **Exported:** Not Available
+- **Private:** Not Available
+- **Async:** Not Available
+
+
+
+### yaml - [IMPORT]
+------------------------------------------------------------
+**Description:** Imports the yaml module from js-yaml.
+**Code Snippet:**
+```
+import yaml from "js-yaml";
+```
+- **Line:** 8
+- **Indent:** 0
+- **Location:** llmInterface.ts (.//src/llmInterface.ts)
+- **Exported:** Not Available
+- **Private:** Not Available
+- **Async:** Not Available
+
+
+
+### jsonrepair - [IMPORT]
+------------------------------------------------------------
+**Description:** Imports the jsonrepair function from the jsonrepair module.
+**Code Snippet:**
+```
+import { jsonrepair } from "jsonrepair";
+```
+- **Line:** 9
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -807,12 +642,12 @@ import OpenAI from "openai";
 
 ### dotenv/config - [IMPORT]
 ------------------------------------------------------------
-**Description:** Imports and configures environment variables from the dotenv module.
+**Description:** Imports and configures environment variables from a .env file.
 **Code Snippet:**
 ```
 import "dotenv/config";
 ```
-- **Line:** 14
+- **Line:** 13
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -828,7 +663,7 @@ import "dotenv/config";
 ```
 import { FunctionDeclarationSchemaType, HarmBlockThreshold, HarmCategory, VertexAI } from "@google-cloud/vertexai";
 ```
-- **Line:** 16
+- **Line:** 15
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -844,7 +679,7 @@ import { FunctionDeclarationSchemaType, HarmBlockThreshold, HarmCategory, Vertex
 ```
 import { getTokens } from "./shared";
 ```
-- **Line:** 17
+- **Line:** 20
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -856,198 +691,6 @@ import { getTokens } from "./shared";
 📤 **EXPORTS**
 
 
-### CodeObject - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from objectSchemas module
-**Code Snippet:**
-```
-import { CodeObject } from "./objectSchemas";
-```
-- **Line:** 2
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### CodeObjectType - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from objectSchemas module
-**Code Snippet:**
-```
-import { CodeObjectType } from "./objectSchemas";
-```
-- **Line:** 2
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### CodeObjects - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from objectSchemas module
-**Code Snippet:**
-```
-import { CodeObjects } from "./objectSchemas";
-```
-- **Line:** 2
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### ProjectSummary - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from objectSchemas module
-**Code Snippet:**
-```
-import { ProjectSummary } from "./objectSchemas";
-```
-- **Line:** 2
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### codeSummary - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from objectSchemas module
-**Code Snippet:**
-```
-import { codeSummary } from "./objectSchemas";
-```
-- **Line:** 2
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### modelServiceConfig - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from objectSchemas module
-**Code Snippet:**
-```
-import { modelServiceConfig } from "./objectSchemas";
-```
-- **Line:** 2
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### searchRAG - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from vectorDB module
-**Code Snippet:**
-```
-import { searchRAG } from "./vectorDB";
-```
-- **Line:** 3
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### FunctionDeclarationSchemaType - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from @google-cloud/vertexai module
-**Code Snippet:**
-```
-import { FunctionDeclarationSchemaType } from "@google-cloud/vertexai";
-```
-- **Line:** 10
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### HarmBlockThreshold - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from @google-cloud/vertexai module
-**Code Snippet:**
-```
-import { HarmBlockThreshold } from "@google-cloud/vertexai";
-```
-- **Line:** 10
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### HarmCategory - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from @google-cloud/vertexai module
-**Code Snippet:**
-```
-import { HarmCategory } from "@google-cloud/vertexai";
-```
-- **Line:** 10
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### VertexAI - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from @google-cloud/vertexai module
-**Code Snippet:**
-```
-import { VertexAI } from "@google-cloud/vertexai";
-```
-- **Line:** 10
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
-### getTokens - [EXPORT]
-------------------------------------------------------------
-**Description:** Exported object from shared module
-**Code Snippet:**
-```
-import { getTokens } from "./shared";
-```
-- **Line:** 11
-- **Indent:** 0
-- **Location:** llmInterface.ts (.//src/llmInterface.ts)
-- **Exported:** Not Available
-- **Private:** Not Available
-- **Async:** Not Available
-
-
-
 ### parseYaml - [EXPORT]
 ------------------------------------------------------------
 **Description:** Function to convert a YAML string into a JSON object.
@@ -1055,7 +698,7 @@ import { getTokens } from "./shared";
 ```
 export function parseYaml(yamlString: string): any { ... }
 ```
-- **Line:** 28
+- **Line:** 133
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -1066,12 +709,12 @@ export function parseYaml(yamlString: string): any { ... }
 
 ### parseText - [EXPORT]
 ------------------------------------------------------------
-**Description:** Function to convert a text string into a JSON object with a specified key.
+**Description:** Function to convert text into a JSON object with a specified key.
 **Code Snippet:**
 ```
 export function parseText(text: string, resKey = "response"): any { ... }
 ```
-- **Line:** 38
+- **Line:** 144
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -1082,12 +725,12 @@ export function parseText(text: string, resKey = "response"): any { ... }
 
 ### infer - [EXPORT]
 ------------------------------------------------------------
-**Description:** Asynchronous function to infer a response based on a given prompt and model.
+**Description:** Function to infer a response from a given prompt using different model backends.
 **Code Snippet:**
 ```
 export async function infer(prompt: string, responseMode: "JSON object" | "YAML object" | "TEXT STRING" = "JSON object", responseKey?: string, bPro = false, bRetry = true, supplementalData?: any, model: string = textModel): Promise<any> { ... }
 ```
-- **Line:** 45
+- **Line:** 153
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -1098,12 +741,12 @@ export async function infer(prompt: string, responseMode: "JSON object" | "YAML 
 
 ### getCodeSummaryFromLLM - [EXPORT]
 ------------------------------------------------------------
-**Description:** Asynchronously gets a code summary from the LLM based on the provided code block and model.
+**Description:** Function to get a summary of a code block from a language model.
 **Code Snippet:**
 ```
 export async function getCodeSummaryFromLLM(codeToSummarize: string, model: string = textModel): Promise<codeSummary> { ... }
 ```
-- **Line:** 70
+- **Line:** 383
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
@@ -1114,12 +757,12 @@ export async function getCodeSummaryFromLLM(codeToSummarize: string, model: stri
 
 ### callLLM - [EXPORT]
 ------------------------------------------------------------
-**Description:** Asynchronously calls the LLM with a given prompt template, project context, code, file path, and model.
+**Description:** Function to call a language model with a given prompt template and project context.
 **Code Snippet:**
 ```
 export async function callLLM(promptTemplate: string, projectContext: ProjectSummary, code: string, filePath: string, bRAG = false, model: string = textModel): Promise<any> { ... }
 ```
-- **Line:** 86
+- **Line:** 398
 - **Indent:** 0
 - **Location:** llmInterface.ts (.//src/llmInterface.ts)
 - **Exported:** Not Available
