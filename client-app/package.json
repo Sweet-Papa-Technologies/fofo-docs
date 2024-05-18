@@ -1,17 +1,25 @@
 {
   "name": "fofo-docs",
-  "version": "1.0.0-alpha",
+  "version": "1.0.1-alpha3",
   "description": "Tool to generate user documentation for code repositories.",
   "main": "dist/index.js",
+  "repository": "https://github.com/Sweet-Papa-Technologies/fofo-docs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:dev:bad-params": "npx ts-node src/index.ts",
     "test:dev:good-params": "npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output --test true",
-    "test:docs:gen": "npx ts-node src/index.ts fofo-doc -g './test-output/projectContext-2024-05-17T17-38-07-340Z-gpt-4o.json' --output ./test-output",
+    "dev:docs": "npx ts-node src/index.ts fofo-doc -g '../example_docs/projectContext-2024-05-18T07-10-49-301Z-gpt-4o.json' --output ./test-output",
     "dev:single-file": "npx ts-node src/index.ts fofo-doc --input './src/shared.ts' --output ./test-output",
     "dev": "npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output"
   },
   "author": "Forrester Terry (fterry@sweetpapatechnologies.com)",
+  "keywords": [
+    "documentation",
+    "code",
+    "repo",
+    "readme",
+    "markdown"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "@google-cloud/aiplatform": "^3.20.0",

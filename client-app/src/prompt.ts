@@ -26,15 +26,18 @@ IF no ${type} objects are found, please respond with an empty JSON object:
     "${type}": []
 }
 
+The only values that can be set for the "type" key are: 
+"class", "function", "variable", "type", "interface", "comment", "import", "export"
+
 ## Response Format
-Respond ONLY with a JSON object containing the identified ${type} objects and their descriptions. Here is an example of the required format:
+Respond ONLY with a JSON object containing the identified ${type} and their descriptions. Here is an example of the required format:
 
 ${type === 'classes' ? `
 {
     "classes": [
         {
             "name": "ClassName",
-            "type": "class",
+            "type": "class", // DO NOT CHANGE THIS
             "description": "Description of the class",
             "codeSnippet": "class ClassName { ... }",
             "codeLine": 10,
@@ -49,7 +52,7 @@ ${type === 'classes' ? `
     "functions": [
         {
             "name": "functionName",
-            "type": "function",
+            "type": "function", // DO NOT CHANGE THIS
             "description": "Description of the function",
             "codeSnippet": "function functionName() { ... }",
             "codeLine": 20,
@@ -75,12 +78,24 @@ ${type === 'classes' ? `
             }
         }
     ]
-}` : type === 'variables' ? `
+}
+
+# Rules for Gathering Function Information
+
+- If the function is exported, set "isExported" to true
+- If the function is private, set "isPrivate" to true
+- If the function is async, set "isAsync" to true
+- If the function has parameters, add them to the "functionParameters" array
+- If the function returns a value, add it to the "functionReturns" object
+
+Include ALL function declarations in the code snippet, even if they are not explicitly called in the code.
+
+` : type === 'variables' ? `
 {
     "variables": [
         {
             "name": "variableName",
-            "type": "variable",
+            "type": "variable", // DO NOT CHANGE THIS
             "description": "Description of the variable",
             "codeSnippet": "let variableName = ...;",
             "codeLine": 30,
@@ -96,6 +111,7 @@ ${type === 'classes' ? `
     "types": [
         {
             "name": "TypeName",
+            "type": "type", // DO NOT CHANGE THIS
             "description": "Description of the type",
             "codeSnippet": "type TypeName = ...;",
             "codeLine": 40,
@@ -109,7 +125,7 @@ ${type === 'classes' ? `
     "interfaces": [
         {
             "name": "InterfaceName",
-            "type": "interface",
+            "type": "interface", // DO NOT CHANGE THIS
             "description": "Description of the interface",
             "codeSnippet": "interface InterfaceName { ... }",
             "codeLine": 65,
@@ -137,7 +153,7 @@ ${type === 'classes' ? `
     "imports": [
         {
             "name": "importName",
-            "type": "import",
+            "type": "import", // DO NOT CHANGE THIS
             "description": "Description of the import",
             "codeSnippet": "import importName from 'module';",
             "codeLine": 60,
@@ -151,7 +167,7 @@ ${type === 'classes' ? `
     "exports": [
         {
             "name": "exportName",
-            "type": "export",
+            "type": "export", // DO NOT CHANGE THIS
             "description": "Description of the export",
             "codeSnippet": "export { exportName };",
             "codeLine": 70,

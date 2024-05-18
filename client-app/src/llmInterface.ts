@@ -112,8 +112,8 @@ type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
 
 // Set the values to undefined if you want to use the default values
 const secretSauce = {
-  temperature: 0.2,
-  top_p: 0.9,
+  temperature: 0.3, // 0.2 works well for big LLM
+  top_p: 0.2, // 0.9 works well for big LLM
 }
 // OpenAI Settings
 const openai = new OpenAI({
@@ -123,7 +123,7 @@ const openai = new OpenAI({
 
 // OLLAMA Settings
 const ollama = new Ollama({ host: endpoints.OLLAMA })
-const contextLength = 8000; // Works with 24GB GPU - RTX 4090
+const contextLength = 16000; // 8000 Works Really Well with 24GB GPU - RTX 4090
 
 // Vertex Settings:
 const project = "sweet-papa-technologies";

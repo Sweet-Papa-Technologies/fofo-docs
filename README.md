@@ -143,6 +143,25 @@ From the client-app directory, run the following command:
 Add files or folders you want to ignore to: `client-app/.fofoignore`
 Files in the .gitignore will be ignored automatically
 
+## Adding Context about your project or team:
+Add a file named `teamContext.md` to the `prompts` directory (located in the `client-app` folder). This file should contain information about your team, project, and any other context you want to include in the documentation.
+
+You can paste it as a markdown file, and the tool will consider it when generating responses.
+
+### Example `teamContext.md`:
+```markdown
+# Team: Sweet Papa Technologies, LLC
+
+## About Sweet Papa Technologies, LLC
+- Builds tools that utilize A.I. and Web3 technologies
+- Founded in 2023
+- Located in the United States
+
+## Technical Stack and Tools:
+- TypeScript, Quasar Framework, VueJS, Capacitor, Electron
+- OpenAI, Google Cloud, Ollama, Firebase
+```
+
 ## Bug Reporting and Pull Requests:
 
 ### Bugs:
@@ -168,9 +187,11 @@ Notes: **Embedding** generation and **inference** were performed via OpenAI's AP
 
 ## Change Log:
 
-### v1.0.1-alpha:
-- [X] [FEATURE] Added support for generating documentation for multiple files
-- [X] [FEATURE] Added support for generating documentation for a single file
+### v1.0.1-alpha3:
+- [X] [BUG]: Fix issue with duplicate information in output (again)
+- [X] [ENHANCEMENT]: Changed the default context and chunk sizes for LLMs, especially OpenAI
+- [X] [FEATURE]: Added support for teamContext file
+- [X] [BUG]: Fixed bug with project summary not generating correctly
 
 ### v1.0.1-alpha2:
 - [X] [BUG]: Fix issue with duplicate information in output
@@ -179,3 +200,8 @@ Notes: **Embedding** generation and **inference** were performed via OpenAI's AP
     - [X] Define useful sections for documentation
     - [X] Regroup sections based off content
     - [X] Improve styling and readability
+
+### v1.0.1-alpha:
+- [X] [FEATURE] Added support for generating documentation for multiple files
+- [X] [FEATURE] Added support for generating documentation for a single file
+
