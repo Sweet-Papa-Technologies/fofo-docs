@@ -12,14 +12,14 @@
 🔧 **FUNCTIONS**
 
 
-### action - [FUNCTION]
+### program.action - [FUNCTION]
 ------------------------------------------------------------
-**Description:** Handles the main logic for generating documentation based on the provided options.
+**Description:** Defines the action to be taken when the command is executed. It generates documentation for the specified project.
 **Code Snippet:**
 ```
-async (projectName, options) => { ... }
+.action(async (projectName, options) => { ... })
 ```
-- **Line:** 21
+- **Line:** 17
 - **Indent:** 2
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -28,13 +28,13 @@ async (projectName, options) => { ... }
 
 
 ###### Function Parameters:
-- **projectName** (string): Name of the project for which documentation is being generated. 
+- **projectName** (string): Name of the project for which documentation is to be generated 
  Example: myProject
-- **options** (object): Options provided by the user, including input path, output path, test mode, and JSON file path. 
+- **options** (object): Options for generating documentation, including input path, output path, test mode, and JSON file path 
  Example: [object Object]
 ###### Function Returns:
 - **Type:** void
-- **Description:** This function does not return a value.
+- **Description:** This function does not return a value
 - **Example:** null
 ## variables
 🧮 **VARIABLES**
@@ -42,7 +42,7 @@ async (projectName, options) => { ... }
 
 ### program - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Instance of the Command class from the commander library.
+**Description:** An instance of the Command class from the commander library, used to define and manage the command-line interface.
 **Code Snippet:**
 ```
 const program = new Command();
@@ -58,12 +58,12 @@ const program = new Command();
 
 ### bTestMode - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Boolean indicating whether the test mode is enabled.
+**Description:** A boolean indicating whether the program is running in test mode, derived from the command-line options.
 **Code Snippet:**
 ```
 const bTestMode = options.test;
 ```
-- **Line:** 23
+- **Line:** 22
 - **Indent:** 4
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -74,12 +74,12 @@ const bTestMode = options.test;
 
 ### projectPath - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Path to the codebase provided by the user.
+**Description:** The path to the codebase, derived from the command-line options.
 **Code Snippet:**
 ```
 const projectPath = options.input;
 ```
-- **Line:** 24
+- **Line:** 23
 - **Indent:** 4
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -90,12 +90,12 @@ const projectPath = options.input;
 
 ### outputDir - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Directory where the generated documentation will be saved.
+**Description:** The path to the output directory for the generated documentation, derived from the command-line options.
 **Code Snippet:**
 ```
 const outputDir = options.output;
 ```
-- **Line:** 25
+- **Line:** 24
 - **Indent:** 4
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -106,12 +106,12 @@ const outputDir = options.output;
 
 ### jsonFile - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Path to the JSON file used for generating documentation.
+**Description:** The path to the JSON file used for generating documentation, derived from the command-line options.
 **Code Snippet:**
 ```
 const jsonFile = options.generateFromFile;
 ```
-- **Line:** 26
+- **Line:** 25
 - **Indent:** 4
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -122,12 +122,12 @@ const jsonFile = options.generateFromFile;
 
 ### startTime - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Timestamp marking the start of the codebase parsing.
+**Description:** The timestamp marking the start of the codebase parsing process.
 **Code Snippet:**
 ```
 const startTime = Date.now();
 ```
-- **Line:** 56
+- **Line:** 52
 - **Indent:** 4
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -138,12 +138,12 @@ const startTime = Date.now();
 
 ### parsedCodebase - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Object representing the parsed codebase.
+**Description:** The result of parsing the codebase, containing the parsed data.
 **Code Snippet:**
 ```
 const parsedCodebase = await parseCodebase(projectPath, projectName);
 ```
-- **Line:** 58
+- **Line:** 54
 - **Indent:** 6
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -154,12 +154,12 @@ const parsedCodebase = await parseCodebase(projectPath, projectName);
 
 ### endTime - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Timestamp marking the end of the documentation generation.
+**Description:** The timestamp marking the end of the documentation generation process.
 **Code Snippet:**
 ```
 const endTime = Date.now();
 ```
-- **Line:** 77
+- **Line:** 70
 - **Indent:** 4
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -170,12 +170,12 @@ const endTime = Date.now();
 
 ### totalTime - [VARIABLE]
 ------------------------------------------------------------
-**Description:** Total time taken for the documentation generation process.
+**Description:** The total time taken for the documentation generation process, calculated as the difference between endTime and startTime.
 **Code Snippet:**
 ```
 const totalTime = endTime - startTime;
 ```
-- **Line:** 78
+- **Line:** 71
 - **Indent:** 4
 - **Location:** index.ts (.//src/index.ts)
 - **Exported:** false
@@ -189,7 +189,7 @@ const totalTime = endTime - startTime;
 
 ### Command - [IMPORT]
 ------------------------------------------------------------
-**Description:** Imports the Command class from the 'commander' module, which is used to create command-line interfaces.
+**Description:** Importing the Command class from the 'commander' module.
 **Code Snippet:**
 ```
 import { Command } from "commander";
@@ -205,7 +205,7 @@ import { Command } from "commander";
 
 ### parseCodebase - [IMPORT]
 ------------------------------------------------------------
-**Description:** Imports the parseCodebase function from the local module './codeParser', which is used to parse the codebase.
+**Description:** Importing the parseCodebase function from the local module './codeParser'.
 **Code Snippet:**
 ```
 import { parseCodebase } from "./codeParser";
@@ -221,7 +221,7 @@ import { parseCodebase } from "./codeParser";
 
 ### generateDocumentation - [IMPORT]
 ------------------------------------------------------------
-**Description:** Imports the generateDocumentation function from the local module './documentationGenerator', which is used to generate documentation.
+**Description:** Importing the generateDocumentation function from the local module './documentationGenerator'.
 **Code Snippet:**
 ```
 import { generateDocumentation } from "./documentationGenerator";
@@ -237,7 +237,7 @@ import { generateDocumentation } from "./documentationGenerator";
 
 ### fs - [IMPORT]
 ------------------------------------------------------------
-**Description:** Imports the 'fs' module, which provides an API for interacting with the file system.
+**Description:** Importing the 'fs' module for file system operations.
 **Code Snippet:**
 ```
 import fs from "fs";

@@ -172,6 +172,10 @@ export async function parseCodebase(
     "dist/**",
     ...(await getIgnoredFiles(projectPath)),
   ];
+
+  projectSummary.teamContext = getContextFromFile(); 
+  console.log("Team Context:\n", projectSummary.teamContext)
+
   let filePaths: string[] = [];
 
   // Determine if the projectPath is a directory or a file
@@ -194,6 +198,8 @@ export async function parseCodebase(
     cwd: projectPath,
     ignore: ignorePatterns,
   }); // TODO=> Add support for way more files
+
+
 
   for (const filePath of filePaths) {
     console.log(`Parsing file: ${filePath}`);
@@ -219,7 +225,7 @@ export async function parseCodebase(
     };
     let currentLine = 0;
 
-    if ((await isFileTooLarge(fullFilePath, 750, breakNum)) == true) {
+    if ((await isFileTooLarge(fullFilePath, 3000, breakNum)) == true) {
       // 750KB is the default limit
       // Handle large files by breaking into chunks and processing separately
       const fileContent = await readFile(fullFilePath, "utf-8");
@@ -311,11 +317,14 @@ export async function parseCodebase(
 
   let codeDescription = '';
     for (const codeFile of projectSummary.codeFiles) {
-        codeDescription += codeFile.codeSummary.goal + "\n" + codeFile.codeSummary.features_functions + "\n";
+
+        codeDescription += `## ${codeFile.fileName}\n`;
+        codeDescription += codeFile.codeSummary.goal + "\n" + 
+        codeFile.codeSummary.features_functions + "\n\n";
     }
   projectSummary.projectDescription = 
     await getCodeSummaryFromLLM(
-      "Summaries of Code Files: \n" + codeDescription,
+      "# Summaries of Code Files: \n" + codeDescription,
       llmToUse
     )
   
@@ -385,4 +394,18 @@ async function isFileTooLarge(
   if (tooLong === true) return true;
 
   return await getFileSizeInKB(filePath).then((size) => size > maxFileSizeKB);
+}
+
+function getContextFromFile() {
+  const contextFile = process.env.CONTEXT_FILE === '' ? "./prompts/teamContext.md" : (process.env.CONTEXT_FILE || "./prompts/teamContext.md");
+  console.log("Looking for Context File at Path:", contextFile)
+  try {
+    if (!fs.existsSync(contextFile)) {
+      throw new Error("Context File Not Found!");
+    }
+    return fs.readFileSync(contextFile, "utf-8");
+  } catch (err) {
+    console.warn("Context File Not Loaded! Using Default Context");
+    return "N/A";
+  }
 }

@@ -140,6 +140,7 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
             const baseObject = file.codeObjects as any;
             const obj = baseObject[key] as any[];
             obj.forEach((codeObject: CodeObject) => {
+
                 if (duplicateCheck(codeObject, codeObject.type) === true) {
                     console.warn(`Duplicate object found: ${codeObject.name}`);
                     return;
