@@ -16,7 +16,7 @@ import {
     variablesPrompt,
     typesPrompt,
     interfacesPrompt,
-    commentsPrompt,
+    // commentsPrompt,
     importsPrompt,
     exportsPrompt
  } from "./prompt";
@@ -31,7 +31,7 @@ const breakNum = Number(process.env.MAX_TOKEN_SPLIT) || 400;
 
 async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string):Promise<CodeObject>{
     // Process each chunk's code objects (update projectSummary.ragData, etc.)
-    const objectKeys:CodeObjects[] = ['classes', 'functions', 'variables', 'types', 'interfaces', 'comments', 'imports', 'exports']
+    const objectKeys:CodeObjects[] = ['classes', 'functions', 'variables', 'types', 'interfaces', 'imports', 'exports']
     const chunkCodeObjectsAny = {} as any;
     
     for (const key of objectKeys) {
@@ -54,9 +54,9 @@ async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, c
         case 'interfaces':
             promptTemplate = interfacesPrompt(projectSummary.teamContext, "<relevant code>", filePath, chunk, key)
             break;
-        case 'comments':
-            promptTemplate = commentsPrompt(projectSummary.teamContext, "<relevant code>", filePath, chunk, key)
-            break;
+        // case 'comments':
+        //     promptTemplate = commentsPrompt(projectSummary.teamContext, "<relevant code>", filePath, chunk, key)
+        //     break;
         case 'imports':
             promptTemplate = importsPrompt(projectSummary.teamContext, "<relevant code>", filePath, chunk, key)
             break;
@@ -73,7 +73,7 @@ async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, c
         projectSummary,
         chunk,
         filePath,
-        undefined,
+        true,
         llmToUse
       );
 
@@ -96,10 +96,17 @@ export function mergeObjectArrays(
   // If the key does not exist, we need to add it to the codeObjArray
   const mergedCodeObj: any = codeObjArray;
   for (const key in newCodeObj) {
+
     // if the current key is a string, skip it
-    if (typeof newCodeObj[key] === "string") {
+    if (typeof newCodeObj[key] === "string" || newCodeObj[key] instanceof String) {
       continue;
     }
+    if (typeof mergedCodeObj[key] === "string" || mergedCodeObj[key] instanceof String) {
+      console.warn("Error: Code Object is not an object");
+      console.log(newCodeObj[key]);
+      continue;
+    }
+
     if (key in mergedCodeObj) {
       mergedCodeObj[key] = [...mergedCodeObj[key], ...newCodeObj[key]];
     } else {
@@ -109,12 +116,18 @@ export function mergeObjectArrays(
 
   // Delete any duplicate code objects:
   console.log("Deleting Duplicate Code Objects");
-  for (const key in mergedCodeObj as CodeObject) {
+  const mergedCodeKeys = Object.keys(mergedCodeObj);
+    for (const key of mergedCodeKeys) {
+
     const foundKeys: string[] = [];
+
     // Make sure the key object is iterable
     if (!Array.isArray(mergedCodeObj[key])) {
+      console.warn("Error: Code Object is not an array");
+      console.log(mergedCodeObj[key]);
       continue;
     }
+
     for (const arrayObj of mergedCodeObj[key]) {
       if ("name" in arrayObj) {
         if (foundKeys.includes(arrayObj.name)) {

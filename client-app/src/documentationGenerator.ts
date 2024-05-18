@@ -12,7 +12,7 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
 
     const toc: string[] = [];
     
-    toc.push(`# ${projectSummary.projectName}`);
+    toc.push(`# Project | ${projectSummary.projectName}`);
     toc.push(`\n## Project Description\n${projectSummary.projectDescription.goal}`);
     toc.push(`\n## Features and Functions\n${projectSummary.projectDescription.features_functions}`);
     toc.push(`\n## Team Context\n${projectSummary.teamContext}`);
@@ -24,7 +24,7 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
         const filePath = path.join(projectFolder, fileName);
         toc.push(`\n- [${file.fileName}](./${fileName})`);
 
-        let fileContent = `# ${file.fileName}\n`;
+        let fileContent = `# ${file.fileName} - ${projectSummary.projectName}\n`;
         fileContent += `\n**Summary:** ${file.codeSummary.goal}\n`;
         fileContent += `\n- **File Location:** ${file.fileLocation}`;
         fileContent += `\n- **Language:** ${file.language}`;
@@ -43,11 +43,108 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
             interfaces: ''
         };
 
+        interface dupObj {
+            name?: string;
+            content?: string;
+            type: CodeObjectType;
+        }
+
+        interface dupTrack {
+            classes: dupObj[];
+            functions: dupObj[];
+            variables: dupObj[];
+            types: dupObj[];
+            comments: dupObj[];
+            imports: dupObj[];
+            exports: dupObj[];
+            interfaces: dupObj[];
+        }
+
+        const duplicateTracking: dupTrack = {
+            classes: [],
+            functions: [],
+            variables: [],
+            types: [],
+            comments: [],
+            imports: [],
+            exports: [],
+            interfaces: []
+        };
+
+        const duplicateCheck = (obj: CodeObject, type: CodeObjectType): boolean => {
+            const objName = obj.name;
+            const objContent = obj.codeSnippet;
+            const objType = obj.type;
+
+            if ((objName || objContent) && objType) {
+                const dupObj = {
+                    name: objName,
+                    content: objContent,
+                    type: objType
+                };
+
+                // Check to see if the object already exists in the duplicate tracking
+                let bFound = false;
+                for (const [section, content] of Object.entries(duplicateTracking)) {
+                    const contentObj = content as dupObj[];
+
+                    // If the same name and the same type, we will go ahead and omit it
+                    const found = contentObj.find((item) => (item.name === objName || item.content === objContent) && item.type === objType);
+
+                    if (typeof found !== 'undefined') {
+                        bFound = true;
+                        break;
+                    }
+                }
+
+                if (bFound === true) {
+                    return true;
+                }
+
+                switch (type) {
+                    case 'class':
+                        duplicateTracking.classes.push(dupObj);
+                        break;
+                    case 'function':
+                        duplicateTracking.functions.push(dupObj);
+                        break;
+                    case 'variable':
+                        duplicateTracking.variables.push(dupObj);
+                        break;
+                    case 'type':
+                        duplicateTracking.types.push(dupObj);
+                        break;
+                    // case 'comment':
+                    //     duplicateTracking.comments.push(dupObj);
+                    //     break;
+                    case 'import':
+                        duplicateTracking.imports.push(dupObj);
+                        break;
+                    case 'export':
+                        duplicateTracking.exports.push(dupObj);
+                        break;
+                    case 'interface':
+                        duplicateTracking.interfaces.push(dupObj);
+                        break;
+                    default:
+                        break;
+                }
+
+                return false;
+            }
+
+            return false;
+        };
+
         Object.keys(file.codeObjects).forEach(key => {
             const baseObject = file.codeObjects as any;
             const obj = baseObject[key] as any[];
-            console.log(obj)
             obj.forEach((codeObject: CodeObject) => {
+                if (duplicateCheck(codeObject, codeObject.type) === true) {
+                    console.warn(`Duplicate object found: ${codeObject.name}`);
+                    return;
+                }
+
                 const content = generateCodeObjectContent(codeObject, 0);
                 switch (codeObject.type) {
                     case 'class':
@@ -111,16 +208,18 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
 
 function generateCodeObjectContent(codeObject: CodeObject, indent: number): string {
     const indentation = '  '.repeat(indent);
+    const fancyBar = '---'.repeat(20);
 
-    let content = `\n${indentation}### ${codeObject.name || 'Other Details'} - [${(codeObject.type || 'Undefined').toUpperCase()}]`;
-    content += `\n${indentation}- **Description:** ${codeObject.description || 'undefined'}`;
+    let content = `\n\n${indentation}### ${codeObject.name || 'Other Details'} - [${(codeObject.type || 'Undefined').toUpperCase()}]`;
+    content += `\n${fancyBar}`;
+    content += `\n**Description:** ${codeObject.description || 'undefined'}`;
+    content += `\n**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet || codeObject.content}\n\`\`\``;
     content += `\n${indentation}- **Line:** ${codeObject.codeLine !== undefined ? codeObject.codeLine : 'undefined'}`;
     content += `\n${indentation}- **Indent:** ${codeObject.codeIndent !== undefined ? codeObject.codeIndent : 'undefined'}`;
     content += `\n${indentation}- **Location:** ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'undefined'})`;
     content += `\n${indentation}- **Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'Not Available'}`;
     content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Not Available'}`;
     content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'Not Available'}\n\n`;
-    content += `\n${indentation}**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet || codeObject.content}\n\`\`\``;
 
     if (codeObject.functionParameters && codeObject.functionParameters.length > 0) {
         content += `\n${indentation}###### Function Parameters:`;
@@ -169,10 +268,6 @@ function getEmoji(type: string): string {
     }
 }
 
-function capitalizeFirstLetter(string: string): string {
-    return string.charAt(0).toUpperCase + string.slice(1);
-}
-
 export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {
     if (!fs.existsSync(folderPath)) {
         try {
@@ -209,7 +304,7 @@ export async function generateDocumentation(folderPath: string, projectContext: 
     // Save projectContext to a JSON file
     if (!jsonFile) {
         const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const model= process.env.LLM_TO_USE || 'ml';
+        const model = process.env.LLM_TO_USE || 'ml';
         const projectContextPath = path.join(folderPath, `projectContext-${timeStamp}-${model}.json`);
         jsonFile = projectContextPath;
 

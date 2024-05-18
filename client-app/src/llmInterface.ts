@@ -34,8 +34,18 @@ const systemPrompt =
 
 const MODEL_MODES = [
   {
+    name: "qwen:32b-chat-v1.5-q4_0",
+    model: "qwen:32b-chat-v1.5-q4_0",
+    backend: "OLLAMA"
+  },
+  {
     name: "codeqwen:7b-code-v1.5-q8_0",
     model: "codeqwen:7b-code-v1.5-q8_0",
+    backend: "OLLAMA"
+  },
+  {
+    name: "llama3-chatqa:8b-v1.5-fp16",
+    model: "llama3-chatqa:8b-v1.5-fp16",
     backend: "OLLAMA"
   },
   {
@@ -100,6 +110,11 @@ const getModelBackend = (selectedModel: string) => {
 
 type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
 
+// Set the values to undefined if you want to use the default values
+const secretSauce = {
+  temperature: 0.2,
+  top_p: 0.9,
+}
 // OpenAI Settings
 const openai = new OpenAI({
   organization: process.env.OPENAI_ORG_ID,
@@ -107,8 +122,8 @@ const openai = new OpenAI({
 });
 
 // OLLAMA Settings
-const ollama = new Ollama({ host: endpoints.OLLAMA });
-const contextLength = 32000; // Works with 24GB GPU - RTX 4090
+const ollama = new Ollama({ host: endpoints.OLLAMA })
+const contextLength = 8000; // Works with 24GB GPU - RTX 4090
 
 // Vertex Settings:
 const project = "sweet-papa-technologies";
@@ -145,15 +160,19 @@ const safetySettings = [
 const generativeModel = vertexAI.getGenerativeModel({
   model: textModel,
   safetySettings: safetySettings,
+  "generationConfig": {
+    temperature: secretSauce.temperature,
+    topP: secretSauce.top_p
+  }
 });
 
 const generateModelAdv = vertexAI.getGenerativeModel({
   model: textModelAdvanced,
   safetySettings: safetySettings,
-});
-
-const generativeModelPreview = vertexAI.getGenerativeModel({
-  model: textModel,
+  "generationConfig": {
+    temperature: secretSauce.temperature,
+    topP: secretSauce.top_p
+  }
 });
 
 // General Functions
@@ -270,10 +289,9 @@ export async function infer(
       prompt: promptNew,
       stream: false,
       system: systemPrompt,
+      keep_alive: 9000,
       options: {
-        // temperature: 0.3,
-        // top_p: 0.95,
-        // top_k: 0.95,
+        ...secretSauce,
         num_ctx: contextLength,
       },
     });
@@ -327,6 +345,7 @@ export async function infer(
     }
   } else if (modelBackend === "OPENAI") {
     const completion = await openai.chat.completions.create({
+      ...secretSauce,
       messages: [{ role: "system", content: systemPrompt },
       { role: "user", content: promptNew}
       ],
@@ -420,7 +439,7 @@ export async function infer(
             "variables",
             "types",
             "interfaces",
-            "comments",
+            // "comments",
             "imports",
             "exports"
           ];
@@ -480,8 +499,8 @@ export async function getCodeSummaryFromLLM(
   const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: 
   Please respond with a JSON object as follows:
   {
-    "goal": "The goal of the code",
-    "features_functions": "Any relevant features",
+    "goal": "String summarizing what the code is about, and the goal",
+    "features_functions": "String describing any relevant features",
   }
 
   ### Code To Sumnarize:
@@ -509,12 +528,13 @@ export async function callLLM(
 ): Promise<any> {
   if (bRAG === true) {
     // Take 400 characters of relevant code
-    const relevantCode = await searchRAG(projectContext.projectName, code); // Placeholder, implement searchRAG function
-    const r =
-      relevantCode.documentData.length > 400
-        ? relevantCode.documentData.substring(0, 400)
-        : relevantCode.documentData;
-    promptTemplate = promptTemplate.replace("<relevant code>", r); // Not implemented yet, placeholder for RAG
+    // const relevantCode = await searchRAG(projectContext.projectName, code); // Placeholder, implement searchRAG function
+    // const r =
+    //   relevantCode.documentData.length > 400
+    //     ? relevantCode.documentData.substring(0, 400)
+    //     : relevantCode.documentData;
+    // promptTemplate = promptTemplate.replace("<relevant code>", r); // Not implemented yet, placeholder for RAG
+    promptTemplate = promptTemplate.replace("<relevant code>", "");
   } else {
     promptTemplate = promptTemplate.replace("<relevant code>", "");
   }

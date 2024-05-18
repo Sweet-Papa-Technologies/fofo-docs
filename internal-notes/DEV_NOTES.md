@@ -1,8 +1,57 @@
-# Notes
-
+# General Notes
 - Sending complex instructions, for even long prompts, works well with Gemini 1.5 flash
 - Rate limiting is applied to the Vertex API initially, 5 request per minute
 - GPT4o is the best performing model right now by far
+
+# Model Notes:
+
+**Ratings:**
+- Works Best
+- Works Well
+- Works OK
+- Not Good
+- Not Workable
+
+**Criteria:**
+- Minimal hallucinations
+- Consistent output
+- Response time
+- Rate limits
+- Expense
+
+## Model Results:
+
+### [gpt-4o](https://beta.openai.com/signup/)
+- **Overall Rating:** Works Best
+- Minimal hallucinations: Works Best
+- Consistent output: Works Best
+- Response time: Works Best
+- Rate limits: Works Best
+- Expense: Works Best
+
+### [gemini-1.5-flash-preview-0514](https://cloud.google.com/vertex-ai/docs/using/gemini)
+- **Overall Rating:** Works Well
+- Minimal hallucinations: Works Well
+- Consistent output: Works Well
+- Response time: Works Well
+- Rate limits: Works OK
+- Expense: Works OK
+
+### [qwen:32b-chat-v1.5-q4_0](https://ollama.com/)
+- **Overall Rating:** Works OK
+- Minimal hallucinations: Works OK
+- Consistent output: Works OK
+- Response time: Works OK
+- Rate limits: Works Best
+- Expense: Works Best
+
+### [dolphin-llama3:8b-v2.9-fp16](https://ollama.com/)
+- **Overall Rating:** Works OK
+- Minimal hallucinations: Works OK
+- Consistent output: Works OK
+- Response time: Works Well
+- Rate limits: Works Best
+- Expense: Works Best
 
 
 # Helpful Prompts:

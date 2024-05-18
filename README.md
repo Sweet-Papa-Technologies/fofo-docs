@@ -1,5 +1,12 @@
-# FoFo Docs
-Tool to generate user documentation for code repositories.
+<img src="example_docs/fofo-docs-lighter.png" alt="drawing" width="500px" height="270px"/>
+
+🚧 **NOTE:**  This project is still in development and is not yet ready for use. You can try ~ if you really want. Got the [Getting Started](#getting-started) and [Usage](#usage) sections to setup and run the app.
+
+## About
+FoFo Docs is a tool to generate user documentation for code repositories. It works by passing in a project directory, and then generating documentation for each file in the project. The tool uses a Language Model (LLM) to generate the documentation, and then stores the generated documentation in a JSON file. The JSON file can be used to regenerate the documentation at any time.
+
+### Example Documentation Output :
+[Example Output (generated with v1.0.1-alpha)](example_docs/README.md)
 
 ## Roadmap 
 - [ ] Create PoC
@@ -17,15 +24,33 @@ Tool to generate user documentation for code repositories.
     - [x] TypeScript / JavaScript
     - [ ] Python
     - [ ] TBA
+- [ ] Supported Documentation Formats:
+    - [x] Markdown
+    - [ ] HTML
+    - [ ] PDF
 
-# General To-Do List
-- [ ] Change ChromeDB to use local storage by default
 
-# Getting Started:
+### Immediate To-Do - View completed items in Changelog section below: [Change Log](#change-log)
+- [ ] [ENHANCEMENT]: Update the README.md template to include more information
+- [ ] [ENHANCEMENT]: Ability to disable embedding generation / RAG functionality via `.env`
+- [ ] [FEATURE]: Add support for HTML output
+- [ ] [FEATURE]: Add support parsing Python projects
+- [ ] [FEATURE]: Create logging function and detailed logs, summaries (e.g. cost report, token usage, etc)
+- [ ] [ENHANCEMENT]: Add sanity check to see if collected data is actually within the file, or if the model hallucinated it
 
-NOTE: This project is still in development and is not yet ready for use. You can try, if you really want.
+### Upcoming To-Do
+- [ ] [ENHANCEMENT]: Change ChromaDB to use local storage by default
+- [ ] [BUG]: Code lines and indents are incorrect; build function to manually check for first logical occurrence to determine line number/indentation
+- [ ] [FEATURE]: Add ability to set pause between requests to avoid rate limiting; settable in `.env`
+- [ ] [FEATURE]: Allow for custom glob patterns to be passed in for file selection via `.fofoinclude` file
+- [ ] [ENHANCEMENT]: Batch API Calls to avoid rate limiting and speed up processing
+- [ ] [ENHANCEMENT]: Use RAG to prevent model from generating duplicate information to begin with
 
-## Setup Dependencies
+## Getting Started:
+
+🚧 NOTE: This project is still in development and is not yet ready for use. You can try, if you really want.
+
+### Setup Dependencies
 - Clone the repository
 - CD into "client-app" and Run `npm install` to install dependencies
     - Ensure you have Node.js installed on your machine, and can call `npx` from the command line
@@ -33,12 +58,12 @@ NOTE: This project is still in development and is not yet ready for use. You can
     - Example server located in the "sample_backend" directory
     - Otherwise you can follow the instructions here: [ChromaDB](https://docs.trychroma.com/deployment/aws#docker)
 
-## Configure Environment
+### Configure Environment
 - Create a `.env` file in the client-app directory
 - Fill out required ENV Variables
 (Todo: Add ENV Variables List Here)
 
-### .env Example:
+#### .env Example:
 ```
 # OPENAI AI Settings
 OPENAI_API_KEY=
@@ -86,28 +111,39 @@ EMBEDDER_MODE=OPENAI
 MAX_TOKEN_SPLIT=500 
 ```
 
-# Usage:
+## Usage:
+From the client-app directory, run the following command:
 
-## Generate Documentation for all files in a folder:
+`npx ts-node src/index.ts [<project-name>] [--input 'path/To/FileOrFolder'][-g path/To/JSON.json] [--output 'path/To/Output/Folder']`
+
+### Command Parameters:
+- `project-name`: The name of the project (required)
+- `--input`: The path to the file or folder you want to generate documentation for (required, or use `-g` instead)
+- `--output`: The path to the folder where you want to store the generated documentation 
+- `-g`: The path to the JSON file containing the project context (Use this, or use `--input`)
+
+### Examples
+
+#### Generate Documentation for all files in a folder:
 `npx ts-node src/index.ts <project-name> --input 'path/To/Folder' --output 'path/To/Output/Folder'`
-#### Example:
+###### Example:
 ```npx ts-node src/index.ts fofo-docs --input ./ --output ./test-output```
 
-## Regenerate the documentation for the project by running the following command:
+#### Regenerate the documentation for the project by running the following command:
 `npx ts-node src/index.ts <project-name> -g 'path/To/Data/Json.json' --output 'path/To/Output/Folder'`
-#### Example:
+###### Example:
 ```npx ts-node src/index.ts fofo-doc -g './test-output/projectContext-2024-05-17T17-38-07-340Z-gpt-4o.json' --output ./test-output```
 
-## Generate documentation for a specific file by running the following command:
+#### Generate documentation for a specific file by running the following command:
 `npx ts-node src/index.ts <project-name> --input 'path/To/File.ts' --output 'path/To/Output/Folder'`
-#### Example:
+##### Example:
 ```npx ts-node src/index.ts fofo-doc --input './src/shared.ts' --output ./test-output```
 
-# File Exclusions:
+## File Exclusions:
 Add files or folders you want to ignore to: `client-app/.fofoignore`
 Files in the .gitignore will be ignored automatically
 
-# Bug Reporting and Pull Requests:
+## Bug Reporting and Pull Requests:
 
 ### Bugs:
 Please report any bugs or issues to the GitHub repository: 
@@ -115,3 +151,31 @@ Please report any bugs or issues to the GitHub repository:
 
 ### Pull Requests:
 Please feel free to create feature branches from main, and then submit a pull request back to main.
+
+## Cost Report:
+
+Notes: **Embedding** generation and **inference** were performed via OpenAI's API
+- Embedding might be worth excluding, and taking out of the equation
+
+### OpenAI (via v1.0.X-alpha) - May 17, 2024:
+- Cost to generate documentation for THIS entire project, using the `GPT-4o` model: `TBD`
+
+### Google Vertex AI (via v1.0.X-alpha) - May 17, 2024:
+- Cost to generate documentation for THIS entire project, using the `Gemini Flash` model: `TBD`
+
+### Ollama (via v1.0.X-alpha) - May 17, 2024:
+- Cost to generate documentation for THIS entire project, using the `phi3:latest` model: `TBD`
+
+## Change Log:
+
+### v1.0.1-alpha:
+- [X] [FEATURE] Added support for generating documentation for multiple files
+- [X] [FEATURE] Added support for generating documentation for a single file
+
+### v1.0.1-alpha2:
+- [X] [BUG]: Fix issue with duplicate information in output
+- [X] [ENHANCEMENT]: Remove unnecessary information from input/output; comments, etc.
+- [X] [ENHANCEMENT]: Revise and update output template for MD documentation
+    - [X] Define useful sections for documentation
+    - [X] Regroup sections based off content
+    - [X] Improve styling and readability
