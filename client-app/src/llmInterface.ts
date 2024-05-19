@@ -110,6 +110,8 @@ const getModelBackend = (selectedModel: string) => {
 
 type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
 
+const RATE_LIMIT = Number(process.env.RATE_LIMIT || "0") || 0;
+
 // Set the values to undefined if you want to use the default values
 const secretSauce = {
   temperature: 0.3, // 0.2 works well for big LLM
@@ -126,11 +128,12 @@ const ollama = new Ollama({ host: endpoints.OLLAMA })
 const contextLength = 16000; // 8000 Works Really Well with 24GB GPU - RTX 4090
 
 // Vertex Settings:
-const project = "sweet-papa-technologies";
-const location = "us-central1";
+
+const project = process.env.GCP_PROJECT_ID || "Not Set";
+const location = process.env.GCP_REGION || "us-central1";
 const textModel = "gemini-1.5-flash-preview-0514";
 const textModelAdvanced = "gemini-1.5-pro-preview-0514	";
-const vertexWAIT = 5000;
+
 
 const vertexAI = new VertexAI({ project: project, location: location });
 
@@ -229,15 +232,14 @@ export async function infer(
 
   console.log("====> Model Backend:", modelBackend);
 
-  if (modelBackend === "VERTEX") {
-    if (model !== textModel && model !== textModelAdvanced) {
-      console.log("Waiting 1 second...");
-      await wait(1000);
-    } else {
-      console.log("Waiting 5 seconds...");
-      await wait(vertexWAIT);
-    }
+
+  if (isNaN(RATE_LIMIT) == false) {
+    if (RATE_LIMIT > 0) {
+      console.log(`Rate Limit Set: ${RATE_LIMIT}`);
+      await wait(RATE_LIMIT);
+    }   
   }
+  
 
   const promptResponseInstructions = `Please respond with a ${responseMode} containing your answer. ${
     responseMode !== "TEXT STRING"
@@ -305,7 +307,11 @@ export async function infer(
 
     let genFunction = generativeModel;
     if (bPro === true) {
-      genFunction = generateModelAdv;
+      if (model.includes("gemini-1.5-pro") == true) {
+        genFunction = generateModelAdv;
+      } else {
+        console.warn("Specified model was FLASH, using provided model: ", model);
+      }
     }
 
     const result = await genFunction.generateContent(request);

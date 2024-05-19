@@ -7,6 +7,8 @@ import {
   ProjectSummary,
   RagData,
   codeSummary,
+  globResult,
+  moduleObject,
 } from "./objectSchemas";
 import { infer, callLLM, getCodeSummaryFromLLM } from "./llmInterface";
 import { 
@@ -18,7 +20,10 @@ import {
     interfacesPrompt,
     // commentsPrompt,
     importsPrompt,
-    exportsPrompt
+    exportsPrompt,
+    determineProjectStack,
+    getPackageDependenciesBasedOnLanguage,
+    determineModulesPackagesFromFile
  } from "./prompt";
 import { saveToVectorDatabase } from "./vectorDB";
 import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
@@ -28,6 +33,24 @@ import "dotenv/config";
 const llmToUse = process.env.LLM_TO_USE || undefined;
 const breakNum = Number(process.env.MAX_TOKEN_SPLIT) || 400;
 
+import readline from 'readline'
+
+// Create readline interface
+
+// Function to prompt user for input
+const promptUser = (question:string) => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+
+    return new Promise((resolve) => {
+        rl.question(question, (answer) => {
+            resolve(answer);
+            rl.close();
+        });
+    })
+};
 
 async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string):Promise<CodeObject>{
     // Process each chunk's code objects (update projectSummary.ragData, etc.)
@@ -161,11 +184,18 @@ export async function parseCodebase(
   const projectSummary: ProjectSummary = {
     projectName: projectName,
     projectDescription: {} as codeSummary,
+    projectDependencies: [],
     projectLocation: projectPath,
+    projectTechStackDescription: "",
     codeFiles: [],
     ragData: [],
-    teamContext: "", // Placeholder, TODO==> Add support for team context
+    teamContext: "",
   };
+
+  // Clean projectPath of any trailing slashes or '"' characters
+  projectPath = projectPath.replace(/\/$/, "");
+  projectPath = projectPath.replace(/\\$/g, "");
+  projectPath = projectPath.replace(/\"/g, "");
 
   const ignorePatterns = [
     "node_modules/**",
@@ -174,16 +204,18 @@ export async function parseCodebase(
   ];
 
   projectSummary.teamContext = getContextFromFile(); 
-  console.log("Team Context:\n", projectSummary.teamContext)
+  console.log("Team/Project Context:\n", projectSummary.teamContext)
 
   let filePaths: string[] = [];
-
+  let bIsDir = false
   // Determine if the projectPath is a directory or a file
+
   if (fs.lstatSync(projectPath).isDirectory()) {
     filePaths = await glob("**/*.{ts,js,tsx,jsx}", {
       cwd: projectPath,
       ignore: ignorePatterns,
     }); // TODO=> Add support for way more files
+    bIsDir = true
   } else {
     const file = projectPath.split("/").pop();
     projectPath = projectPath.split("/").slice(0, -1).join("/");
@@ -194,12 +226,86 @@ export async function parseCodebase(
     filePaths = [file];
   }
 
-  await glob("**/*.{ts,js,tsx,jsx}", {
-    cwd: projectPath,
-    ignore: ignorePatterns,
-  }); // TODO=> Add support for way more files
+  // Determine the general information about the project, and determine if there are any package dependencies, etc:
+  if (bIsDir === true) {
+  const projectStackLang = await infer(
+    determineProjectStack(filePaths),
+    "TEXT STRING",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    llmToUse
+  ) as any;
 
+  projectSummary.projectTechStackDescription = projectStackLang.response;
 
+  const associatedDependencyFiles = await infer(
+    getPackageDependenciesBasedOnLanguage(projectStackLang),
+    "JSON object",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    llmToUse
+  ) as globResult;
+
+  // Search for the specific files the LLM decided we should look for:
+  const dependencyFiles = await glob(associatedDependencyFiles.glob, {
+    cwd:projectPath,
+    ignore: associatedDependencyFiles.ignore,
+  });
+
+  console.log("Dependency Files Found:", dependencyFiles);
+
+  // Process each dependency file:
+  for (const depFile of dependencyFiles) {
+
+    const depFileContent = await readFile(`${depFile}`, "utf-8");
+    const relevantPackagesModules = await infer(
+      determineModulesPackagesFromFile(depFileContent),
+      "JSON object",
+      undefined,
+      false,
+      undefined,
+      undefined,
+      llmToUse
+    ) as moduleObject;
+
+    projectSummary.projectDependencies.push(relevantPackagesModules);
+  }
+
+  // if the result array is nested, or it is an array of arrays, we need to flatten it
+  projectSummary.projectDependencies = projectSummary.projectDependencies.flat(1);
+
+}
+  // Process Each File!
+  console.log("===> Processing Code Files:\n\n");
+  console.log("Files to Process:", filePaths.length);
+  
+  // pause for a moment so user can see
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  const warnIfOverValue = Number(process.env.WARN_IF_OVER || "100");
+  console.log("Warn if over value:", warnIfOverValue);
+
+  if (filePaths.length === 0) {
+    console.log("No files to process, exiting...");
+    return projectSummary;
+  }
+
+  if (filePaths.length > warnIfOverValue) {
+    console.warn("Warning: Large number of files to process, this may take a while...");
+
+    // Prompt to see if they want to continue:
+    const bContinue = await promptUser("Continue processing files? (y/n): ") as string;
+    if (bContinue?.toLocaleLowerCase() !== "y") {
+      console.log("Exiting...");
+      return projectSummary;
+    } else {
+      console.log("ALRIGHT, LET'S CONTINUE...");
+    }
+  }
 
   for (const filePath of filePaths) {
     console.log(`Parsing file: ${filePath}`);

@@ -14,11 +14,12 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
     
     toc.push(`# Project | ${projectSummary.projectName}`);
     toc.push(`\n## Project Description\n${projectSummary.projectDescription.goal}`);
+    toc.push(`\n## Tech Stack Description\n${projectSummary.projectTechStackDescription}`);
     toc.push(`\n## Features and Functions\n${projectSummary.projectDescription.features_functions}`);
-    toc.push(`\n## Team Context\n${projectSummary.teamContext}`);
-    toc.push(`\n## Table of Contents\n`);
-
+    
     // Process Code Files
+    toc.push(`\n## Table of Contents - Project Files\n`);
+
     projectSummary.codeFiles.forEach(file => {
         const fileName = `${file.fileName}.md`;
         const filePath = path.join(projectFolder, fileName);
@@ -201,6 +202,15 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
 
         fs.writeFileSync(filePath, fileContent);
     });
+
+    // List out dependencies:
+    toc.push(`\n- **Project Dependencies / Modules:**`);
+    projectSummary.projectDependencies.forEach(dep => {
+        toc.push(`  - ${dep.name} - ${dep.version}`);
+    });
+
+    toc.push(`\n## Project/Team Context\n${projectSummary.teamContext}`);
+    
 
     // Write TOC
     const tocPath = path.join(projectFolder, 'README.md');

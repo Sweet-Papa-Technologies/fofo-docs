@@ -208,3 +208,53 @@ export const getLanguageTypeFromFile = (filePath: string) => {
     `
 
 }
+
+export const getPackageDependenciesBasedOnLanguage = (projectStackLang: string) => {
+    return `
+    Please respond with a JSON object that includes two keys: "glob" and "ignore".
+
+    - The "glob" key should contain an array of glob patterns that match all file extensions related to package/dependency management typically used in a ${projectStackLang} project.
+    - The "ignore" key should contain an array of glob patterns for ignoring files in the node_modules directory.
+
+    My goal is to use this response to find files related to package dependencies.
+    - DO NOT include lock files (e.g. package-lock.json, yarn.lock) in the glob patterns. You can add them to the ignore list.
+
+    For example, for a JavaScript project, you might respond with:
+    {
+        "glob": ["package.json", "*/package.json", "*/**/package.json"],
+        "ignore": ["node_modules/**"]
+    }
+    `
+}
+
+export const determineProjectStack = (projectFiles: string[]) => {
+    return `
+    Based on the list of files provided, please infer and respond with the programming languages, frameworks, and any other relevant technologies used in the project.
+
+    List of files:
+    ${projectFiles.join('\n')}
+
+    Your response should be a concise description of the project's technology stack. For example, you might respond with:
+    "This is a TypeScript project with a Vue.js frontend and a Node.js backend."
+    `
+}
+
+export const determineModulesPackagesFromFile = (fileContents: string) => {
+    return `
+    Based on the contents of the file provided, please identify and respond with any modules or packages that are imported or required in the code.
+
+    Specifically, ONLY respond with a JSON object that contains the following information for each identified module or package:
+    {
+        "name": string,
+        "version": string,
+        "description": string
+    }
+
+    If the version or description is not available, use "unknown" as the value.
+
+    File Contents:
+    ${fileContents}
+    `
+}
+
+

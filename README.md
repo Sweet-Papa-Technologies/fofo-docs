@@ -40,11 +40,12 @@ FoFo Docs is a tool to generate user documentation for code repositories. It wor
 - [ ] [FEATURE]: Create logging function and detailed logs, summaries (e.g. cost report, token usage, etc)
 - [ ] [ENHANCEMENT]: Add sanity check to see if collected data is actually within the file, or if the model hallucinated it
 
+
 ### Upcoming To-Do
+
 - [ ] [ENHANCEMENT]: Change ChromaDB to use local storage by default
 - [ ] [ENHANCEMENT]: Ability to disable embedding generation / RAG functionality via `.env`
 - [ ] [BUG]: Code lines and indents are incorrect; build function to manually check for first logical occurrence to determine line number/indentation
-- [ ] [FEATURE]: Add ability to set pause between requests to avoid rate limiting; settable in `.env`
 - [ ] [FEATURE]: Allow for custom glob patterns to be passed in for file selection via `.fofoinclude` file
 - [ ] [ENHANCEMENT]: Batch API Calls to avoid rate limiting and speed up processing
 - [ ] [ENHANCEMENT]: Use RAG to prevent model from generating duplicate information to begin with
@@ -199,6 +200,11 @@ Notes:
 - Cost to generate documentation for THIS entire project, using the `dolphin-llama3:8b-v2.9-fp16` model: `TBD`
 
 ## Change Log:
+
+### v1.0.1-alpha4:
+- [ ] [FEATURE]: Add ability to parse dependency files such as .toml, package.json, etc. and list external dependencies
+    - [ ] [FEATURE]: See associated NPM packages, versions, etc.
+- [X] [FEATURE]: Add ability to set pause between requests to avoid rate limiting; settable in `.env`
 
 ### v1.0.1-alpha3:
 - [X] [BUG]: Fix issue with duplicate information in output (again)
