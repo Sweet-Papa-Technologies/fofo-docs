@@ -4,7 +4,7 @@ import { generateDocumentation } from "./documentationGenerator";
 import fs from "fs";
 import { appHeaderPretty, getAppVersion } from "./appData";
 import { ProjectSummary, runtimeData } from "./objectSchemas";
-import { makeOSpathFriendly } from "./shared";
+import { colorize, makeOSpathFriendly } from "./shared";
 import { annotateProject } from "./annotations";
 
 const program = new Command();
@@ -184,6 +184,8 @@ program
     const endTime = Date.now();
     const totalTime = endTime - startTime;
     console.log(`Total Time: ${totalTime / 1000}s`);
+
+    console.log(colorize(`\n\nDocumentation generated at: ${outputDir}`, "green"));
     
   });
 
