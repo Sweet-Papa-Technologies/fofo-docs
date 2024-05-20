@@ -3,7 +3,9 @@ import { parseCodebase } from "./codeParser";
 import { generateDocumentation } from "./documentationGenerator";
 import fs from "fs";
 import { appHeaderPretty, getAppVersion } from "./appData";
-import { runtimeData } from "./objectSchemas";
+import { ProjectSummary, runtimeData } from "./objectSchemas";
+import { makeOSpathFriendly } from "./shared";
+import { annotateProject } from "./annotations";
 
 const program = new Command();
 
@@ -24,6 +26,7 @@ program
   )
   .option("-t, --test <bool>", "Run in Test Mode", "false")
   .option("-g, --generateFromFile <path>", "Generate MD documentation from JSON file")
+  .option("-a, --annotate <bool>", "Annotate code objects", "true")
   .action(async (projectName, options) => {
 
 
@@ -41,11 +44,17 @@ program
     }
 
     const bTestMode = removeDoubleQuotesFromBegEnd(options.test);
-    const projectPath = removeDoubleQuotesFromBegEnd(options.input);
+    const bAnnotate = removeDoubleQuotesFromBegEnd(options.annotate);
+    let projectPath = removeDoubleQuotesFromBegEnd(options.input);
     const outputDir = removeDoubleQuotesFromBegEnd(options.output);
     const jsonFile = removeDoubleQuotesFromBegEnd(options.generateFromFile);
 
+    if (jsonFile) {
+      projectPath = jsonFile
+    }
+
     projectName=removeDoubleQuotesFromBegEnd(projectName);
+    projectName=makeOSpathFriendly(projectName);
 
     const appVersion = getAppVersion()
 
@@ -65,6 +74,39 @@ program
     console.log(
       `FoFo Docs is generating documentation for project: ${projectName}`
     );
+
+    const runAnnotations = async (projectSummary?:ProjectSummary) => {
+      if (bAnnotate && bAnnotate !== "false") {
+        console.log("Annotating code objects...");
+        // Annotate code objects
+        let jsonData: ProjectSummary;
+        if (jsonFile) {
+          jsonData = JSON.parse(fs.readFileSync(jsonFile, "utf-8")) as ProjectSummary;
+        } else {
+          if (!projectSummary) {
+            console.error("Project summary not found!");
+            return projectSummary;
+          }
+          jsonData = projectSummary;
+        }
+
+        try {
+          projectSummary = await annotateProject(jsonData, outputDir);
+
+          if (jsonFile) {
+            fs.writeFileSync(jsonFile, JSON.stringify(projectSummary, null, 4));
+          }
+
+
+ 
+        } catch (error) {
+          console.error("Error during annotation:", error);
+        }
+        console.log("Annotation complete!");
+      }
+      return projectSummary;
+
+    }
 
     // Generate documentation from JSON file ONLY if flag is set
     if (jsonFile) {
@@ -88,10 +130,12 @@ program
         }
       }
 
+
       // Generate documentation
-      
       try {
-        const bGenerated = await generateDocumentation(outputDir, null, jsonFile);
+        const projSummary = await runAnnotations()
+
+        const bGenerated = await generateDocumentation(outputDir, projSummary, jsonFile);
         if (!bGenerated) {
           console.error("Documentation generation failed!");
           return;
@@ -113,10 +157,15 @@ program
       const parsedCodebase = await parseCodebase(projectPath, projectName);
       parsedCodebase.projectName = projectName;
 
+      let projectSummary:any = null
+      if (bAnnotate) {
+       projectSummary = await runAnnotations(parsedCodebase)
+      }
+
       // 2. Generate Documentation
       const bGenerated = await generateDocumentation(
         outputDir,
-        parsedCodebase        
+        projectSummary || parsedCodebase        
       );
 
       if (!bGenerated) {

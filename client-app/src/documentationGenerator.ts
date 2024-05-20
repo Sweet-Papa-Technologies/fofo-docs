@@ -137,47 +137,52 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
             return false;
         };
 
+        if (typeof file.codeObjects !== 'undefined' || file.codeObjects) {
         Object.keys(file.codeObjects).forEach(key => {
             const baseObject = file.codeObjects as any;
             const obj = baseObject[key] as any[];
-            obj.forEach((codeObject: CodeObject) => {
+            if (obj) {
+                obj.forEach((codeObject: CodeObject) => {
 
-                if (duplicateCheck(codeObject, codeObject.type) === true) {
-                    console.warn(`Duplicate object found: ${codeObject.name}`);
-                    return;
-                }
+                    if (duplicateCheck(codeObject, codeObject.type) === true) {
+                        console.warn(`Duplicate object found: ${codeObject.name}`);
+                        return;
+                    }
+    
+                    const content = generateCodeObjectContent(codeObject, 0);
+                    switch (codeObject.type) {
+                        case 'class':
+                            sectionContent.classes += content;
+                            break;
+                        case 'function':
+                            sectionContent.functions += content;
+                            break;
+                        case 'variable':
+                            sectionContent.variables += content;
+                            break;
+                        case 'type':
+                            sectionContent.types += content;
+                            break;
+                        // case 'comment':
+                        //     sectionContent.comments += content;
+                        //     break;
+                        case 'import':
+                            sectionContent.imports += content;
+                            break;
+                        case 'export':
+                            sectionContent.exports += content;
+                            break;
+                        case 'interface':
+                            sectionContent.interfaces += content;
+                            break;
+                        default:
+                            break;
+                    }
+                });
+            }
 
-                const content = generateCodeObjectContent(codeObject, 0);
-                switch (codeObject.type) {
-                    case 'class':
-                        sectionContent.classes += content;
-                        break;
-                    case 'function':
-                        sectionContent.functions += content;
-                        break;
-                    case 'variable':
-                        sectionContent.variables += content;
-                        break;
-                    case 'type':
-                        sectionContent.types += content;
-                        break;
-                    // case 'comment':
-                    //     sectionContent.comments += content;
-                    //     break;
-                    case 'import':
-                        sectionContent.imports += content;
-                        break;
-                    case 'export':
-                        sectionContent.exports += content;
-                        break;
-                    case 'interface':
-                        sectionContent.interfaces += content;
-                        break;
-                    default:
-                        break;
-                }
-            });
         });
+    }
 
         for (const [section, content] of Object.entries(sectionContent)) {
             if (content) {
@@ -232,6 +237,8 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
     content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'N/A'}`;
     content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'N/A'}\n\n`;
 
+
+
     if (codeObject.functionParameters && codeObject.functionParameters.length > 0) {
         content += `\n${indentation}###### Function Parameters:`;
         codeObject.functionParameters.forEach(param => {
@@ -245,6 +252,18 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
         content += `\n${indentation}- **Description:** ${codeObject.functionReturns.description}`;
         content += `\n${indentation}- **Example:** ${codeObject.functionReturns.example}`;
     }
+
+    if (codeObject.annotation) {
+        content += `\n${indentation}###### Annotations / Comments:`;
+
+        const annotation = codeObject.annotation;
+        content += `\n${indentation}- **Purpose:** ${annotation.purpose}`;
+        content += `\n${indentation}- **Parameters:** ${annotation.parameters}`;
+        content += `\n${indentation}- **Returns:** ${annotation.returns}`;
+        content += `\n${indentation}- **Usage Example:** \n\`\`\`${annotation.usageExample}\n\`\`\``;
+        content += `\n${indentation}- **Edge Cases:** ${annotation.edgeCases}`;
+        content += `\n${indentation}- **Dependencies:** ${annotation.dependencies}`;
+    } 
 
     if (codeObject.subObjects && codeObject.subObjects.length > 0) {
         content += `\n${indentation}###### Sub Objects:`;

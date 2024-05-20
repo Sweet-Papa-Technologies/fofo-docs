@@ -3,7 +3,7 @@ export const codeSummary = `
     
     ##Execution Flow\n\n1. The app... etc
 `
-import { CodeObjects } from "./objectSchemas";
+import { CodeObject, CodeObjects, Annotation } from "./objectSchemas";
 const generalPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => {
     const fileName = filePath.split('/').pop();
     return`
@@ -260,3 +260,45 @@ export const determineModulesPackagesFromFile = (fileContents: string) => {
 }
 
 
+export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string): string {
+
+    return `
+    Based on the following context for this software code, provide detailed and relevant comments/annotations for the specific code chunk, represented in this object:
+    
+    ## Full Application Context
+    ${context}
+
+    ## Code Object
+    ${JSON.stringify(codeObj, null, 2)}
+
+    ## Annotation Guidelines
+
+    Based on the full context of the code, detail the following:
+    
+    - Purpose: Describe what this code object does.
+    - Parameters: Explain the parameters of functions, their types, and their purpose.
+    - Returns: Explain what the function returns.
+    - Usage Example: Provide a usage example.
+    - Edge Cases: Mention any edge cases or special conditions.
+    - Dependencies: List any dependencies.
+    - Error Handling: Explain how errors are handled.
+    - Performance: Mention any performance considerations.
+    - Best Practices: Highlight best practices for using this code object.
+
+    # Response Format
+    Respond with a JSON object containing the annotations. For example:
+    {
+        "purpose": "This function calculates the sum of two numbers...etc",
+        "parameters": "num1: number, num2: number...etd",
+        "returns": "number",
+        "usageExample": "const sum = add(1, 2);...etc",
+        "edgeCases": "Negative numbers are not supported...etc",
+        "dependencies": "someDependency, anotherDependency...etc",
+        "errorHandling": "Throws an error if the input is not a number...etc",
+        "performance": "Optimized for speed...etc",
+        "bestPractices": "Use this function for adding numbers to...etc"
+    }
+
+    ONLY respond with the JSON object containing the annotations.
+`;
+}

@@ -53,6 +53,25 @@ const colors: { [key in Color]: string } = {
 const reset = '\x1b[0m';
 
 export function colorize(text: string, color: Color): string {
-    return `${colors[color]}${text}${reset}`;
+    return `
+    ${colors[color]}
+    ${text}
+    ${reset}`.trim()
 }
 
+
+export const makeOSpathFriendly = (str: string) => {
+    const listOfNoNoChars = ['<', '>', ':', '"', '|', '?', '*'];
+    const platform = process.platform;
+
+    if (platform === 'win32') {
+        str = str.replace(/\//g, '\\');
+    } else {
+        str = str.replace(/\\/g, '/');
+    }
+
+    for (const char of listOfNoNoChars) {
+        str = str.replace(char, '_');
+    }
+    return str;
+}

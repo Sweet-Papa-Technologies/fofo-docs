@@ -16,8 +16,6 @@ export interface runtimeData {
     outputPath: string;
     selectedLLModel: string;
     selectedRAGService: string;
-
-
 }
 export interface moduleObject {
     name: string;
@@ -99,6 +97,7 @@ export interface CodeObject {
     type: CodeObjectType;
     description: string;
     codeSnippet: string;
+    annotation?: Annotation;
     codeLine?: number;
     codeIndent?: number;
     content?:string;
@@ -116,3 +115,15 @@ export interface CodeObject {
 }
 
 export type CodeObjectTypes = 'name' | 'type' | 'description' | 'codeSnippet' | 'codeLine' | 'codeIndent' | 'fileName' | 'fileLocation' | 'subObjects' | 'parentObject' | 'functionParameters' | 'functionReturns' | 'isExported' | 'isFunction' | 'isClass' | 'isPrivate' | 'isAsync'
+
+export interface Annotation {
+    purpose: string;
+    parameters?: string;
+    returns?: string;
+    usageExample?: string;
+    edgeCases?: string;
+    dependencies?: string;
+    errorHandling?: string;
+    performance?: string;
+    bestPractices?: string;
+}
