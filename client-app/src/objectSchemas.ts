@@ -7,6 +7,18 @@ export interface globResult {
         "ignore": string[]
     
 }
+
+export interface runtimeData {
+
+    appVersion: string;
+    projectName: string;
+    projectPath: string;
+    outputPath: string;
+    selectedLLModel: string;
+    selectedRAGService: string;
+
+
+}
 export interface moduleObject {
     name: string;
     version: string;
@@ -87,8 +99,8 @@ export interface CodeObject {
     type: CodeObjectType;
     description: string;
     codeSnippet: string;
-    codeLine: number;
-    codeIndent: number;
+    codeLine?: number;
+    codeIndent?: number;
     content?:string;
     fileName: string;
     fileLocation: string;

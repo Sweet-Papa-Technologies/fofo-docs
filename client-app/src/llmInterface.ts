@@ -34,6 +34,16 @@ const systemPrompt =
 
 const MODEL_MODES = [
   {
+    name: "qwen:32b-chat-v1.5-q4_K_M",
+    model: "qwen:32b-chat-v1.5-q4_K_M",
+    backend: "OLLAMA"
+  },
+  {
+    name: "mixtral:8x7b-instruct-v0.1-q3_K_L",
+    model: "mixtral:8x7b-instruct-v0.1-q3_K_L",
+    backend: "OLLAMA"
+  },
+  {
     name: "qwen:32b-chat-v1.5-q4_0",
     model: "qwen:32b-chat-v1.5-q4_0",
     backend: "OLLAMA"

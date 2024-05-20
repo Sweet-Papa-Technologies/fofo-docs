@@ -20,6 +20,8 @@ ${relevantCode}
 ## Task
 In the following code snippet, please identify and described all of the ${type} objects. ONLY focus on the ${type} objects and their descriptions. DO NOT add or implement new code.
 
+The codeSnippet that is extracted from the code chunk should be an exact cut and paste from the actual code, not changed at all, except for adding an ellipsis if truncation needs to happen.
+
 IF no ${type} objects are found, please respond with an empty JSON object:
 
 {

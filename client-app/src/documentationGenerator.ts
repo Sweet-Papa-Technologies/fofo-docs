@@ -228,9 +228,9 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
     content += `\n${indentation}- **Line:** ${codeObject.codeLine !== undefined ? codeObject.codeLine : 'undefined'}`;
     content += `\n${indentation}- **Indent:** ${codeObject.codeIndent !== undefined ? codeObject.codeIndent : 'undefined'}`;
     content += `\n${indentation}- **Location:** ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'undefined'})`;
-    content += `\n${indentation}- **Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'Not Available'}`;
-    content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Not Available'}`;
-    content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'Not Available'}\n\n`;
+    content += `\n${indentation}- **Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'N/A'}`;
+    content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'N/A'}`;
+    content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'N/A'}\n\n`;
 
     if (codeObject.functionParameters && codeObject.functionParameters.length > 0) {
         content += `\n${indentation}###### Function Parameters:`;

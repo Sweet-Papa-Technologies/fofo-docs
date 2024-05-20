@@ -26,7 +26,7 @@ import {
     determineModulesPackagesFromFile
  } from "./prompt";
 import { saveToVectorDatabase } from "./vectorDB";
-import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
+import { breakCodeIntoChunks, getFileContentLen, getTokens, getTotalLines } from "./shared";
 import fs from "fs";
 import "dotenv/config";
 
@@ -34,6 +34,7 @@ const llmToUse = process.env.LLM_TO_USE || undefined;
 const breakNum = Number(process.env.MAX_TOKEN_SPLIT) || 400;
 
 import readline from 'readline'
+import { fofoDocsBuiltInGlobSearch } from "./appData";
 
 // Create readline interface
 
@@ -251,6 +252,8 @@ export async function parseCodebase(
   ) as globResult;
 
   // Search for the specific files the LLM decided we should look for:
+  console.log("Searching for Dependency Files:", [associatedDependencyFiles.glob, ...fofoDocsBuiltInGlobSearch])
+  console.log(projectPath)
   const dependencyFiles = await glob(associatedDependencyFiles.glob, {
     cwd:projectPath,
     ignore: associatedDependencyFiles.ignore,
@@ -259,8 +262,9 @@ export async function parseCodebase(
   console.log("Dependency Files Found:", dependencyFiles);
 
   // Process each dependency file:
-  for (const depFile of dependencyFiles) {
-
+  for (const depFileName of dependencyFiles) {
+    const depFile = `${projectPath}/${depFileName}`;
+    console.log("Processing Dependency File:", depFile);
     const depFileContent = await readFile(`${depFile}`, "utf-8");
     const relevantPackagesModules = await infer(
       determineModulesPackagesFromFile(depFileContent),
@@ -355,8 +359,24 @@ export async function parseCodebase(
         );
         const endLine = getCurrentLineEndLineBasedOnChunk(chunk).end;
 
-        const chunkCodeObjects = await genCodeChunkObj(projectSummary, fullFilePath, chunk);
+        const chunkCodeObjects = await genCodeChunkObj(projectSummary, fullFilePath, chunk)
+        .then(
+          (res) => {
 
+            try {
+              const codeLineUpdatedObject =  findCorrectCodeLineForObject(res, chunk)
+              if (codeLineUpdatedObject.codeLine){
+                codeLineUpdatedObject.codeLine = codeLineUpdatedObject.codeLine + currentLine
+                return codeLineUpdatedObject 
+              }
+            } catch (err) {
+              console.error("Error finding correct code line for object", err);
+          }
+          return res
+        });
+
+        // Update the Data with correct line information:
+        
         const ragData: RagData = {
           metadata: {
             filename: fullFilePath,
@@ -386,7 +406,20 @@ export async function parseCodebase(
       }
     } else {
       const fileContent = await readFile(fullFilePath, "utf-8");
-      const codeObjects = await genCodeChunkObj(projectSummary, fullFilePath, fileContent);
+      const codeObjects = await genCodeChunkObj(projectSummary, fullFilePath, fileContent)
+      .then(
+        (res) => {
+
+          try {
+            const codeLineUpdatedObject =  findCorrectCodeLineForObject(res, fileContent)
+            return codeLineUpdatedObject 
+
+          } catch (err) {
+            console.error("Error finding correct code line for object", err);
+            
+        }
+        return res
+      });
       // Process code objects and update projectSummary and codeFiles
 
       // Process each chunk's code objects (update projectSummary.ragData, etc.)
@@ -394,8 +427,8 @@ export async function parseCodebase(
         metadata: {
           filename: fullFilePath,
           codeChunkId: 0,
-          codeChunkLineStart: 0,
-          codeChunkLineEnd: 0,
+          codeChunkLineStart: 1,
+          codeChunkLineEnd: getTotalLines(fileContent),
           codeObjects: codeObjects,
           codeChunkSummary: codeObjects.description,
         },
@@ -437,6 +470,44 @@ export async function parseCodebase(
 
   return projectSummary;
 }
+
+export function findCorrectCodeLineForObject(codeObj: CodeObject, code: string): CodeObject {
+  // Split the entire code into lines
+  const codeLines = code.split("\n");
+
+  // Function to find the start line of a code snippet with fuzzy matching
+  const findStartLine = (snippetLines: string[], codeLines: string[]): number => {
+      for (let i = 0; i < codeLines.length; i++) {
+          let match = true;
+          for (let j = 0; j < snippetLines.length; j++) {
+              if (i + j >= codeLines.length || !codeLines[i + j].includes(snippetLines[j].trim())) {
+                  match = false;
+                  break;
+              }
+          }
+          if (match) {
+              return i + 1; // Line numbers are 1-based
+          }
+      }
+      return -1; // Not found
+  };
+
+  // Find the correct code line for each object
+  for (const key in codeObj) {
+      const codeObject = codeObj as any;
+      for (const objects of codeObject[key]) {
+          const obj = objects as CodeObject;
+          const codeSnippet = obj.codeSnippet;
+          const snippetLines = codeSnippet.split("\n");
+
+          const startLine = findStartLine(snippetLines, codeLines);
+          obj.codeLine = startLine !== -1 ? startLine : -2;
+      }
+  }
+  return codeObj;
+}
+
+
 
 // Helper Functions Implementation:
 async function getIgnoredFiles(projectPath: string): Promise<string[]> {

@@ -2,6 +2,8 @@ import { Command } from "commander";
 import { parseCodebase } from "./codeParser";
 import { generateDocumentation } from "./documentationGenerator";
 import fs from "fs";
+import { appHeaderPretty, getAppVersion } from "./appData";
+import { runtimeData } from "./objectSchemas";
 
 const program = new Command();
 
@@ -23,14 +25,46 @@ program
   .option("-t, --test <bool>", "Run in Test Mode", "false")
   .option("-g, --generateFromFile <path>", "Generate MD documentation from JSON file")
   .action(async (projectName, options) => {
+
+
+    const removeDoubleQuotesFromBegEnd = (str: string) => {
+      if (!str) {
+        return str;
+      }
+      if (str.startsWith('"') || str.startsWith("'") || str.startsWith("”") || str.startsWith("“") || str.startsWith("‘") || str.startsWith("’")){
+        str = str.slice(1);
+      }
+      if (str.endsWith('"') || str.endsWith("'") || str.endsWith("”") || str.endsWith("“") || str.endsWith("‘") || str.endsWith("’")){
+        str = str.slice(0, -1);
+      }
+      return str;
+    }
+
+    const bTestMode = removeDoubleQuotesFromBegEnd(options.test);
+    const projectPath = removeDoubleQuotesFromBegEnd(options.input);
+    const outputDir = removeDoubleQuotesFromBegEnd(options.output);
+    const jsonFile = removeDoubleQuotesFromBegEnd(options.generateFromFile);
+
+    projectName=removeDoubleQuotesFromBegEnd(projectName);
+
+    const appVersion = getAppVersion()
+
+    const runtimeData:runtimeData = {
+      appVersion: appVersion,
+      projectName: projectName,
+      projectPath: projectPath,
+      outputPath: outputDir,
+      selectedLLModel:process.env['LLM_TO_USE'] || "default",
+      selectedRAGService: process.env['EMBEDDER_MODE'] || "default"
+    }
+
+    const prettyHeader = appHeaderPretty(runtimeData)
+
+    console.log(prettyHeader + "\n\n");
+
     console.log(
       `FoFo Docs is generating documentation for project: ${projectName}`
     );
-
-    const bTestMode = options.test;
-    const projectPath = options.input;
-    const outputDir = options.output;
-    const jsonFile = options.generateFromFile;
 
     // Generate documentation from JSON file ONLY if flag is set
     if (jsonFile) {
