@@ -34,6 +34,17 @@ const systemPrompt =
 
 const MODEL_MODES = [
   {
+    "name": "phi3:14b-medium-128k-instruct-q5_1",
+    "model": "phi3:14b-medium-128k-instruct-q5_1",
+    "backend": "OLLAMA"
+  }
+  ,
+  {
+    name: "phi3:14b-medium-4k-instruct-q6_K",
+    model: "phi3:14b-medium-4k-instruct-q6_K",
+    backend: "OLLAMA"
+  },
+  {
     name: "qwen:32b-chat-v1.5-q4_K_M",
     model: "qwen:32b-chat-v1.5-q4_K_M",
     backend: "OLLAMA"
@@ -135,7 +146,7 @@ const openai = new OpenAI({
 
 // OLLAMA Settings
 const ollama = new Ollama({ host: endpoints.OLLAMA })
-const contextLength = 16000; // 8000 Works Really Well with 24GB GPU - RTX 4090
+const contextLength = 32000; // 8000 Works Really Well with 24GB GPU - RTX 4090
 
 // Vertex Settings:
 

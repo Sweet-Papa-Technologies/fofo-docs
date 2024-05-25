@@ -4,6 +4,7 @@ import path from 'path';
 import { annotateCodeObjectPrompt } from "./prompt";
 import { infer } from "./llmInterface";
 import 'dotenv/config';
+import { makeOSpathFriendly } from "./shared";
 
 const sModel = process.env['LLM_TO_USE'] || undefined;
 
@@ -36,7 +37,12 @@ async function annotateCodeObject(codeObj: CodeObject, context: string): Promise
 
 export async function annotateProject(projectSummary: ProjectSummary, outputDir: string) {
     const annotationsFolder = path.join(outputDir, 'annotations');
-    fs.mkdirSync(annotationsFolder, { recursive: true });
+    try {
+        fs.mkdirSync(annotationsFolder, { recursive: true });
+    } catch (error){ 
+        console.error(error);
+        console.error("Error creating annotations folder");
+    }
 
     // Summarize all files
     const context = await summarizeAllFiles(projectSummary.codeFiles);
@@ -65,8 +71,17 @@ export async function annotateProject(projectSummary: ProjectSummary, outputDir:
         }
 
         // // Write annotations to a file
-        // const filePath = path.join(annotationsFolder, `${file.fileName}-annotations.json`);
-        // fs.writeFileSync(filePath, JSON.stringify(fileAnnotations, null, 2));
+        const sDate = new Date().toISOString().replace(/:/g, '-');
+        const filePath = path.join(annotationsFolder, `${makeOSpathFriendly(file.fileName)}-${makeOSpathFriendly(sDate)}-annotations.json`);
+        const filePathFolder = path.dirname(filePath);
+        try {
+            if (!fs.existsSync(filePathFolder)){
+                fs.mkdirSync(filePathFolder, { recursive: true });
+            }
+            fs.writeFileSync(filePath, JSON.stringify(fileAnnotations, null, 2));
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     return projectSummary;

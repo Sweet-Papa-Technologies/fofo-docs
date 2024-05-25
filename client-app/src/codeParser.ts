@@ -26,7 +26,7 @@ import {
     determineModulesPackagesFromFile
  } from "./prompt";
 import { saveToVectorDatabase } from "./vectorDB";
-import { breakCodeIntoChunks, getFileContentLen, getTokens, getTotalLines } from "./shared";
+import { breakCodeIntoChunks, getContextFromFile, getFileContentLen, getTokens, getTotalLines } from "./shared";
 import fs from "fs";
 import "dotenv/config";
 
@@ -573,16 +573,3 @@ async function isFileTooLarge(
   return await getFileSizeInKB(filePath).then((size) => size > maxFileSizeKB);
 }
 
-function getContextFromFile() {
-  const contextFile = process.env.CONTEXT_FILE === '' ? "./prompts/teamContext.md" : (process.env.CONTEXT_FILE || "./prompts/teamContext.md");
-  console.log("Looking for Context File at Path:", contextFile)
-  try {
-    if (!fs.existsSync(contextFile)) {
-      throw new Error("Context File Not Found!");
-    }
-    return fs.readFileSync(contextFile, "utf-8");
-  } catch (err) {
-    console.warn("Context File Not Loaded! Using Default Context");
-    return "N/A";
-  }
-}

@@ -2,6 +2,7 @@ import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
 import fs from 'fs';
 import path from 'path';
 import "dotenv/config";
+import { makeOSpathFriendly } from "./shared";
 
 const backupDirectory = path.join(__dirname, 'backup');
 
@@ -17,6 +18,12 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
     toc.push(`\n## Tech Stack Description\n${projectSummary.projectTechStackDescription}`);
     toc.push(`\n## Features and Functions\n${projectSummary.projectDescription.features_functions}`);
     
+    // List out dependencies:
+    toc.push(`\n## Project Dependencies / Modules:`);
+    projectSummary.projectDependencies.forEach(dep => {
+        toc.push(`  - ${dep.name} - ${dep.version}`);
+    });
+
     // Process Code Files
     toc.push(`\n## Table of Contents - Project Files\n`);
 
@@ -208,13 +215,11 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
         fs.writeFileSync(filePath, fileContent);
     });
 
-    // List out dependencies:
-    toc.push(`\n- **Project Dependencies / Modules:**`);
-    projectSummary.projectDependencies.forEach(dep => {
-        toc.push(`  - ${dep.name} - ${dep.version}`);
-    });
 
-    toc.push(`\n## Project/Team Context\n${projectSummary.teamContext}`);
+
+    if ( projectSummary.projectDependencies && projectSummary.projectDependencies.length > 0) {
+        toc.push(`\n## Project/Team Context\n${projectSummary.teamContext}`);
+    }
     
 
     // Write TOC
@@ -229,9 +234,11 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
     let content = `\n\n${indentation}### ${codeObject.name || 'Other Details'} - [${(codeObject.type || 'Undefined').toUpperCase()}]`;
     content += `\n${fancyBar}`;
     content += `\n**Description:** ${codeObject.description || 'undefined'}`;
-    content += `\n**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet || codeObject.content}\n\`\`\``;
+
+    if (codeObject.codeSnippet && codeObject.codeSnippet.length > 0) {
+        content += `\n**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet}\n\`\`\``;
+    }
     content += `\n${indentation}- **Line:** ${codeObject.codeLine !== undefined ? codeObject.codeLine : 'undefined'}`;
-    content += `\n${indentation}- **Indent:** ${codeObject.codeIndent !== undefined ? codeObject.codeIndent : 'undefined'}`;
     content += `\n${indentation}- **Location:** ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'undefined'})`;
     content += `\n${indentation}- **Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'N/A'}`;
     content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'N/A'}`;
@@ -257,12 +264,30 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
         content += `\n${indentation}###### Annotations / Comments:`;
 
         const annotation = codeObject.annotation;
-        content += `\n${indentation}- **Purpose:** ${annotation.purpose}`;
-        content += `\n${indentation}- **Parameters:** ${annotation.parameters}`;
-        content += `\n${indentation}- **Returns:** ${annotation.returns}`;
-        content += `\n${indentation}- **Usage Example:** \n\`\`\`${annotation.usageExample}\n\`\`\``;
-        content += `\n${indentation}- **Edge Cases:** ${annotation.edgeCases}`;
-        content += `\n${indentation}- **Dependencies:** ${annotation.dependencies}`;
+
+        if (annotation.purpose && annotation.purpose.length > 0) {
+            content += `\n${indentation}- **Purpose:** ${annotation.purpose}`;
+        }
+
+        if (annotation.parameters && annotation.parameters.length > 0) {
+            content += `\n${indentation}- **Parameters:** ${annotation.parameters}`;
+        }
+
+        if (annotation.returns && annotation.returns.length > 0) {
+            content += `\n${indentation}- **Returns:** ${annotation.returns}`;
+        }
+
+        if (annotation.usageExample && annotation.usageExample.length > 0) {
+            content += `\n${indentation}- **Usage Example:** \n\`\`\`${annotation.usageExample?.replace(/\`\`\`/g, '').replace(/\`/g, '\\`')}\n\`\`\``;
+        }
+
+        if (annotation.edgeCases && annotation.edgeCases.length > 0) {
+            content += `\n${indentation}- **Edge Cases:** ${annotation.edgeCases}`;
+        }
+
+        if (annotation.dependencies && annotation.dependencies.length > 0) {
+            content += `\n${indentation}- **Dependencies:** ${annotation.dependencies}`;
+        }
     } 
 
     if (codeObject.subObjects && codeObject.subObjects.length > 0) {
@@ -335,7 +360,7 @@ export async function generateDocumentation(folderPath: string, projectContext: 
     if (!jsonFile) {
         const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
         const model = process.env.LLM_TO_USE || 'ml';
-        const projectContextPath = path.join(folderPath, `projectContext-${timeStamp}-${model}.json`);
+        const projectContextPath = path.join(folderPath, `${makeOSpathFriendly(projectContext?.projectName || '')}-${timeStamp}-${model}.json`);
         jsonFile = projectContextPath;
 
         try {

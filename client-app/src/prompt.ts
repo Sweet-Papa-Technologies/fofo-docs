@@ -299,6 +299,10 @@ export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string): 
         "bestPractices": "Use this function for adding numbers to...etc"
     }
 
+    If there is no information available for a specific section, you can set the value to an empty string.
+
+    Please properly escape backticks used in your key-value pairs.
+
     ONLY respond with the JSON object containing the annotations.
 `;
 }

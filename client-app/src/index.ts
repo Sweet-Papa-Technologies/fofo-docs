@@ -4,7 +4,7 @@ import { generateDocumentation } from "./documentationGenerator";
 import fs from "fs";
 import { appHeaderPretty, getAppVersion } from "./appData";
 import { ProjectSummary, runtimeData } from "./objectSchemas";
-import { colorize, makeOSpathFriendly } from "./shared";
+import { colorize, getContextFromFile, makeOSpathFriendly } from "./shared";
 import { annotateProject } from "./annotations";
 
 const program = new Command();
@@ -80,7 +80,10 @@ program
         console.log("Annotating code objects...");
         // Annotate code objects
         let jsonData: ProjectSummary;
-        if (jsonFile) {
+        if (projectSummary) {
+          jsonData = projectSummary;
+        } else if
+        (jsonFile) {
           jsonData = JSON.parse(fs.readFileSync(jsonFile, "utf-8")) as ProjectSummary;
         } else {
           if (!projectSummary) {
@@ -156,8 +159,10 @@ program
     try {
       const parsedCodebase = await parseCodebase(projectPath, projectName);
       parsedCodebase.projectName = projectName;
+      parsedCodebase.teamContext = getContextFromFile();
 
       let projectSummary:any = null
+
       if (bAnnotate) {
        projectSummary = await runAnnotations(parsedCodebase)
       }
@@ -165,7 +170,7 @@ program
       // 2. Generate Documentation
       const bGenerated = await generateDocumentation(
         outputDir,
-        projectSummary || parsedCodebase        
+        parsedCodebase || projectSummary       
       );
 
       if (!bGenerated) {

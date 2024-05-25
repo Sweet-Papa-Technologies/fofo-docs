@@ -1,5 +1,6 @@
 import { readFile } from 'fs/promises';
-
+import fs from 'fs';
+import "dotenv/config";
 
 export async function getFileContentLen(filePath: string): Promise<number> {
     return await readFile(filePath, 'utf-8').then(content => content.length);
@@ -75,3 +76,17 @@ export const makeOSpathFriendly = (str: string) => {
     }
     return str;
 }
+
+export function getContextFromFile() {
+    const contextFile = process.env.CONTEXT_FILE === '' || !process.env.CONTEXT_FILE ? "./prompts/teamContext.md" : (process.env.CONTEXT_FILE || "./prompts/teamContext.md");
+    console.log("Looking for Context File at Path:", contextFile)
+    try {
+      if (!fs.existsSync(contextFile)) {
+        throw new Error("Context File Not Found!");
+      }
+      return fs.readFileSync(contextFile, "utf-8");
+    } catch (err) {
+      console.warn("Context File Not Loaded! Using Default Context");
+      return "N/A";
+    }
+  }
