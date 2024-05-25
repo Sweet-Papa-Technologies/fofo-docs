@@ -3,7 +3,7 @@ export const codeSummary = `
     
     ##Execution Flow\n\n1. The app... etc
 `
-import { CodeObjects } from "./objectSchemas";
+import { CodeObject, CodeObjects, Annotation } from "./objectSchemas";
 const generalPrompt = (context: string, relevantCode: string, filePath: string, codeSnippet: string, type: CodeObjects) => {
     const fileName = filePath.split('/').pop();
     return`
@@ -19,6 +19,8 @@ ${relevantCode}
 
 ## Task
 In the following code snippet, please identify and described all of the ${type} objects. ONLY focus on the ${type} objects and their descriptions. DO NOT add or implement new code.
+
+The codeSnippet that is extracted from the code chunk should be an exact cut and paste from the actual code, not changed at all, except for adding an ellipsis if truncation needs to happen.
 
 IF no ${type} objects are found, please respond with an empty JSON object:
 
@@ -207,4 +209,100 @@ export const getLanguageTypeFromFile = (filePath: string) => {
     Please respond with JUST the language name. For example: JavaScript
     `
 
+}
+
+export const getPackageDependenciesBasedOnLanguage = (projectStackLang: string) => {
+    return `
+    Please respond with a JSON object that includes two keys: "glob" and "ignore".
+
+    - The "glob" key should contain an array of glob patterns that match all file extensions related to package/dependency management typically used in a ${projectStackLang} project.
+    - The "ignore" key should contain an array of glob patterns for ignoring files in the node_modules directory.
+
+    My goal is to use this response to find files related to package dependencies.
+    - DO NOT include lock files (e.g. package-lock.json, yarn.lock) in the glob patterns. You can add them to the ignore list.
+
+    For example, for a JavaScript project, you might respond with:
+    {
+        "glob": ["package.json", "*/package.json", "*/**/package.json"],
+        "ignore": ["node_modules/**"]
+    }
+    `
+}
+
+export const determineProjectStack = (projectFiles: string[]) => {
+    return `
+    Based on the list of files provided, please infer and respond with the programming languages, frameworks, and any other relevant technologies used in the project.
+
+    List of files:
+    ${projectFiles.join('\n')}
+
+    Your response should be a concise description of the project's technology stack. For example, you might respond with:
+    "This is a TypeScript project with a Vue.js frontend and a Node.js backend."
+    `
+}
+
+export const determineModulesPackagesFromFile = (fileContents: string) => {
+    return `
+    Based on the contents of the file provided, please identify and respond with any modules or packages that are imported or required in the code.
+
+    Specifically, ONLY respond with a JSON object that contains the following information for each identified module or package:
+    {
+        "name": string,
+        "version": string,
+        "description": string
+    }
+
+    If the version or description is not available, use "unknown" as the value.
+
+    File Contents:
+    ${fileContents}
+    `
+}
+
+
+export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string): string {
+
+    return `
+    Based on the following context for this software code, provide detailed and relevant comments/annotations for the specific code chunk, represented in this object:
+    
+    ## Full Application Context
+    ${context}
+
+    ## Code Object
+    ${JSON.stringify(codeObj, null, 2)}
+
+    ## Annotation Guidelines
+
+    Based on the full context of the code, detail the following:
+    
+    - Purpose: Describe what this code object does.
+    - Parameters: Explain the parameters of functions, their types, and their purpose.
+    - Returns: Explain what the function returns.
+    - Usage Example: Provide a usage example.
+    - Edge Cases: Mention any edge cases or special conditions.
+    - Dependencies: List any dependencies.
+    - Error Handling: Explain how errors are handled.
+    - Performance: Mention any performance considerations.
+    - Best Practices: Highlight best practices for using this code object.
+
+    # Response Format
+    Respond with a JSON object containing the annotations. For example:
+    {
+        "purpose": "This function calculates the sum of two numbers...etc",
+        "parameters": "num1: number, num2: number...etd",
+        "returns": "number",
+        "usageExample": "const sum = add(1, 2);...etc",
+        "edgeCases": "Negative numbers are not supported...etc",
+        "dependencies": "someDependency, anotherDependency...etc",
+        "errorHandling": "Throws an error if the input is not a number...etc",
+        "performance": "Optimized for speed...etc",
+        "bestPractices": "Use this function for adding numbers to...etc"
+    }
+
+    If there is no information available for a specific section, you can set the value to an empty string.
+
+    Please properly escape backticks used in your key-value pairs.
+
+    ONLY respond with the JSON object containing the annotations.
+`;
 }

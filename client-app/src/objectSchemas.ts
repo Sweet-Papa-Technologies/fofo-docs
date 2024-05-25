@@ -1,10 +1,33 @@
 export type CodeObjectType = 'class' | 'function' | 'variable' | 'type' | 'import' | 'export' | 'interface' | 'constructor';
 export type CodeObjects = 'classes' | 'functions' | 'variables' | 'types' | 'imports' | 'exports' | 'interfaces' | 'fileName' | 'fileLocation'
 
+export interface globResult {
+    
+        "glob": string[],
+        "ignore": string[]
+    
+}
+
+export interface runtimeData {
+
+    appVersion: string;
+    projectName: string;
+    projectPath: string;
+    outputPath: string;
+    selectedLLModel: string;
+    selectedRAGService: string;
+}
+export interface moduleObject {
+    name: string;
+    version: string;
+    description: string;
+}
 export interface ProjectSummary {
     projectName: string;
     projectDescription: codeSummary
     projectLocation: string;
+    projectTechStackDescription: string,
+    projectDependencies: moduleObject[];
     codeFiles: CodeFileSummary[];
     ragData: RagData[];
     teamContext: string;
@@ -74,8 +97,9 @@ export interface CodeObject {
     type: CodeObjectType;
     description: string;
     codeSnippet: string;
-    codeLine: number;
-    codeIndent: number;
+    annotation?: Annotation;
+    codeLine?: number;
+    codeIndent?: number;
     content?:string;
     fileName: string;
     fileLocation: string;
@@ -91,3 +115,15 @@ export interface CodeObject {
 }
 
 export type CodeObjectTypes = 'name' | 'type' | 'description' | 'codeSnippet' | 'codeLine' | 'codeIndent' | 'fileName' | 'fileLocation' | 'subObjects' | 'parentObject' | 'functionParameters' | 'functionReturns' | 'isExported' | 'isFunction' | 'isClass' | 'isPrivate' | 'isAsync'
+
+export interface Annotation {
+    purpose: string;
+    parameters?: string;
+    returns?: string;
+    usageExample?: string;
+    edgeCases?: string;
+    dependencies?: string;
+    errorHandling?: string;
+    performance?: string;
+    bestPractices?: string;
+}

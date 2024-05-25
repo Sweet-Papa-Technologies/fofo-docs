@@ -7,6 +7,8 @@ import {
   ProjectSummary,
   RagData,
   codeSummary,
+  globResult,
+  moduleObject,
 } from "./objectSchemas";
 import { infer, callLLM, getCodeSummaryFromLLM } from "./llmInterface";
 import { 
@@ -18,16 +20,38 @@ import {
     interfacesPrompt,
     // commentsPrompt,
     importsPrompt,
-    exportsPrompt
+    exportsPrompt,
+    determineProjectStack,
+    getPackageDependenciesBasedOnLanguage,
+    determineModulesPackagesFromFile
  } from "./prompt";
 import { saveToVectorDatabase } from "./vectorDB";
-import { breakCodeIntoChunks, getFileContentLen, getTokens } from "./shared";
+import { breakCodeIntoChunks, getContextFromFile, getFileContentLen, getTokens, getTotalLines } from "./shared";
 import fs from "fs";
 import "dotenv/config";
 
 const llmToUse = process.env.LLM_TO_USE || undefined;
 const breakNum = Number(process.env.MAX_TOKEN_SPLIT) || 400;
 
+import readline from 'readline'
+import { fofoDocsBuiltInGlobSearch } from "./appData";
+
+// Create readline interface
+
+// Function to prompt user for input
+const promptUser = (question:string) => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+
+    return new Promise((resolve) => {
+        rl.question(question, (answer) => {
+            resolve(answer);
+            rl.close();
+        });
+    })
+};
 
 async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string):Promise<CodeObject>{
     // Process each chunk's code objects (update projectSummary.ragData, etc.)
@@ -161,11 +185,18 @@ export async function parseCodebase(
   const projectSummary: ProjectSummary = {
     projectName: projectName,
     projectDescription: {} as codeSummary,
+    projectDependencies: [],
     projectLocation: projectPath,
+    projectTechStackDescription: "",
     codeFiles: [],
     ragData: [],
-    teamContext: "", // Placeholder, TODO==> Add support for team context
+    teamContext: "",
   };
+
+  // Clean projectPath of any trailing slashes or '"' characters
+  projectPath = projectPath.replace(/\/$/, "");
+  projectPath = projectPath.replace(/\\$/g, "");
+  projectPath = projectPath.replace(/\"/g, "");
 
   const ignorePatterns = [
     "node_modules/**",
@@ -174,16 +205,18 @@ export async function parseCodebase(
   ];
 
   projectSummary.teamContext = getContextFromFile(); 
-  console.log("Team Context:\n", projectSummary.teamContext)
+  console.log("Team/Project Context:\n", projectSummary.teamContext)
 
   let filePaths: string[] = [];
-
+  let bIsDir = false
   // Determine if the projectPath is a directory or a file
+
   if (fs.lstatSync(projectPath).isDirectory()) {
     filePaths = await glob("**/*.{ts,js,tsx,jsx}", {
       cwd: projectPath,
       ignore: ignorePatterns,
     }); // TODO=> Add support for way more files
+    bIsDir = true
   } else {
     const file = projectPath.split("/").pop();
     projectPath = projectPath.split("/").slice(0, -1).join("/");
@@ -194,12 +227,89 @@ export async function parseCodebase(
     filePaths = [file];
   }
 
-  await glob("**/*.{ts,js,tsx,jsx}", {
-    cwd: projectPath,
-    ignore: ignorePatterns,
-  }); // TODO=> Add support for way more files
+  // Determine the general information about the project, and determine if there are any package dependencies, etc:
+  if (bIsDir === true) {
+  const projectStackLang = await infer(
+    determineProjectStack(filePaths),
+    "TEXT STRING",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    llmToUse
+  ) as any;
 
+  projectSummary.projectTechStackDescription = projectStackLang.response;
 
+  const associatedDependencyFiles = await infer(
+    getPackageDependenciesBasedOnLanguage(projectStackLang),
+    "JSON object",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    llmToUse
+  ) as globResult;
+
+  // Search for the specific files the LLM decided we should look for:
+  console.log("Searching for Dependency Files:", [associatedDependencyFiles.glob, ...fofoDocsBuiltInGlobSearch])
+  console.log(projectPath)
+  const dependencyFiles = await glob(associatedDependencyFiles.glob, {
+    cwd:projectPath,
+    ignore: associatedDependencyFiles.ignore,
+  });
+
+  console.log("Dependency Files Found:", dependencyFiles);
+
+  // Process each dependency file:
+  for (const depFileName of dependencyFiles) {
+    const depFile = `${projectPath}/${depFileName}`;
+    console.log("Processing Dependency File:", depFile);
+    const depFileContent = await readFile(`${depFile}`, "utf-8");
+    const relevantPackagesModules = await infer(
+      determineModulesPackagesFromFile(depFileContent),
+      "JSON object",
+      undefined,
+      false,
+      undefined,
+      undefined,
+      llmToUse
+    ) as moduleObject;
+
+    projectSummary.projectDependencies.push(relevantPackagesModules);
+  }
+
+  // if the result array is nested, or it is an array of arrays, we need to flatten it
+  projectSummary.projectDependencies = projectSummary.projectDependencies.flat(1);
+
+}
+  // Process Each File!
+  console.log("===> Processing Code Files:\n\n");
+  console.log("Files to Process:", filePaths.length);
+  
+  // pause for a moment so user can see
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  const warnIfOverValue = Number(process.env.WARN_IF_OVER || "100");
+  console.log("Warn if over value:", warnIfOverValue);
+
+  if (filePaths.length === 0) {
+    console.log("No files to process, exiting...");
+    return projectSummary;
+  }
+
+  if (filePaths.length > warnIfOverValue) {
+    console.warn("Warning: Large number of files to process, this may take a while...");
+
+    // Prompt to see if they want to continue:
+    const bContinue = await promptUser("Continue processing files? (y/n): ") as string;
+    if (bContinue?.toLocaleLowerCase() !== "y") {
+      console.log("Exiting...");
+      return projectSummary;
+    } else {
+      console.log("ALRIGHT, LET'S CONTINUE...");
+    }
+  }
 
   for (const filePath of filePaths) {
     console.log(`Parsing file: ${filePath}`);
@@ -249,8 +359,24 @@ export async function parseCodebase(
         );
         const endLine = getCurrentLineEndLineBasedOnChunk(chunk).end;
 
-        const chunkCodeObjects = await genCodeChunkObj(projectSummary, fullFilePath, chunk);
+        const chunkCodeObjects = await genCodeChunkObj(projectSummary, fullFilePath, chunk)
+        .then(
+          (res) => {
 
+            try {
+              const codeLineUpdatedObject =  findCorrectCodeLineForObject(res, chunk)
+              if (codeLineUpdatedObject.codeLine){
+                codeLineUpdatedObject.codeLine = codeLineUpdatedObject.codeLine + currentLine
+                return codeLineUpdatedObject 
+              }
+            } catch (err) {
+              console.error("Error finding correct code line for object", err);
+          }
+          return res
+        });
+
+        // Update the Data with correct line information:
+        
         const ragData: RagData = {
           metadata: {
             filename: fullFilePath,
@@ -280,7 +406,20 @@ export async function parseCodebase(
       }
     } else {
       const fileContent = await readFile(fullFilePath, "utf-8");
-      const codeObjects = await genCodeChunkObj(projectSummary, fullFilePath, fileContent);
+      const codeObjects = await genCodeChunkObj(projectSummary, fullFilePath, fileContent)
+      .then(
+        (res) => {
+
+          try {
+            const codeLineUpdatedObject =  findCorrectCodeLineForObject(res, fileContent)
+            return codeLineUpdatedObject 
+
+          } catch (err) {
+            console.error("Error finding correct code line for object", err);
+            
+        }
+        return res
+      });
       // Process code objects and update projectSummary and codeFiles
 
       // Process each chunk's code objects (update projectSummary.ragData, etc.)
@@ -288,8 +427,8 @@ export async function parseCodebase(
         metadata: {
           filename: fullFilePath,
           codeChunkId: 0,
-          codeChunkLineStart: 0,
-          codeChunkLineEnd: 0,
+          codeChunkLineStart: 1,
+          codeChunkLineEnd: getTotalLines(fileContent),
           codeObjects: codeObjects,
           codeChunkSummary: codeObjects.description,
         },
@@ -331,6 +470,44 @@ export async function parseCodebase(
 
   return projectSummary;
 }
+
+export function findCorrectCodeLineForObject(codeObj: CodeObject, code: string): CodeObject {
+  // Split the entire code into lines
+  const codeLines = code.split("\n");
+
+  // Function to find the start line of a code snippet with fuzzy matching
+  const findStartLine = (snippetLines: string[], codeLines: string[]): number => {
+      for (let i = 0; i < codeLines.length; i++) {
+          let match = true;
+          for (let j = 0; j < snippetLines.length; j++) {
+              if (i + j >= codeLines.length || !codeLines[i + j].includes(snippetLines[j].trim())) {
+                  match = false;
+                  break;
+              }
+          }
+          if (match) {
+              return i + 1; // Line numbers are 1-based
+          }
+      }
+      return -1; // Not found
+  };
+
+  // Find the correct code line for each object
+  for (const key in codeObj) {
+      const codeObject = codeObj as any;
+      for (const objects of codeObject[key]) {
+          const obj = objects as CodeObject;
+          const codeSnippet = obj.codeSnippet;
+          const snippetLines = codeSnippet.split("\n");
+
+          const startLine = findStartLine(snippetLines, codeLines);
+          obj.codeLine = startLine !== -1 ? startLine : -2;
+      }
+  }
+  return codeObj;
+}
+
+
 
 // Helper Functions Implementation:
 async function getIgnoredFiles(projectPath: string): Promise<string[]> {
@@ -396,16 +573,3 @@ async function isFileTooLarge(
   return await getFileSizeInKB(filePath).then((size) => size > maxFileSizeKB);
 }
 
-function getContextFromFile() {
-  const contextFile = process.env.CONTEXT_FILE === '' ? "./prompts/teamContext.md" : (process.env.CONTEXT_FILE || "./prompts/teamContext.md");
-  console.log("Looking for Context File at Path:", contextFile)
-  try {
-    if (!fs.existsSync(contextFile)) {
-      throw new Error("Context File Not Found!");
-    }
-    return fs.readFileSync(contextFile, "utf-8");
-  } catch (err) {
-    console.warn("Context File Not Loaded! Using Default Context");
-    return "N/A";
-  }
-}

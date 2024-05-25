@@ -34,6 +34,27 @@ const systemPrompt =
 
 const MODEL_MODES = [
   {
+    "name": "phi3:14b-medium-128k-instruct-q5_1",
+    "model": "phi3:14b-medium-128k-instruct-q5_1",
+    "backend": "OLLAMA"
+  }
+  ,
+  {
+    name: "phi3:14b-medium-4k-instruct-q6_K",
+    model: "phi3:14b-medium-4k-instruct-q6_K",
+    backend: "OLLAMA"
+  },
+  {
+    name: "qwen:32b-chat-v1.5-q4_K_M",
+    model: "qwen:32b-chat-v1.5-q4_K_M",
+    backend: "OLLAMA"
+  },
+  {
+    name: "mixtral:8x7b-instruct-v0.1-q3_K_L",
+    model: "mixtral:8x7b-instruct-v0.1-q3_K_L",
+    backend: "OLLAMA"
+  },
+  {
     name: "qwen:32b-chat-v1.5-q4_0",
     model: "qwen:32b-chat-v1.5-q4_0",
     backend: "OLLAMA"
@@ -110,6 +131,8 @@ const getModelBackend = (selectedModel: string) => {
 
 type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
 
+const RATE_LIMIT = Number(process.env.RATE_LIMIT || "0") || 0;
+
 // Set the values to undefined if you want to use the default values
 const secretSauce = {
   temperature: 0.3, // 0.2 works well for big LLM
@@ -123,14 +146,15 @@ const openai = new OpenAI({
 
 // OLLAMA Settings
 const ollama = new Ollama({ host: endpoints.OLLAMA })
-const contextLength = 16000; // 8000 Works Really Well with 24GB GPU - RTX 4090
+const contextLength = 32000; // 8000 Works Really Well with 24GB GPU - RTX 4090
 
 // Vertex Settings:
-const project = "sweet-papa-technologies";
-const location = "us-central1";
+
+const project = process.env.GCP_PROJECT_ID || "Not Set";
+const location = process.env.GCP_REGION || "us-central1";
 const textModel = "gemini-1.5-flash-preview-0514";
 const textModelAdvanced = "gemini-1.5-pro-preview-0514	";
-const vertexWAIT = 5000;
+
 
 const vertexAI = new VertexAI({ project: project, location: location });
 
@@ -229,15 +253,14 @@ export async function infer(
 
   console.log("====> Model Backend:", modelBackend);
 
-  if (modelBackend === "VERTEX") {
-    if (model !== textModel && model !== textModelAdvanced) {
-      console.log("Waiting 1 second...");
-      await wait(1000);
-    } else {
-      console.log("Waiting 5 seconds...");
-      await wait(vertexWAIT);
-    }
+
+  if (isNaN(RATE_LIMIT) == false) {
+    if (RATE_LIMIT > 0) {
+      console.log(`Rate Limit Set: ${RATE_LIMIT}`);
+      await wait(RATE_LIMIT);
+    }   
   }
+  
 
   const promptResponseInstructions = `Please respond with a ${responseMode} containing your answer. ${
     responseMode !== "TEXT STRING"
@@ -305,7 +328,11 @@ export async function infer(
 
     let genFunction = generativeModel;
     if (bPro === true) {
-      genFunction = generateModelAdv;
+      if (model.includes("gemini-1.5-pro") == true) {
+        genFunction = generateModelAdv;
+      } else {
+        console.warn("Specified model was FLASH, using provided model: ", model);
+      }
     }
 
     const result = await genFunction.generateContent(request);

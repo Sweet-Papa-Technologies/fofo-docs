@@ -2,6 +2,7 @@ import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
 import fs from 'fs';
 import path from 'path';
 import "dotenv/config";
+import { makeOSpathFriendly } from "./shared";
 
 const backupDirectory = path.join(__dirname, 'backup');
 
@@ -14,11 +15,18 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
     
     toc.push(`# Project | ${projectSummary.projectName}`);
     toc.push(`\n## Project Description\n${projectSummary.projectDescription.goal}`);
+    toc.push(`\n## Tech Stack Description\n${projectSummary.projectTechStackDescription}`);
     toc.push(`\n## Features and Functions\n${projectSummary.projectDescription.features_functions}`);
-    toc.push(`\n## Team Context\n${projectSummary.teamContext}`);
-    toc.push(`\n## Table of Contents\n`);
+    
+    // List out dependencies:
+    toc.push(`\n## Project Dependencies / Modules:`);
+    projectSummary.projectDependencies.forEach(dep => {
+        toc.push(`  - ${dep.name} - ${dep.version}`);
+    });
 
     // Process Code Files
+    toc.push(`\n## Table of Contents - Project Files\n`);
+
     projectSummary.codeFiles.forEach(file => {
         const fileName = `${file.fileName}.md`;
         const filePath = path.join(projectFolder, fileName);
@@ -136,47 +144,52 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
             return false;
         };
 
+        if (typeof file.codeObjects !== 'undefined' || file.codeObjects) {
         Object.keys(file.codeObjects).forEach(key => {
             const baseObject = file.codeObjects as any;
             const obj = baseObject[key] as any[];
-            obj.forEach((codeObject: CodeObject) => {
+            if (obj) {
+                obj.forEach((codeObject: CodeObject) => {
 
-                if (duplicateCheck(codeObject, codeObject.type) === true) {
-                    console.warn(`Duplicate object found: ${codeObject.name}`);
-                    return;
-                }
+                    if (duplicateCheck(codeObject, codeObject.type) === true) {
+                        console.warn(`Duplicate object found: ${codeObject.name}`);
+                        return;
+                    }
+    
+                    const content = generateCodeObjectContent(codeObject, 0);
+                    switch (codeObject.type) {
+                        case 'class':
+                            sectionContent.classes += content;
+                            break;
+                        case 'function':
+                            sectionContent.functions += content;
+                            break;
+                        case 'variable':
+                            sectionContent.variables += content;
+                            break;
+                        case 'type':
+                            sectionContent.types += content;
+                            break;
+                        // case 'comment':
+                        //     sectionContent.comments += content;
+                        //     break;
+                        case 'import':
+                            sectionContent.imports += content;
+                            break;
+                        case 'export':
+                            sectionContent.exports += content;
+                            break;
+                        case 'interface':
+                            sectionContent.interfaces += content;
+                            break;
+                        default:
+                            break;
+                    }
+                });
+            }
 
-                const content = generateCodeObjectContent(codeObject, 0);
-                switch (codeObject.type) {
-                    case 'class':
-                        sectionContent.classes += content;
-                        break;
-                    case 'function':
-                        sectionContent.functions += content;
-                        break;
-                    case 'variable':
-                        sectionContent.variables += content;
-                        break;
-                    case 'type':
-                        sectionContent.types += content;
-                        break;
-                    // case 'comment':
-                    //     sectionContent.comments += content;
-                    //     break;
-                    case 'import':
-                        sectionContent.imports += content;
-                        break;
-                    case 'export':
-                        sectionContent.exports += content;
-                        break;
-                    case 'interface':
-                        sectionContent.interfaces += content;
-                        break;
-                    default:
-                        break;
-                }
-            });
         });
+    }
 
         for (const [section, content] of Object.entries(sectionContent)) {
             if (content) {
@@ -202,6 +215,13 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
         fs.writeFileSync(filePath, fileContent);
     });
 
+
+
+    if ( projectSummary.projectDependencies && projectSummary.projectDependencies.length > 0) {
+        toc.push(`\n## Project/Team Context\n${projectSummary.teamContext}`);
+    }
+    
+
     // Write TOC
     const tocPath = path.join(projectFolder, 'README.md');
     fs.writeFileSync(tocPath, toc.join('\n'));
@@ -214,13 +234,17 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
     let content = `\n\n${indentation}### ${codeObject.name || 'Other Details'} - [${(codeObject.type || 'Undefined').toUpperCase()}]`;
     content += `\n${fancyBar}`;
     content += `\n**Description:** ${codeObject.description || 'undefined'}`;
-    content += `\n**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet || codeObject.content}\n\`\`\``;
+
+    if (codeObject.codeSnippet && codeObject.codeSnippet.length > 0) {
+        content += `\n**Code Snippet:**\n\`\`\`\n${codeObject.codeSnippet}\n\`\`\``;
+    }
     content += `\n${indentation}- **Line:** ${codeObject.codeLine !== undefined ? codeObject.codeLine : 'undefined'}`;
-    content += `\n${indentation}- **Indent:** ${codeObject.codeIndent !== undefined ? codeObject.codeIndent : 'undefined'}`;
     content += `\n${indentation}- **Location:** ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'undefined'})`;
-    content += `\n${indentation}- **Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'Not Available'}`;
-    content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Not Available'}`;
-    content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'Not Available'}\n\n`;
+    content += `\n${indentation}- **Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'N/A'}`;
+    content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'N/A'}`;
+    content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'N/A'}\n\n`;
+
+
 
     if (codeObject.functionParameters && codeObject.functionParameters.length > 0) {
         content += `\n${indentation}###### Function Parameters:`;
@@ -235,6 +259,36 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
         content += `\n${indentation}- **Description:** ${codeObject.functionReturns.description}`;
         content += `\n${indentation}- **Example:** ${codeObject.functionReturns.example}`;
     }
+
+    if (codeObject.annotation) {
+        content += `\n${indentation}###### Annotations / Comments:`;
+
+        const annotation = codeObject.annotation;
+
+        if (annotation.purpose && annotation.purpose.length > 0) {
+            content += `\n${indentation}- **Purpose:** ${annotation.purpose}`;
+        }
+
+        if (annotation.parameters && annotation.parameters.length > 0) {
+            content += `\n${indentation}- **Parameters:** ${annotation.parameters}`;
+        }
+
+        if (annotation.returns && annotation.returns.length > 0) {
+            content += `\n${indentation}- **Returns:** ${annotation.returns}`;
+        }
+
+        if (annotation.usageExample && annotation.usageExample.length > 0) {
+            content += `\n${indentation}- **Usage Example:** \n\`\`\`${annotation.usageExample?.replace(/\`\`\`/g, '').replace(/\`/g, '\\`')}\n\`\`\``;
+        }
+
+        if (annotation.edgeCases && annotation.edgeCases.length > 0) {
+            content += `\n${indentation}- **Edge Cases:** ${annotation.edgeCases}`;
+        }
+
+        if (annotation.dependencies && annotation.dependencies.length > 0) {
+            content += `\n${indentation}- **Dependencies:** ${annotation.dependencies}`;
+        }
+    } 
 
     if (codeObject.subObjects && codeObject.subObjects.length > 0) {
         content += `\n${indentation}###### Sub Objects:`;
@@ -306,7 +360,7 @@ export async function generateDocumentation(folderPath: string, projectContext: 
     if (!jsonFile) {
         const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
         const model = process.env.LLM_TO_USE || 'ml';
-        const projectContextPath = path.join(folderPath, `projectContext-${timeStamp}-${model}.json`);
+        const projectContextPath = path.join(folderPath, `${makeOSpathFriendly(projectContext?.projectName || '')}-${timeStamp}-${model}.json`);
         jsonFile = projectContextPath;
 
         try {

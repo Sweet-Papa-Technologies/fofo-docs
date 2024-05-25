@@ -2,6 +2,10 @@ import { Command } from "commander";
 import { parseCodebase } from "./codeParser";
 import { generateDocumentation } from "./documentationGenerator";
 import fs from "fs";
+import { appHeaderPretty, getAppVersion } from "./appData";
+import { ProjectSummary, runtimeData } from "./objectSchemas";
+import { colorize, getContextFromFile, makeOSpathFriendly } from "./shared";
+import { annotateProject } from "./annotations";
 
 const program = new Command();
 
@@ -22,15 +26,90 @@ program
   )
   .option("-t, --test <bool>", "Run in Test Mode", "false")
   .option("-g, --generateFromFile <path>", "Generate MD documentation from JSON file")
+  .option("-a, --annotate <bool>", "Annotate code objects", "true")
   .action(async (projectName, options) => {
+
+
+    const removeDoubleQuotesFromBegEnd = (str: string) => {
+      if (!str) {
+        return str;
+      }
+      if (str.startsWith('"') || str.startsWith("'") || str.startsWith("”") || str.startsWith("“") || str.startsWith("‘") || str.startsWith("’")){
+        str = str.slice(1);
+      }
+      if (str.endsWith('"') || str.endsWith("'") || str.endsWith("”") || str.endsWith("“") || str.endsWith("‘") || str.endsWith("’")){
+        str = str.slice(0, -1);
+      }
+      return str;
+    }
+
+    const bTestMode = removeDoubleQuotesFromBegEnd(options.test);
+    const bAnnotate = removeDoubleQuotesFromBegEnd(options.annotate);
+    let projectPath = removeDoubleQuotesFromBegEnd(options.input);
+    const outputDir = removeDoubleQuotesFromBegEnd(options.output);
+    const jsonFile = removeDoubleQuotesFromBegEnd(options.generateFromFile);
+
+    if (jsonFile) {
+      projectPath = jsonFile
+    }
+
+    projectName=removeDoubleQuotesFromBegEnd(projectName);
+    projectName=makeOSpathFriendly(projectName);
+
+    const appVersion = getAppVersion()
+
+    const runtimeData:runtimeData = {
+      appVersion: appVersion,
+      projectName: projectName,
+      projectPath: projectPath,
+      outputPath: outputDir,
+      selectedLLModel:process.env['LLM_TO_USE'] || "default",
+      selectedRAGService: process.env['EMBEDDER_MODE'] || "default"
+    }
+
+    const prettyHeader = appHeaderPretty(runtimeData)
+
+    console.log(prettyHeader + "\n\n");
+
     console.log(
       `FoFo Docs is generating documentation for project: ${projectName}`
     );
 
-    const bTestMode = options.test;
-    const projectPath = options.input;
-    const outputDir = options.output;
-    const jsonFile = options.generateFromFile;
+    const runAnnotations = async (projectSummary?:ProjectSummary) => {
+      if (bAnnotate && bAnnotate !== "false") {
+        console.log("Annotating code objects...");
+        // Annotate code objects
+        let jsonData: ProjectSummary;
+        if (projectSummary) {
+          jsonData = projectSummary;
+        } else if
+        (jsonFile) {
+          jsonData = JSON.parse(fs.readFileSync(jsonFile, "utf-8")) as ProjectSummary;
+        } else {
+          if (!projectSummary) {
+            console.error("Project summary not found!");
+            return projectSummary;
+          }
+          jsonData = projectSummary;
+        }
+
+        try {
+          projectSummary = await annotateProject(jsonData, outputDir);
+
+          if (jsonFile) {
+            fs.writeFileSync(jsonFile, JSON.stringify(projectSummary, null, 4));
+          }
+
+
+ 
+        } catch (error) {
+          console.error("Error during annotation:", error);
+        }
+        console.log("Annotation complete!");
+      }
+      return projectSummary;
+
+    }
 
     // Generate documentation from JSON file ONLY if flag is set
     if (jsonFile) {
@@ -54,10 +133,12 @@ program
         }
       }
 
+
       // Generate documentation
-      
       try {
-        const bGenerated = await generateDocumentation(outputDir, null, jsonFile);
+        const projSummary = await runAnnotations()
+
+        const bGenerated = await generateDocumentation(outputDir, projSummary, jsonFile);
         if (!bGenerated) {
           console.error("Documentation generation failed!");
           return;
@@ -78,11 +159,18 @@ program
     try {
       const parsedCodebase = await parseCodebase(projectPath, projectName);
       parsedCodebase.projectName = projectName;
+      parsedCodebase.teamContext = getContextFromFile();
+
+      let projectSummary:any = null
+
+      if (bAnnotate) {
+       projectSummary = await runAnnotations(parsedCodebase)
+      }
 
       // 2. Generate Documentation
       const bGenerated = await generateDocumentation(
         outputDir,
-        parsedCodebase        
+        parsedCodebase || projectSummary       
       );
 
       if (!bGenerated) {
@@ -101,6 +189,8 @@ program
     const endTime = Date.now();
     const totalTime = endTime - startTime;
     console.log(`Total Time: ${totalTime / 1000}s`);
+
+    console.log(colorize(`\n\nDocumentation generated at: ${outputDir}`, "green"));
     
   });
 
