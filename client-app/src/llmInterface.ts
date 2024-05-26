@@ -6,6 +6,8 @@ import {
   codeSummary,
   modelServiceConfig,
 } from "./objectSchemas"; // Adjust path as needed
+import { MODEL_MODES_BASE, MODELS } from "./models";
+const MODEL_MODES = [...MODEL_MODES_BASE, ...MODELS]
 import { searchRAG } from "./vectorDB";
 import yaml from "js-yaml";
 import { jsonrepair } from "jsonrepair";
@@ -32,94 +34,7 @@ const endpoints = {
 const systemPrompt =
   "You are a developer A.I. that summarizes and analyzes code. Please answer all questions asked of you exactly as presented.";
 
-const MODEL_MODES = [
-  {
-    "name": "phi3:14b-medium-128k-instruct-q5_1",
-    "model": "phi3:14b-medium-128k-instruct-q5_1",
-    "backend": "OLLAMA"
-  }
-  ,
-  {
-    name: "phi3:14b-medium-4k-instruct-q6_K",
-    model: "phi3:14b-medium-4k-instruct-q6_K",
-    backend: "OLLAMA"
-  },
-  {
-    name: "qwen:32b-chat-v1.5-q4_K_M",
-    model: "qwen:32b-chat-v1.5-q4_K_M",
-    backend: "OLLAMA"
-  },
-  {
-    name: "mixtral:8x7b-instruct-v0.1-q3_K_L",
-    model: "mixtral:8x7b-instruct-v0.1-q3_K_L",
-    backend: "OLLAMA"
-  },
-  {
-    name: "qwen:32b-chat-v1.5-q4_0",
-    model: "qwen:32b-chat-v1.5-q4_0",
-    backend: "OLLAMA"
-  },
-  {
-    name: "codeqwen:7b-code-v1.5-q8_0",
-    model: "codeqwen:7b-code-v1.5-q8_0",
-    backend: "OLLAMA"
-  },
-  {
-    name: "llama3-chatqa:8b-v1.5-fp16",
-    model: "llama3-chatqa:8b-v1.5-fp16",
-    backend: "OLLAMA"
-  },
-  {
-    name: "qwen:32b-text-v1.5-q4_0",
-    model: "qwen:32b-text-v1.5-q4_0",
-    backend: "OLLAMA"
-  },
-  {
-    name: "gpt-4o",
-    model: "gpt-4o",
-    backend: "OPENAI"
-  },
-  {
-    name: "phi3:3.8b-mini-instruct-4k-fp16",
-    model: "phi3:3.8b-mini-instruct-4k-fp16",
-    backend: "OLLAMA",
-  },
-  {
-    name: "llama3-gradient:8b-instruct-1048k-q6_K",
-    model: "llama3-gradient:8b-instruct-1048k-q6_K",
-    backend: "OLLAMA",
-  },
-  {
-    name: "phi3",
-    model: "phi3",
-    backend: "OLLAMA",
-  },
-  {
-    name: "dolphin-llama3:8b-v2.9-fp16",
-    model: "dolphin-llama3:8b-v2.9-fp16",
-    backend: "OLLAMA",
-  },
-  {
-    name: "codechat-bison",
-    model: "codechat-bison",
-    backend: "VERTEX",
-  },
-  {
-    name: "codechat-bison-32k",
-    model: "codechat-bison-32k",
-    backend: "VERTEX",
-  },
-  {
-    name: "gemini-1.5-flash-preview-0514",
-    model: "gemini-1.5-flash-preview-0514",
-    backend: "VERTEX",
-  },
-  {
-    name: "gemini-1.5-pro-preview-0514",
-    model: "gemini-1.5-pro-preview-0514",
-    backend: "VERTEX",
-  },
-];
+
 
 const getModelBackend = (selectedModel: string) => {
   const model = MODEL_MODES.find((m) => m.model === selectedModel);
