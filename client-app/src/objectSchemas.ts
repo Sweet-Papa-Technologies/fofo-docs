@@ -14,7 +14,7 @@ export interface runtimeData {
     projectName: string;
     projectPath: string;
     outputPath: string;
-    selectedLLModel: string;
+    selectedLLModel: string | undefined;
     selectedRAGService: string;
 }
 export interface moduleObject {

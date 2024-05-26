@@ -63,13 +63,18 @@ program
       projectName: projectName,
       projectPath: projectPath,
       outputPath: outputDir,
-      selectedLLModel:process.env['LLM_TO_USE'] || "default",
-      selectedRAGService: process.env['EMBEDDER_MODE'] || "default"
+      selectedLLModel:process.env['LLM_TO_USE'],
+      selectedRAGService: process.env['EMBEDDER_MODE'] || "OFF"
     }
 
     const prettyHeader = appHeaderPretty(runtimeData)
 
     console.log(prettyHeader + "\n\n");
+
+    if (runtimeData.selectedLLModel == undefined || runtimeData.selectedLLModel == ''){
+      console.error("Environment variables not set correctly. Please check your .env file ==> LLM_TO_USE")
+      process.exit(1)
+    }
 
     console.log(
       `FoFo Docs is generating documentation for project: ${projectName}`
