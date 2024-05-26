@@ -9,20 +9,24 @@ export const fofoDocsBuiltInGlobSearch = [
     "**/**/package.json"
 ];
 
-const headerColored = colorize(`====================================================================================
-$$$$$$$$\         $$$$$$\                 $$$$$$$\                                
-$$  _____|       $$  __$$\                $$  __$$\                               
-$$ |    $$$$$$\  $$ /  \__|$$$$$$\        $$ |  $$ | $$$$$$\   $$$$$$$\  $$$$$$$\ 
-$$$$$\ $$  __$$\ $$$$\    $$  __$$\       $$ |  $$ |$$  __$$\ $$  _____|$$  _____|
-$$  __|$$ /  $$ |$$  _|   $$ /  $$ |      $$ |  $$ |$$ /  $$ |$$ /      \$$$$$$\  
-$$ |   $$ |  $$ |$$ |     $$ |  $$ |      $$ |  $$ |$$ |  $$ |$$ |       \____$$\ 
-$$ |   \$$$$$$  |$$ |     \$$$$$$  |      $$$$$$$  |\$$$$$$  |\$$$$$$$\ $$$$$$$  |
-\__|    \______/ \__|      \______/       \_______/  \______/  \_______|\_______/ 
+const headerColored = colorize(`
 
-Created By Sweet Papa Technologies, LLC
-Forrester Terry | fterry@sweetpapatechnologis.com
-                          
-====================================================================================
+    ====================================================================================
+    $$$$$$$$\\         $$$$$$\\                 $$$$$$$\\                                
+    $$  _____|       $$  __$$\\                $$  __$$\\                               
+    $$ |    $$$$$$\\  $$ /  \\__|$$$$$$\\        $$ |  $$ | $$$$$$\\   $$$$$$$\\  $$$$$$$\\ 
+    $$$$$\\ $$  __$$\\ $$$$\    $$  __$$\\       $$ |  $$ |$$  __$$\ $$  _____|$$  _____|
+    $$  __|$$ /  $$ |$$  _|   $$ /  $$ |      $$ |  $$ |$$ /  $$ |$$ /      \\$$$$$$\\  
+    $$ |   $$ |  $$ |$$ |     $$ |  $$ |      $$ |  $$ |$$ |  $$ |$$ |       \\____$$\\ 
+    $$ |   \\$$$$$$  |$$ |     \\$$$$$$  |      $$$$$$$  |\\$$$$$$  |\\$$$$$$$\\ $$$$$$$  |
+    \\__|    \\______/ \\__|      \\______/       \\_______/  \\______/  \\_______|\\_______/ 
+
+    Created By Sweet Papa Technologies, LLC
+    Forrester Terry | fterry@sweetpapatechnologis.com
+                            
+    ====================================================================================
+
+
 `, 'green')
 
 
@@ -34,7 +38,7 @@ Version: ${colorize(runtimeData.appVersion, 'blue')}
 Project: ${colorize(runtimeData.projectName, 'magenta')}
 Path: ${colorize(runtimeData.projectPath, 'magenta')}
 
-Selected Language Model: ${colorize(runtimeData.selectedLLModel, 'yellow')}
+Selected Language Model: ${colorize(runtimeData.selectedLLModel || 'Undefined', 'yellow')}
 Selected RAG Service: ${colorize(runtimeData.selectedRAGService, 'yellow')}
 
 Output Path: ${colorize(runtimeData.outputPath, 'green')}

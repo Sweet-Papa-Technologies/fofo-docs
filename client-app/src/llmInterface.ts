@@ -469,14 +469,15 @@ export async function callLLM(
   model: string = textModel
 ): Promise<any> {
   if (bRAG === true) {
-    // Take 400 characters of relevant code
-    // const relevantCode = await searchRAG(projectContext.projectName, code); // Placeholder, implement searchRAG function
-    // const r =
-    //   relevantCode.documentData.length > 400
-    //     ? relevantCode.documentData.substring(0, 400)
-    //     : relevantCode.documentData;
-    // promptTemplate = promptTemplate.replace("<relevant code>", r); // Not implemented yet, placeholder for RAG
-    promptTemplate = promptTemplate.replace("<relevant code>", "");
+    // Take subset of characters of relevant code
+    const maxChars = 3000;
+    const relevantCode = await searchRAG(projectContext.projectName, code); // Placeholder, implement searchRAG function
+    const r =
+      relevantCode.documentData.length > maxChars
+        ? relevantCode.documentData.substring(0, maxChars)
+        : relevantCode.documentData;
+    promptTemplate = promptTemplate.replace("<relevant code>", r); // Not implemented yet, placeholder for RAG
+   
   } else {
     promptTemplate = promptTemplate.replace("<relevant code>", "");
   }

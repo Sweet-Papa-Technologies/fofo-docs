@@ -92,12 +92,14 @@ async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, c
             break;
     }
 
+    const bRag = process.env.EMBEDDER_MODE === 'OFF' ? false : true
+    
     const codeObjects = await callLLM(
         promptTemplate,
         projectSummary,
         chunk,
         filePath,
-        true,
+        bRag,
         llmToUse
       );
 

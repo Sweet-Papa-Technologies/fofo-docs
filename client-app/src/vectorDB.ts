@@ -11,13 +11,6 @@ const apiPass = process.env.API_PASS;
 const apiUser = process.env.API_USER;
 const geminiKey = process.env.GEMINI_KEY;
 const apiURL = process.env.API_URL || "./fofoChromaDB";
-
-// Check to see if any of the environment variables are missing
-if (!apiPass || !apiUser || !geminiKey || !apiURL) {
-  console.error("Missing environment variables - Please check your .env file");
-  process.exit(1);
-}
-
 const embedderMode = process.env.EMBEDDER_MODE || "OFF";
 const embedderENGINE = process.env.EMBEDDER_ENGINE || "CHROMA_DB";
 
@@ -29,11 +22,17 @@ let embedder:
 
 switch (embedderMode) {
   case "GCP":
+    // Check to see if any of the environment variables are missing
+    if (!geminiKey) {
+      console.error("Missing environment variable for geminiKey - Please check your .env file");
+      process.exit(1);
+    }
     embedder = new GoogleGenerativeAiEmbeddingFunction({
       googleApiKey: geminiKey,
     });
     break;
   case "OpenAI":
+
     embedder = new OpenAIEmbeddingFunction({
       openai_api_key: process.env.OPENAI_API_KEY || "",
       openai_organization_id: process.env.OPENAI_ORG_ID || "",
