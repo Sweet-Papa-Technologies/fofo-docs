@@ -1,0 +1,8 @@
+prompts/**/*/
+prompts/*
+node_modules
+test-output
+venv
+fofoDB
+chroma.log
+logs
