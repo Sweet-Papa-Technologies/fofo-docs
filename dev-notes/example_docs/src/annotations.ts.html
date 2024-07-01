@@ -1,0 +1,1807 @@
+<h1 id="srcannotationstsfofodocs">src/annotations.ts - fofo-docs</h1>
+<p><strong>Summary:</strong> The code aims to annotate code objects within a project by leveraging a large language model (LLM) and a vector database (RAG). It iterates through each code object in a project, generates a prompt based on the code object and its context, and uses the LLM to generate an annotation. The annotations are then stored in a JSON file for each code file.</p>
+<ul>
+<li><strong>File Location:</strong> ./src/annotations.ts</li>
+<li><strong>Language:</strong> language: TypeScript </li>
+</ul>
+<h2 id="tableofcontents">Table of Contents</h2>
+<ul>
+<li><a href="#classes">classes</a></li>
+<li><a href="#functions">functions</a></li>
+<li><a href="#variables">variables</a></li>
+<li><a href="#types">types</a></li>
+<li><a href="#imports">imports</a></li>
+<li><a href="#exports">exports</a></li>
+<li><a href="#interfaces">interfaces</a></li>
+</ul>
+<h2 id="classes">classes</h2>
+<h2 id="annotationclass">### 📘 Annotation - CLASS</h2>
+<p><strong>Description:</strong> Represents an annotation for a code object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>class Annotation {
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>Annotation</code> class represents an annotation for a code object. It stores information about the code object's purpose, parameters, return values, usage examples, edge cases, dependencies, error handling, performance, and best practices.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotation = new Annotation();
+annotation.purpose = "This function calculates the sum of two numbers.";
+annotation.parameters = "num1: number, num2: number";
+annotation.returns = "number";
+</code></pre>
+<h6 id="subobjects">Sub Objects:</h6>
+<h2 id="purposevariable">  ### 🧮 purpose - VARIABLE</h2>
+<p><strong>Description:</strong> The purpose of the code object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>purpose: string;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 4</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h2 id="functions">functions</h2>
+<h2 id="addcodeobjectbacktoprojectsummaryobjectfunction">### 🔧 addCodeObjectBackToProjectSummaryObject - FUNCTION</h2>
+<p><strong>Description:</strong> This function adds an annotation to a code object and updates the project summary with the annotated code object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const addCodeObjectBackToProjectSummaryObject = (
+  codeObj: CodeObject,
+  annotation: Annotation,
+  projectSummary: ProjectSummary
+) =&gt; {
+  // Add annotation to the code object
+  codeObj.annotation = annotation;
+
+  for (const file of projectSummary.codeFiles) {
+    if (file.fileName === codeObj.fileName) {
+      for (const objKey in file.codeObjects) {
+        const codeObjects = file.codeObjects[
+          objKey as keyof CodeObject
+        ] as CodeObject;
+        for (const i in codeObjects) {
+          const currentCodeObject = codeObjects[i as keyof CodeObject] as any;
+          if (currentCodeObject.codeSnippet === codeObj.codeSnippet) {
+            (codeObjects[i as keyof CodeObject] as any) = codeObj;
+          }
+        }
+      }
+    }
+  }
+
+  return projectSummary;
+};
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 22</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters">Function Parameters:</h6>
+<ul>
+<li><strong>codeObj</strong> (CodeObject): The code object to be annotated. 
+Example: codeObj</li>
+<li><strong>annotation</strong> (Annotation): The annotation to be added to the code object. 
+Example: annotation</li>
+<li><strong>projectSummary</strong> (ProjectSummary): The project summary object to be updated. 
+Example: projectSummary</li>
+</ul>
+<h6 id="functionreturns">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> ProjectSummary</li>
+<li><strong>Description:</strong> The updated project summary object.</li>
+<li><strong>Example:</strong> projectSummary</li>
+</ul>
+<h6 id="annotationscomments-1">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function takes a code object, an annotation, and a project summary as input. It adds the annotation to the code object and then updates the project summary with the annotated code object. This is done by iterating through the code files in the project summary and finding the code object with the same code snippet as the input code object. Once found, the function replaces the existing code object with the annotated code object.</li>
+<li><strong>Parameters:</strong> - codeObj: The code object to be annotated.</li>
+<li>annotation: The annotation to be added to the code object.</li>
+<li>projectSummary: The project summary object to be updated.</li>
+<li><strong>Returns:</strong> The updated project summary object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotatedCodeObject = addCodeObjectBackToProjectSummaryObject(codeObj, annotation, projectSummary);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the code object is not found in the project summary, the function will not update the project summary.</li>
+<li><strong>Dependencies:</strong> CodeObject, Annotation, ProjectSummary</li>
+</ul>
+<h2 id="getrelevantcodesnippetsfunction">### 🔧 getRelevantCodeSnippets - FUNCTION</h2>
+<p><strong>Description:</strong> This function retrieves relevant code snippets from the vector database based on the description of a code object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">async function getRelevantCodeSnippets(
+  codeObj: CodeObject,
+  projectName: string
+): Promise&lt;string&gt; {
+  let relevantCodeSnippets: string[] = [];
+  let returnString = "";
+
+  const llmRuntimeDataResult = (await import("./llmInterface")).AIusageData;
+
+  const results = await searchRAG(projectName || "", codeObj.description, undefined, llmRuntimeDataResult);
+
+  if (results) {
+    let indexLvl1 = -1;
+    let indexLvl2 = -1;
+    for (const codeObj of results.allSearchResults.documents) {
+      indexLvl1++;
+      if (results.allSearchResults.distances) {
+        console.debug(
+          "Distance LVL1: ",
+          results.allSearchResults.distances[indexLvl1]
+        );
+      }
+      for (const codeSnippet of codeObj) {
+        indexLvl2++;
+        if (
+          results.allSearchResults.distances &amp;&amp;
+          results.allSearchResults.distances[indexLvl1]
+        ) {
+          console.debug(
+            "Distance LVL2: ",
+            results.allSearchResults.distances[indexLvl1][indexLvl2]
+          );
+        }
+        if (
+          results.allSearchResults.distances &amp;&amp;
+          results.allSearchResults.distances[indexLvl1][indexLvl2]
+        ) {
+          if (
+            results.allSearchResults.distances[indexLvl1][indexLvl2] &gt;
+            codeRelevanceMin
+          ) {
+            if (codeSnippet) {
+              console.debug("Code Snippet: ", codeSnippet);
+              relevantCodeSnippets.push(codeSnippet);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return returnString.concat(relevantCodeSnippets.join("\n"));
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 49</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-1">Function Parameters:</h6>
+<ul>
+<li><strong>codeObj</strong> (CodeObject): The code object whose description is used for searching. 
+Example: codeObj</li>
+<li><strong>projectName</strong> (string): The name of the project. 
+Example: projectName</li>
+</ul>
+<h6 id="functionreturns-1">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> string</li>
+<li><strong>Description:</strong> A string containing the concatenated relevant code snippets.</li>
+<li><strong>Example:</strong> returnString</li>
+</ul>
+<h6 id="annotationscomments-2">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>getRelevantCodeSnippets</code> function retrieves relevant code snippets from the vector database based on the description of a code object. It uses the <code>searchRAG</code> function to query the database and returns a string containing the concatenated relevant code snippets.</li>
+<li><strong>Parameters:</strong> - <code>codeObj</code>: A <code>CodeObject</code> representing the code object whose description is used for searching.</li>
+<li><code>projectName</code>: A string representing the name of the project.</li>
+<li><strong>Returns:</strong> A string containing the concatenated relevant code snippets.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const relevantCode = await getRelevantCodeSnippets(codeObj, projectName);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If no relevant code snippets are found in the vector database, an empty string is returned.</li>
+<li><strong>Dependencies:</strong> - <code>searchRAG</code>: A function that queries the vector database.</li>
+</ul>
+<h2 id="annotatecodeobjectfunction">### 🔧 annotateCodeObject - FUNCTION</h2>
+<p><strong>Description:</strong> This function annotates a code object using an LLM, optionally incorporating relevant code snippets from the vector database.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">async function annotateCodeObject(
+  codeObj: CodeObject,
+  context: string,
+  projectName?: string
+): Promise&lt;Annotation&gt; {
+  // Generate prompt for LLM
+  const bRAG = process.env.EMBEDDER_MODE || "OFF";
+  const bUseRag = bRAG !== "OFF" ? true : false;
+  // const ragContext = bUseRag === true ? (await searchRAG(projectName || "", codeObj.description)).metadata.codeObjects.codeSnippet : undefined;
+    const ragContext = bUseRag === true ? await getRelevantCodeSnippets(codeObj, projectName || "") : undefined;
+
+  console.debug("Annotating code object: ", ragContext);
+
+  const prompt = annotateCodeObjectPrompt(codeObj, context, ragContext);
+  return await infer(
+    prompt,
+    "JSON object",
+    undefined,
+    false,
+    true,
+    undefined,
+    sModel
+  );
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 103</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-2">Function Parameters:</h6>
+<ul>
+<li><strong>codeObj</strong> (CodeObject): The code object to be annotated. 
+Example: codeObj</li>
+<li><strong>context</strong> (string): The context of the codebase. 
+Example: context</li>
+<li><strong>projectName</strong> (string): The name of the project. 
+Example: projectName</li>
+</ul>
+<h6 id="functionreturns-2">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Annotation</li>
+<li><strong>Description:</strong> The annotation generated by the LLM.</li>
+<li><strong>Example:</strong> annotation</li>
+</ul>
+<h6 id="annotationscomments-3">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>annotateCodeObject</code> function is responsible for generating annotations for a given code object using a large language model (LLM). It takes the code object, the context of the codebase, and optionally the project name as input. The function first determines whether to use the vector database (RAG) based on the <code>EMBEDDER_MODE</code> environment variable. If RAG is enabled, it retrieves relevant code snippets from the database based on the code object's description. Then, it constructs a prompt for the LLM, incorporating the code object, context, and retrieved RAG context. Finally, it calls the <code>infer</code> function to send the prompt to the LLM and receive the annotation as a JSON object.</li>
+<li><strong>Parameters:</strong> - <code>codeObj</code>: The code object to be annotated. This object contains information about the code snippet, its type (class, function, variable, etc.), and other relevant details.</li>
+<li><code>context</code>: A string representing the context of the codebase. This could include a summary of the project, its purpose, and other relevant information.</li>
+<li><code>projectName</code>: An optional string representing the name of the project. This is used for searching the vector database.</li>
+<li><strong>Returns:</strong> The function returns an <code>Annotation</code> object, which is a JSON object containing the annotations generated by the LLM. The annotation object includes information about the code object's purpose, parameters, return values, usage examples, edge cases, dependencies, error handling, performance considerations, and best practices.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotation = await annotateCodeObject(codeObj, context, projectName);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the <code>EMBEDDER_MODE</code> environment variable is set to "OFF", the function will not use the vector database (RAG).</li>
+<li><strong>Dependencies:</strong> - <code>annotateCodeObjectPrompt</code>: A function that generates the prompt for the LLM.</li>
+<li><code>infer</code>: A function that sends the prompt to the LLM and receives the response.</li>
+<li><code>searchRAG</code>: A function that searches the vector database for relevant code snippets.</li>
+</ul>
+<h2 id="annotateprojectfunction">### 🔧 annotateProject - FUNCTION</h2>
+<p><strong>Description:</strong> This function annotates all code objects in a project summary.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export async function annotateProject(
+  projectSummary: ProjectSummary,
+  outputDir: string
+) {
+  const annotationsFolder = path.join(outputDir, "annotations", projectSummary.projectName);
+  try {
+    fs.mkdirSync(annotationsFolder, { recursive: true });
+  } catch (error) {
+    console.error(error);
+    console.error("Error creating annotations folder");
+  }
+
+  // Summarize all files
+  const context = await summarizeAllFiles(projectSummary.codeFiles);
+
+  for (const aFile of projectSummary.codeFiles) {
+    const file = aFile as any;
+    const fileAnnotations = [];
+
+    for (const key in file.codeObjects) {
+      const codeObjects = file.codeObjects[key];
+      try {
+        for (const codeObj of codeObjects) {
+          const annotation = await annotateCodeObject(codeObj, context, projectSummary.projectName);
+          try {
+            // UPDATE the project summary with the annotation == TODO: Redo this. we don't need to update the project summary at every iteration, we should do it at the end
+            projectSummary = addCodeObjectBackToProjectSummaryObject(
+              codeObj,
+              annotation,
+              projectSummary
+            );
+          } catch (error) {
+            console.error(error);
+          }
+          fileAnnotations.push({ codeObj, annotation });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    // // Write annotations to a file
+    const sDate = new Date().toISOString().replace(/:/g, "-");
+    const filePath = path.join(
+      annotationsFolder,
+      `${makeOSpathFriendly(file.fileName)}-${makeOSpathFriendly(
+        sDate
+      )}-annotations.json`
+    );
+    const filePathFolder = path.dirname(filePath);
+    try {
+      if (!fs.existsSync(filePathFolder)) {
+        fs.mkdirSync(filePathFolder, { recursive: true });
+      }
+      fs.writeFileSync(filePath, JSON.stringify(fileAnnotations, null, 2));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  return projectSummary;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 128</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-3">Function Parameters:</h6>
+<ul>
+<li><strong>projectSummary</strong> (ProjectSummary): The project summary object containing code objects to annotate. 
+Example: projectSummary</li>
+<li><strong>outputDir</strong> (string): The directory where annotations should be saved. 
+Example: outputDir</li>
+</ul>
+<h6 id="functionreturns-3">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> ProjectSummary</li>
+<li><strong>Description:</strong> The updated project summary object with annotated code objects.</li>
+<li><strong>Example:</strong> projectSummary</li>
+</ul>
+<h6 id="annotationscomments-4">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>annotateProject</code> function iterates through all code objects within a project summary, generates annotations for each object using the <code>annotateCodeObject</code> function, and saves these annotations to a JSON file within the specified output directory.</li>
+<li><strong>Parameters:</strong> - <code>projectSummary</code>: A <code>ProjectSummary</code> object containing the code objects to be annotated.</li>
+<li><code>outputDir</code>: A string representing the directory where the annotations should be saved.</li>
+<li><strong>Returns:</strong> The function returns the updated <code>ProjectSummary</code> object with annotated code objects.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const projectSummary = { ... }; // Your project summary object
+const outputDir = './output'; // Your output directory
+
+const annotatedProject = await annotateProject(projectSummary, outputDir);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - The function may encounter errors if the output directory cannot be created or if there are issues writing to the annotation files.</li>
+<li>The function relies on the <code>annotateCodeObject</code> function to generate annotations, so any errors in that function will propagate.</li>
+<li><strong>Dependencies:</strong> - <code>fs</code>: Node.js module for file system operations.</li>
+<li><code>path</code>: Node.js module for working with file paths.</li>
+<li><code>annotateCodeObject</code>: Function for generating annotations for individual code objects.</li>
+</ul>
+<h2 id="summarizeallfilesfunction">### 🔧 summarizeAllFiles - FUNCTION</h2>
+<p><strong>Description:</strong> This function summarizes all files in a project, providing a high-level overview of their content.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">// Example function to summarize all files (for context)
+async function summarizeAllFiles(
+  codeFiles: CodeFileSummary[]
+): Promise&lt;string&gt; {
+  let summary =
+    "Project contains the following files and their high-level summaries:
+";
+
+  for (const file of codeFiles) {
+    summary += `File: ${file.fileName}
+Summary: ${file.codeSummary.goal}
+
+`;
+  }
+  return summary;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-4">Function Parameters:</h6>
+<ul>
+<li><strong>codeFiles</strong> (CodeFileSummary[]): An array of code file summaries to be summarized. 
+Example: codeFiles</li>
+</ul>
+<h6 id="functionreturns-4">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> string</li>
+<li><strong>Description:</strong> A string containing the summary of all files.</li>
+<li><strong>Example:</strong> summary</li>
+</ul>
+<h6 id="annotationscomments-5">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>summarizeAllFiles</code> function generates a textual summary of all code files within a project. It iterates through an array of <code>CodeFileSummary</code> objects, each representing a code file, and extracts the file name and the goal of the code from the <code>codeSummary</code> property of each file object. It then concatenates these pieces of information into a formatted string, providing a high-level overview of the project's files and their purposes.</li>
+<li><strong>Parameters:</strong> The function takes a single parameter: <code>codeFiles</code>, which is an array of <code>CodeFileSummary</code> objects. Each <code>CodeFileSummary</code> object represents a code file and contains information such as the file name, file location, code summary, language, execution flow, and code objects.</li>
+<li><strong>Returns:</strong> The function returns a string containing the summary of all files. The summary is formatted as a list of file names and their corresponding code goals.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeFiles = [
+  {
+    fileName: "index.ts",
+    fileLocation: "./src/index.ts",
+    codeSummary: {
+      goal: "This file is the main entry point for the application."
+    }
+  },
+  {
+    fileName: "utils.ts",
+    fileLocation: "./src/utils.ts",
+    codeSummary: {
+      goal: "This file contains utility functions for the application."
+    }
+  }
+];
+
+summarizeAllFiles(codeFiles).then(summary =&gt; {
+  console.log(summary);
+});
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The function relies on the <code>CodeFileSummary</code> interface, which is defined in the <code>objectSchemas</code> module.</li>
+</ul>
+<h2 id="variables">variables</h2>
+<h2 id="smodelvariable">### 🧮 sModel - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the name of the LLM model to be used for inference. It is set to the value of the environment variable 'LLM<em>TO</em>USE' if it exists, otherwise it is undefined.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const sModel = process.env["LLM_TO_USE"] || undefined;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 16</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-6">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>sModel</code> variable stores the name of the Large Language Model (LLM) to be used for inference. It dynamically retrieves the model name from the environment variable 'LLM<em>TO</em>USE' if it's defined. If the environment variable is not set, the variable remains undefined.</li>
+<li><strong>Edge Cases:</strong> If the environment variable 'LLM<em>TO</em>USE' is not set, the <code>sModel</code> variable will be undefined. This might lead to errors if the code relies on a specific LLM model.</li>
+<li><strong>Dependencies:</strong> The code depends on the 'dotenv' package to load environment variables.</li>
+</ul>
+<h2 id="coderelevanceminvariable">### 🧮 codeRelevanceMin - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the minimum relevance score for code snippets retrieved from the RAG system. It is set to the value of the environment variable 'CODE<em>RELEVANCE</em>MIN' if it exists, otherwise it is set to 0.2.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const codeRelevanceMin =
+  (process.env["CODE_RELEVANCE_MIN"]
+    ? Number(process.env["CODE_RELEVANCE_MIN"])
+    : undefined) || 0.2;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 18</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-7">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>codeRelevanceMin</code> variable defines a threshold for determining the relevance of code snippets retrieved from the RAG (Retrieval Augmented Generation) system. It is used to filter out code snippets that are below a certain relevance score.</li>
+<li><strong>Dependencies:</strong> The variable depends on the environment variable <code>CODE_RELEVANCE_MIN</code>.</li>
+</ul>
+<h2 id="types">types</h2>
+<h2 id="annotationtype">### 🏷️ Annotation - TYPE</h2>
+<p><strong>Description:</strong> Interface for annotations</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface Annotation {
+    purpose: string;
+    parameters?: string;
+    returns?: string;
+    usageExample?: string;
+    edgeCases?: string;
+    dependencies?: string;
+    errorHandling?: string;
+    performance?: string;
+    bestPractices?: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-8">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the interface for annotations, which are used to provide additional information about code objects.</li>
+</ul>
+<h2 id="codefilesummarytype">### 🏷️ CodeFileSummary - TYPE</h2>
+<p><strong>Description:</strong> Interface for code file summaries</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface CodeFileSummary {
+    fileName: string;
+    fileLocation: string;
+    codeSummary: codeSummary;
+    language: string;
+    executionFlow: ExecutionFlow[];
+    codeObjects: CodeObject;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-9">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>CodeFileSummary</code> interface represents a summary of a code file. It stores information about the file's name, location, language, code summary, execution flow, and code objects.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeFileSummary: CodeFileSummary = {
+    fileName: 'myFile.ts',
+    fileLocation: './src/myFile.ts',
+    codeSummary: {
+        goal: 'This file implements a function to calculate the sum of two numbers',
+        features_functions: 'The function takes two numbers as input and returns their sum'
+    },
+    language: 'TypeScript',
+    executionFlow: [],
+    codeObjects: {
+        functions: [
+            {
+                name: 'add',
+                type: 'function',
+                description: 'Calculates the sum of two numbers',
+                codeSnippet: 'function add(num1: number, num2: number): number {
+    return num1 + num2;
+}',
+                codeLine: 10,
+                codeIndent: 2,
+                fileName: 'myFile.ts',
+                fileLocation: './src/myFile.ts',
+                isExported: true,
+                isPrivate: false,
+                isAsync: false,
+                functionParameters: [
+                    {
+                        name: 'num1',
+                        type: 'number',
+                        description: 'The first number to add',
+                        example: '1'
+                    },
+                    {
+                        name: 'num2',
+                        type: 'number',
+                        description: 'The second number to add',
+                        example: '2'
+                    }
+                ],
+                functionReturns: {
+                    type: 'number',
+                    description: 'The sum of the two numbers',
+                    example: '3'
+                }
+            }
+        ]
+    }
+};
+</code></pre>
+<h2 id="codeobjecttype">### 🏷️ CodeObject - TYPE</h2>
+<p><strong>Description:</strong> Interface for code objects</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface CodeObject {
+    name: string;
+    type: CodeObjectType;
+    description: string;
+    codeSnippet: string;
+    annotation?: Annotation;
+    codeLine?: number;
+    codeIndent?: number;
+    content?:string;
+    fileName: string;
+    fileLocation: string;
+    subObjects?: CodeObject[];
+    parentObject?: CodeObject;
+    functionParameters?: FunctionParameter[];
+    functionReturns?: FunctionReturn;
+    isExported: boolean;
+    isFunction: boolean;
+    isClass: boolean;
+    isPrivate: boolean;
+    isAsync: boolean;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-10">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure of a code object, which represents a single element within a codebase, such as a class, function, variable, or type.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myFunction: CodeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something',
+  codeSnippet: 'function myFunction() { ... }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  isExported: true,
+  isFunction: true,
+  isClass: false,
+  isPrivate: false,
+  isAsync: false
+};
+</code></pre>
+<h2 id="projectsummarytype">### 🏷️ ProjectSummary - TYPE</h2>
+<p><strong>Description:</strong> Interface for project summaries</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface ProjectSummary {
+    projectName: string;
+    projectDescription: codeSummary
+    projectLocation: string;
+    projectTechStackDescription: string,
+    projectDependencies: moduleObject[];
+    codeFiles: CodeFileSummary[];
+    ragData: RagData[];
+    teamContext: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-11">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ProjectSummary</code> interface defines the structure for storing information about a code project. It includes details like the project name, description, location, technology stack, dependencies, code files, RAG data, and team context.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const projectSummary: ProjectSummary = {
+    projectName: "MyProject",
+    projectDescription: {
+        goal: "This project aims to...",
+        features_functions: "The project includes features like..."
+    },
+    projectLocation: "/path/to/project",
+    projectTechStackDescription: "This project uses TypeScript, React, and Node.js",
+    projectDependencies: [
+        { name: "react", version: "18.2.0", description: "A JavaScript library for building user interfaces" },
+        { name: "typescript", version: "4.9.4", description: "A superset of JavaScript that adds static typing" }
+    ],
+    codeFiles: [
+        // ... code file summaries
+    ],
+    ragData: [
+        // ... RAG data
+    ],
+    teamContext: "This project is being developed by..."
+};
+</code></pre>
+<h2 id="codesummarytype">### 🏷️ codeSummary - TYPE</h2>
+<p><strong>Description:</strong> Interface for code summaries</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface codeSummary {
+    goal: string,
+    features_functions: string,
+  }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-12">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for code summaries, which are used to provide a high-level overview of code files.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeSummary: codeSummary = {
+    goal: "This function calculates the sum of two numbers.",
+    features_functions: "The function takes two numbers as input and returns their sum."
+  };
+</code></pre>
+<h2 id="executionflowtype">### 🏷️ ExecutionFlow - TYPE</h2>
+<p><strong>Description:</strong> Interface for execution flow steps</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface ExecutionFlow {
+    step: number;
+    stepDescription: string;
+    bImportant: boolean;
+    codeSnippet: string;
+    codeLine: number;
+    codeIndent: number;
+    fileName: string;
+    fileLocation: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-13">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for an execution flow step, which represents a single step in a sequence of code execution.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const flowStep: ExecutionFlow = {
+    step: 1,
+    stepDescription: "Initialize the application",
+    bImportant: true,
+    codeSnippet: "// Initialize the application",
+    codeLine: 10,
+    codeIndent: 0,
+    fileName: "main.ts",
+    fileLocation: "./src/main.ts"
+};
+</code></pre>
+<h2 id="functionparametertype">### 🏷️ FunctionParameter - TYPE</h2>
+<p><strong>Description:</strong> Interface for function parameters</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface FunctionParameter {
+    name: string;
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-14">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the structure for a function parameter, including its name, type, description, and an example.</li>
+<li><strong>Parameters:</strong>  - <strong>name</strong>: <code>string</code> - The name of the function parameter.</li>
+<li><strong>type</strong>: <code>string</code> - The data type of the function parameter.</li>
+<li><strong>description</strong>: <code>string</code> - A description of the function parameter.</li>
+<li><strong>example</strong>: <code>string</code> - An example of how the function parameter is used.</li>
+<li><strong>Returns:</strong> This interface does not return any value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const functionParameter: FunctionParameter = {
+    name: 'param1',
+    type: 'number',
+    description: 'The first parameter of the function',
+    example: '10'
+};
+</code></pre>
+<h2 id="functionreturntype">### 🏷️ FunctionReturn - TYPE</h2>
+<p><strong>Description:</strong> Interface for function return values</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface FunctionReturn {
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-15">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>FunctionReturn</code> interface defines the structure for representing function return values. It includes the type, description, and an example of the return value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of FunctionReturn interface
+const functionReturnValue: FunctionReturn = {
+    type: 'string',
+    description: 'This is a string return value',
+    example: 'Hello, world!'
+};
+</code></pre>
+<h2 id="codeobjecttypetype">### 🏷️ CodeObjectType - TYPE</h2>
+<p><strong>Description:</strong> Type for code object types</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export type CodeObjectType = 'class' | 'function' | 'variable' | 'type' | 'import' | 'export' | 'interface' | 'constructor';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-16">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type defines the possible values for the <code>type</code> property of a <code>CodeObject</code>, which represents different types of code elements like classes, functions, variables, etc.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObject: CodeObject = {
+  type: 'function',
+  // ... other properties
+};
+</code></pre>
+<h2 id="codeobjectstype">### 🏷️ CodeObjects - TYPE</h2>
+<p><strong>Description:</strong> Type for code object keys</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export type CodeObjects = 'classes' | 'functions' | 'variables' | 'types' | 'imports' | 'exports' | 'interfaces' | 'fileName' | 'fileLocation'
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-17">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type defines the possible keys for code objects, which are used to store information about different code elements like classes, functions, variables, types, imports, exports, and interfaces. It also includes keys for storing file name and location information.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObjects: CodeObjects = 'classes';
+</code></pre>
+<h2 id="globresulttype">### 🏷️ globResult - TYPE</h2>
+<p><strong>Description:</strong> Interface for glob results</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface globResult {
+
+        "glob": string[],
+        "ignore": string[]
+
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-18">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type defines the structure for storing results from the <code>glob</code> function, which is used for finding files matching a pattern.</li>
+<li><strong>Dependencies:</strong> glob library</li>
+</ul>
+<h2 id="runtimedatatype">### 🏷️ runtimeData - TYPE</h2>
+<p><strong>Description:</strong> Interface for runtime data</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface runtimeData {
+
+    appVersion: string;
+    projectName: string;
+    projectPath: string;
+    outputPath: string;
+    selectedLLModel: string | undefined;
+    selectedRAGService: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-19">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the <code>runtimeData</code> interface, which stores information about the application's runtime environment.</li>
+</ul>
+<h2 id="moduleobjecttype">### 🏷️ moduleObject - TYPE</h2>
+<p><strong>Description:</strong> Interface for module objects</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface moduleObject {
+    name: string;
+    version: string;
+    description: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-20">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure of a module object, which represents a software module or package.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myModule: moduleObject = {
+  name: "my-module",
+  version: "1.0.0",
+  description: "A useful module"
+};
+</code></pre>
+<h2 id="modelstype">### 🏷️ models - TYPE</h2>
+<p><strong>Description:</strong> Interface for models</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface models {
+    name: string,
+    model: any,
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-21">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for a model object, which includes a name and a model.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myModel: models = {
+    name: "myModel",
+    model: "someModelObject"
+};
+</code></pre>
+<h2 id="modelserviceconfigtype">### 🏷️ modelServiceConfig - TYPE</h2>
+<p><strong>Description:</strong> Interface for model service configuration</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface modelServiceConfig {
+    models: models[],
+    endpoint?:string 
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-22">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the interface for model service configuration, which includes an array of models and an optional endpoint.</li>
+<li><strong>Parameters:</strong> models: models[],
+endpoint?: string</li>
+<li><strong>Returns:</strong> This interface does not return any value. It is used to define the structure of model service configuration.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const modelConfig: modelServiceConfig = {
+    models: [
+        { name: 'gpt-3.5-turbo', model: 'gpt-3.5-turbo', backend: 'OPENAI' },
+        { name: 'text-davinci-003', model: 'text-davinci-003', backend: 'OPENAI' }
+    ],
+    endpoint: 'https://api.openai.com/v1'
+};
+</code></pre>
+<h2 id="ragdatatype">### 🏷️ RagData - TYPE</h2>
+<p><strong>Description:</strong> Interface for RAG data</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface RagData {
+    metadata: {
+        filename: string;
+        codeChunkId: string|number;
+        codeChunkLineStart: number;
+        codeChunkLineEnd: number;
+        codeObjects: CodeObject;
+        codeChunkSummary: string;
+    };
+    embeddings?: number[][]; // Example: Embeddings could be an array of numbers
+    documentData: any
+    allSearchResults: QueryResponse,
+    allResults: {
+        documents: any,
+        embeddings: Embeddings[] | null,
+        metadatas: (Metadata | null)[][],
+
+    }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-23">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>RagData</code> interface defines the structure for data retrieved from a Retrieval Augmented Generation (RAG) system. It stores metadata about the retrieved code snippet, embeddings (if applicable), the original code snippet, and search results.</li>
+<li><strong>Dependencies:</strong> This interface depends on the <code>CodeObject</code> interface and the <code>QueryResponse</code> type from the <code>chromadb</code> library.</li>
+</ul>
+<h2 id="imports">imports</h2>
+<h2 id="annotationimport">### 📥 Annotation - IMPORT</h2>
+<p><strong>Description:</strong> Imports the Annotation interface from the objectSchemas module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import {
+  Annotation,
+  CodeFileSummary,
+  CodeObject,
+  ProjectSummary,
+} from "./objectSchemas";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-24">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>Annotation</code> interface from the <code>objectSchemas</code> module, which is used to represent annotations for code objects.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { Annotation } from './objectSchemas';
+
+const annotation: Annotation = {
+  purpose: 'This is an example annotation',
+  parameters: '',
+  returns: '',
+  usageExample: '',
+  edgeCases: '',
+  dependencies: '',
+  errorHandling: '',
+  performance: '',
+  bestPractices: '',
+};
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> objectSchemas module</li>
+</ul>
+<h2 id="codefilesummaryimport">### 📥 CodeFileSummary - IMPORT</h2>
+<p><strong>Description:</strong> Imports the CodeFileSummary interface from the objectSchemas module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import {
+  Annotation,
+  CodeFileSummary,
+  CodeObject,
+  ProjectSummary,
+} from "./objectSchemas";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-25">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code snippet imports the <code>CodeFileSummary</code> interface from the <code>objectSchemas</code> module, which is used to represent a summary of a code file.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import {
+  CodeFileSummary,
+} from "./objectSchemas";
+
+const codeFileSummary: CodeFileSummary = {
+  fileName: "myFile.ts",
+  fileLocation: "./src/myFile.ts",
+  codeSummary: {
+    goal: "This file does something important.",
+    features_functions: "It has some cool functions."
+  },
+  language: "TypeScript",
+  executionFlow: [],
+  codeObjects: {}
+};
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> objectSchemas module</li>
+</ul>
+<h2 id="fsimport">### 📥 fs - IMPORT</h2>
+<p><strong>Description:</strong> Imports the fs module, which provides access to the file system.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import fs from "fs";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 7</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-26">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object imports the <code>fs</code> module, which provides access to the file system in Node.js.</li>
+<li><strong>Dependencies:</strong> Node.js <code>fs</code> module</li>
+</ul>
+<h2 id="pathimport">### 📥 path - IMPORT</h2>
+<p><strong>Description:</strong> Imports the path module, which provides utilities for working with file and directory paths.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import path from "path";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 8</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-27">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the \"path\" module, which provides utilities for working with file and directory paths.</li>
+<li><strong>Dependencies:</strong> path module</li>
+</ul>
+<h2 id="annotatecodeobjectpromptimport">### 📥 annotateCodeObjectPrompt - IMPORT</h2>
+<p><strong>Description:</strong> Imports the annotateCodeObjectPrompt function from the prompt module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { annotateCodeObjectPrompt } from "./prompt";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 9</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-28">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>annotateCodeObjectPrompt</code> function generates a prompt for a large language model (LLM) to annotate a code object. It takes a <code>codeObj</code> (a CodeObject object), <code>context</code> (a string representing the full application context), and an optional <code>ragContext</code> (a string representing relevant code snippets from other files) as input.</li>
+<li><strong>Parameters:</strong> - <code>codeObj</code>: A CodeObject object representing the code snippet to be annotated.</li>
+<li><code>context</code>: A string containing the full application context, including project and team information.</li>
+<li><code>ragContext</code>: An optional string containing relevant code snippets from other files, retrieved from a vector database (RAG).</li>
+<li><strong>Returns:</strong> A string containing the prompt for the LLM, formatted for annotation.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const prompt = annotateCodeObjectPrompt(codeObj, context, ragContext);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> None.</li>
+<li><strong>Dependencies:</strong> - <code>CodeObject</code> interface from the <code>objectSchemas</code> module.</li>
+<li><code>escapeStringForMD</code> function from the <code>shared</code> module.</li>
+</ul>
+<h2 id="inferimport">### 📥 infer - IMPORT</h2>
+<p><strong>Description:</strong> Imports the infer function from the llmInterface module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { infer } from "./llmInterface";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 10</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-29">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function imports the <code>infer</code> function from the <code>llmInterface</code> module, which is used to interact with a large language model (LLM) and obtain responses based on provided prompts.</li>
+<li><strong>Dependencies:</strong> llmInterface module</li>
+</ul>
+<h2 id="dotenvconfigimport">### 📥 dotenv/config - IMPORT</h2>
+<p><strong>Description:</strong> Imports the config function from the dotenv module, which loads environment variables from a .env file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import "dotenv/config";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 11</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-30">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This import statement loads environment variables from a ".env" file using the <code>config</code> function from the <code>dotenv</code> module.</li>
+<li><strong>Dependencies:</strong> dotenv</li>
+</ul>
+<h2 id="makeospathfriendlyimport">### 📥 makeOSpathFriendly - IMPORT</h2>
+<p><strong>Description:</strong> Imports the makeOSpathFriendly function from the shared module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { makeOSpathFriendly } from "./shared";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 12</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-31">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>makeOSpathFriendly</code> function from the <code>shared</code> module, which is likely used to make file paths compatible with different operating systems.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const osFriendlyPath = makeOSpathFriendly("/path/to/file");
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>makeOSpathFriendly</code> function likely depends on the <code>shared</code> module, which may contain other utility functions for handling file paths and other operations.</li>
+</ul>
+<h2 id="searchragimport">### 📥 searchRAG - IMPORT</h2>
+<p><strong>Description:</strong> Imports the searchRAG function from the vectorDB module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { searchRAG } from "./vectorDB";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 13</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-32">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object imports the <code>searchRAG</code> function from the <code>vectorDB</code> module, which is likely used for searching a vector database for relevant code snippets.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const relevantCode = searchRAG(projectName, searchString);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> vectorDB module</li>
+</ul>
+<h2 id="loggerimport">### 📥 logger - IMPORT</h2>
+<p><strong>Description:</strong> Imports the logger module, which likely provides logging functionality.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import "./logger";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 14</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-33">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This line imports the <code>logger</code> module, which likely provides logging functionality for the application.</li>
+<li><strong>Dependencies:</strong> The <code>logger</code> module is likely a custom module defined within the project.</li>
+</ul>
+<h2 id="exports">exports</h2>
+<h2 id="annotateprojectexport">### 📤 annotateProject - EXPORT</h2>
+<p><strong>Description:</strong> This function annotates all code objects in a project summary.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export async function annotateProject(
+  projectSummary: ProjectSummary,
+  outputDir: string
+) {
+  const annotationsFolder = path.join(outputDir, "annotations", projectSummary.projectName);
+  try {
+    fs.mkdirSync(annotationsFolder, { recursive: true });
+  } catch (error) {
+    console.error(error);
+    console.error("Error creating annotations folder");
+  }
+
+  // Summarize all files
+  const context = await summarizeAllFiles(projectSummary.codeFiles);
+
+  for (const aFile of projectSummary.codeFiles) {
+    const file = aFile as any;
+    const fileAnnotations = [];
+
+    for (const key in file.codeObjects) {
+      const codeObjects = file.codeObjects[key];
+      try {
+        for (const codeObj of codeObjects) {
+          const annotation = await annotateCodeObject(codeObj, context, projectSummary.projectName);
+          try {
+            // UPDATE the project summary with the annotation == TODO: Redo this. we don't need to update the project summary at every iteration, we should do it at the end
+            projectSummary = addCodeObjectBackToProjectSummaryObject(
+              codeObj,
+              annotation,
+              projectSummary
+            );
+          } catch (error) {
+            console.error(error);
+          }
+          fileAnnotations.push({ codeObj, annotation });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    // // Write annotations to a file
+    const sDate = new Date().toISOString().replace(/:/g, "-");
+    const filePath = path.join(
+      annotationsFolder,
+      `${makeOSpathFriendly(file.fileName)}-${makeOSpathFriendly(
+        sDate
+      )}-annotations.json`
+    );
+    const filePathFolder = path.dirname(filePath);
+    try {
+      if (!fs.existsSync(filePathFolder)) {
+        fs.mkdirSync(filePathFolder, { recursive: true });
+      }
+      fs.writeFileSync(filePath, JSON.stringify(fileAnnotations, null, 2));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  return projectSummary;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 128</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-34">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>annotateProject</code> function iterates through all code objects within a <code>ProjectSummary</code> object, annotates each object using the <code>annotateCodeObject</code> function, and then saves the annotations to a JSON file for each code file. It also updates the <code>ProjectSummary</code> object with the annotations.</li>
+<li><strong>Parameters:</strong> - <code>projectSummary</code>: A <code>ProjectSummary</code> object containing information about the project, including code files and code objects.</li>
+<li><code>outputDir</code>: The directory where the annotations should be saved.</li>
+<li><strong>Returns:</strong> The updated <code>ProjectSummary</code> object with annotations added to the code objects.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const projectSummary = { ... }; // Your project summary
+const outputDir = './output'; // Your output directory
+const annotatedProject = await annotateProject(projectSummary, outputDir);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If there is an error creating the annotations folder, the function logs an error message.</li>
+<li>If there is an error annotating a code object, the function logs an error message and continues to the next code object.</li>
+<li>If there is an error saving the annotations to a file, the function logs an error message.</li>
+<li><strong>Dependencies:</strong> - <code>fs</code>: For file system operations (creating directories, writing files).</li>
+<li><code>path</code>: For constructing file paths.</li>
+<li><code>annotateCodeObject</code>: For annotating individual code objects.</li>
+<li><code>addCodeObjectBackToProjectSummaryObject</code>: For updating the <code>ProjectSummary</code> object with annotations.</li>
+</ul>
+<h2 id="getrelevantcodesnippetsexport">### 📤 getRelevantCodeSnippets - EXPORT</h2>
+<p><strong>Description:</strong> This function retrieves relevant code snippets from the vector database based on a code object's description.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">async function getRelevantCodeSnippets(
+  codeObj: CodeObject,
+  projectName: string
+): Promise&lt;string&gt; {
+  let relevantCodeSnippets: string[] = [];
+  let returnString = "";
+
+  const llmRuntimeDataResult = (await import("./llmInterface")).AIusageData;
+
+  const results = await searchRAG(projectName || "", codeObj.description, undefined, llmRuntimeDataResult);
+
+  if (results) {
+    let indexLvl1 = -1;
+    let indexLvl2 = -1;
+    for (const codeObj of results.allSearchResults.documents) {
+      indexLvl1++;
+      if (results.allSearchResults.distances) {
+        console.debug(
+          "Distance LVL1: ",
+          results.allSearchResults.distances[indexLvl1]
+        );
+      }
+      for (const codeSnippet of codeObj) {
+        indexLvl2++;
+        if (
+          results.allSearchResults.distances &amp;&amp;
+          results.allSearchResults.distances[indexLvl1]
+        ) {
+          console.debug(
+            "Distance LVL2: ",
+            results.allSearchResults.distances[indexLvl1][indexLvl2]
+          );
+        }
+        if (
+          results.allSearchResults.distances &amp;&amp;
+          results.allSearchResults.distances[indexLvl1][indexLvl2]
+        ) {
+          if (
+            results.allSearchResults.distances[indexLvl1][indexLvl2] &gt;
+            codeRelevanceMin
+          ) {
+            if (codeSnippet) {
+              console.debug("Code Snippet: ", codeSnippet);
+              relevantCodeSnippets.push(codeSnippet);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return returnString.concat(relevantCodeSnippets.join("\n"));
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 49</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-35">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>getRelevantCodeSnippets</code> function retrieves relevant code snippets from the vector database based on a code object's description. It searches the database using the <code>searchRAG</code> function, which performs a similarity search based on the provided description. The function then filters the results based on a minimum relevance threshold (defined by the <code>codeRelevanceMin</code> variable) and returns a string containing the relevant code snippets.</li>
+<li><strong>Parameters:</strong> - <code>codeObj</code>: A <code>CodeObject</code> representing the code snippet for which relevant snippets are being retrieved.</li>
+<li><code>projectName</code>: The name of the project associated with the vector database.</li>
+<li><strong>Returns:</strong> A string containing the relevant code snippets retrieved from the vector database.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeSnippet = await getRelevantCodeSnippets(codeObject, "MyProject");
+console.log(codeSnippet);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If no relevant code snippets are found in the vector database, the function returns an empty string.</li>
+<li><strong>Dependencies:</strong> - <code>searchRAG</code>: A function that searches the vector database for relevant code snippets.</li>
+<li><code>codeRelevanceMin</code>: A variable that defines the minimum relevance threshold for filtering search results.</li>
+</ul>
+<h2 id="annotatecodeobjectexport">### 📤 annotateCodeObject - EXPORT</h2>
+<p><strong>Description:</strong> This function annotates a single code object using an LLM.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">async function annotateCodeObject(
+  codeObj: CodeObject,
+  context: string,
+  projectName?: string
+): Promise&lt;Annotation&gt; {
+  // Generate prompt for LLM
+  const bRAG = process.env.EMBEDDER_MODE || "OFF";
+  const bUseRag = bRAG !== "OFF" ? true : false;
+  // const ragContext = bUseRag === true ? (await searchRAG(projectName || "", codeObj.description)).metadata.codeObjects.codeSnippet : undefined;
+    const ragContext = bUseRag === true ? await getRelevantCodeSnippets(codeObj, projectName || "") : undefined;
+
+  console.debug("Annotating code object: ", ragContext);
+
+  const prompt = annotateCodeObjectPrompt(codeObj, context, ragContext);
+  return await infer(
+    prompt,
+    "JSON object",
+    undefined,
+    false,
+    true,
+    undefined,
+    sModel
+  );
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 103</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-36">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>annotateCodeObject</code> function is responsible for annotating a single code object using a large language model (LLM). It takes a <code>codeObj</code> (representing the code object), <code>context</code> (representing the overall project context), and an optional <code>projectName</code> as input.</li>
+<li><strong>Parameters:</strong> - <code>codeObj</code>: A <code>CodeObject</code> representing the code snippet to be annotated.</li>
+<li><code>context</code>: A string containing the overall project context, which can be used to provide additional information to the LLM.</li>
+<li><code>projectName</code>: An optional string representing the name of the project. This can be used to retrieve relevant code snippets from a vector database (RAG) if enabled.</li>
+<li><strong>Returns:</strong> The function returns a <code>Promise</code> that resolves to an <code>Annotation</code> object. The <code>Annotation</code> object contains various annotations generated by the LLM, such as the purpose of the code object, its parameters, return values, usage examples, edge cases, dependencies, error handling, performance considerations, and best practices.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotation = await annotateCodeObject(codeObj, projectContext, projectName);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function handles edge cases related to the availability of relevant code snippets from the RAG. If the RAG is not enabled or no relevant code snippets are found, the <code>ragContext</code> parameter will be undefined.</li>
+<li><strong>Dependencies:</strong> - <code>annotateCodeObjectPrompt</code>: A function that generates a prompt for the LLM based on the code object and context.</li>
+<li><code>infer</code>: A function that calls the LLM and returns the generated response.</li>
+<li><code>searchRAG</code>: A function that searches the RAG for relevant code snippets based on the code object's description.</li>
+<li><code>getRelevantCodeSnippets</code>: A function that retrieves relevant code snippets from the RAG based on the code object and project name.</li>
+</ul>
+<h2 id="addcodeobjectbacktoprojectsummaryobjectexport">### 📤 addCodeObjectBackToProjectSummaryObject - EXPORT</h2>
+<p><strong>Description:</strong> This function adds an annotated code object back to the project summary object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const addCodeObjectBackToProjectSummaryObject = (
+  codeObj: CodeObject,
+  annotation: Annotation,
+  projectSummary: ProjectSummary
+) =&gt; {
+  // Add annotation to the code object
+  codeObj.annotation = annotation;
+
+  for (const file of projectSummary.codeFiles) {
+    if (file.fileName === codeObj.fileName) {
+      for (const objKey in file.codeObjects) {
+        const codeObjects = file.codeObjects[
+          objKey as keyof CodeObject
+        ] as CodeObject;
+        for (const i in codeObjects) {
+          const currentCodeObject = codeObjects[i as keyof CodeObject] as any;
+          if (currentCodeObject.codeSnippet === codeObj.codeSnippet) {
+            (codeObjects[i as keyof CodeObject] as any) = codeObj;
+          }
+        }
+      }
+    }
+  }
+
+  return projectSummary;
+};
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 22</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-37">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>addCodeObjectBackToProjectSummaryObject</code> function updates the <code>projectSummary</code> object with an annotated code object. It finds the corresponding code object within the <code>projectSummary.codeFiles</code> array based on the <code>fileName</code> and <code>codeSnippet</code> properties and replaces it with the provided annotated code object.</li>
+<li><strong>Parameters:</strong> - <code>codeObj</code>: A <code>CodeObject</code> representing the code snippet to be annotated.</li>
+<li><code>annotation</code>: An <code>Annotation</code> object containing the annotations for the code object.</li>
+<li><code>projectSummary</code>: A <code>ProjectSummary</code> object representing the overall project summary.</li>
+<li><strong>Returns:</strong> The updated <code>ProjectSummary</code> object with the annotated code object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotatedCodeObject = {
+  // ... code object properties
+  annotation: {
+    // ... annotation properties
+  }
+};
+
+const updatedProjectSummary = addCodeObjectBackToProjectSummaryObject(
+annotatedCodeObject,
+  projectSummary
+);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the code object is not found in the <code>projectSummary.codeFiles</code> array, the function will not update the project summary.</li>
+<li><strong>Dependencies:</strong> - <code>CodeObject</code> interface from <code>./objectSchemas</code></li>
+<li><code>Annotation</code> interface from <code>./objectSchemas</code></li>
+<li><code>ProjectSummary</code> interface from <code>./objectSchemas</code></li>
+</ul>
+<h2 id="interfaces">interfaces</h2>
+<h2 id="annotationinterface">### 🌉 Annotation - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for annotations that are added to code objects.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface Annotation {
+    purpose: string;
+    parameters?: string;
+    returns?: string;
+    usageExample?: string;
+    edgeCases?: string;
+    dependencies?: string;
+    errorHandling?: string;
+    performance?: string;
+    bestPractices?: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-38">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>Annotation</code> interface defines the structure for annotations that are added to code objects. These annotations provide additional information about the code object, such as its purpose, parameters, return values, usage examples, edge cases, dependencies, error handling, performance considerations, and best practices.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotation: Annotation = {
+  purpose: "This function calculates the sum of two numbers.",
+  parameters: "num1: number, num2: number",
+  returns: "number",
+  usageExample: "
+</code></pre>
+<p>typescript\nconst sum = add(1, 2);\n</p>
+<pre><code class="", language-",">  edgeCases: "Negative numbers are not supported.",
+  dependencies: "someDependency, anotherDependency",
+  errorHandling: "Throws an error if the input is not a number.",
+  performance: "Optimized for speed.",
+  bestPractices: "Use this function for adding numbers to...etc"
+};
+</code></pre>
+<h2 id="codefilesummaryinterface">### 🌉 CodeFileSummary - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for summarizing a code file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface CodeFileSummary {
+    fileName: string;
+    fileLocation: string;
+    codeSummary: codeSummary;
+    language: string;
+    executionFlow: ExecutionFlow[];
+    codeObjects: CodeObject;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-39">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>CodeFileSummary</code> interface represents a summary of a code file, containing information about its name, location, code summary, language, execution flow, and code objects.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeFileSummary: CodeFileSummary = {
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  codeSummary: {
+    goal: 'This file implements a function to calculate the sum of two numbers.',
+    features_functions: 'The function takes two numbers as input and returns their sum.'
+  },
+  language: 'TypeScript',
+  executionFlow: [],
+  codeObjects: {
+    functions: [
+      {
+        name: 'add',
+        type: 'function',
+        description: 'Calculates the sum of two numbers.',
+        codeSnippet: 'function add(num1: number, num2: number): number { return num1 + num2; }',
+        codeLine: 10,
+        codeIndent: 2,
+        fileName: 'myFile.ts',
+        fileLocation: './src/myFile.ts',
+        isExported: true,
+        isPrivate: false,
+        isAsync: false,
+        functionParameters: [
+          { name: 'num1', type: 'number', description: 'The first number to add.', example: '1' },
+          { name: 'num2', type: 'number', description: 'The second number to add.', example: '2' }
+        ],
+        functionReturns: { type: 'number', description: 'The sum of the two numbers.', example: '3' }
+      }
+    ]
+  }
+};
+</code></pre>
+<h2 id="codeobjectinterface">### 🌉 CodeObject - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a code object (e.g., class, function, variable).</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface CodeObject {
+    name: string;
+    type: CodeObjectType;
+    description: string;
+    codeSnippet: string;
+    annotation?: Annotation;
+    codeLine?: number;
+    codeIndent?: number;
+    content?:string;
+    fileName: string;
+    fileLocation: string;
+    subObjects?: CodeObject[];
+    parentObject?: CodeObject;
+    functionParameters?: FunctionParameter[];
+    functionReturns?: FunctionReturn;
+    isExported: boolean;
+    isFunction: boolean;
+    isClass: boolean;
+    isPrivate: boolean;
+    isAsync: boolean;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-40">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>CodeObject</code> interface defines the structure for representing code elements like classes, functions, variables, and more. It includes properties for the object's name, type, description, code snippet, annotations, line number, indentation, file name, file location, sub-objects, parent object, function parameters, return values, and flags indicating if it's exported, a function, a class, private, or asynchronous.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myFunction: CodeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something cool',
+  codeSnippet: 'function myFunction() { ... }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  isExported: true,
+  isFunction: true,
+  isClass: false,
+  isPrivate: false,
+  isAsync: false
+};
+</code></pre>
+<h2 id="projectsummaryinterface">### 🌉 ProjectSummary - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for summarizing a project.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface ProjectSummary {
+    projectName: string;
+    projectDescription: codeSummary
+    projectLocation: string;
+    projectTechStackDescription: string,
+    projectDependencies: moduleObject[];
+    codeFiles: CodeFileSummary[];
+    ragData: RagData[];
+    teamContext: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-41">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ProjectSummary</code> interface is used to store and represent information about a code project. It provides a structured way to organize data related to the project, including its name, description, location, technology stack, dependencies, code files, RAG data, and team context.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const projectSummary: ProjectSummary = {
+  projectName: 'MyProject',
+  projectDescription: {
+    goal: 'This project aims to...',
+    features_functions: 'The project includes features like...'
+  },
+  projectLocation: '/path/to/project',
+  projectTechStackDescription: 'This project uses TypeScript, React, and Node.js',
+  projectDependencies: [
+    { name: 'react', version: '18.2.0', description: 'A JavaScript library for building user interfaces' },
+    { name: 'typescript', version: '4.9.4', description: 'A superset of JavaScript that adds static typing' }
+  ],
+  codeFiles: [
+    // ... code file summaries
+  ],
+  ragData: [
+    // ... RAG data
+  ],
+  teamContext: 'This project is developed by the... team.'
+};
+</code></pre>
+<h2 id="executionflowinterface">### 🌉 ExecutionFlow - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a step in the execution flow of a code file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface ExecutionFlow {
+    step: number;
+    stepDescription: string;
+    bImportant: boolean;
+    codeSnippet: string;
+    codeLine: number;
+    codeIndent: number;
+    fileName: string;
+    fileLocation: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-42">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ExecutionFlow</code> interface defines the structure for representing a step in the execution flow of a code file. It's used to store information about each step, including its description, importance, code snippet, line number, indentation, and file location.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const executionFlowStep: ExecutionFlow = {
+    step: 1,
+    stepDescription: "This step initializes the application.",
+    bImportant: true,
+    codeSnippet: "// Initialize the application",
+    codeLine: 10,
+    codeIndent: 0,
+    fileName: "main.ts",
+    fileLocation: "./src/main.ts"
+};
+</code></pre>
+<h2 id="functionparameterinterface">### 🌉 FunctionParameter - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a parameter of a function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface FunctionParameter {
+    name: string;
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-43">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for representing a function parameter, which includes its name, type, description, and an example value.</li>
+<li><strong>Parameters:</strong>  - <strong>name</strong>: The name of the parameter.</li>
+<li><strong>type</strong>: The data type of the parameter.</li>
+<li><strong>description</strong>: A textual description of the parameter's purpose.</li>
+<li><strong>example</strong>: An example value for the parameter.</li>
+<li><strong>Returns:</strong> This interface does not return any value. It is used to define the structure of a function parameter.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const functionParameter: FunctionParameter = {
+    name: 'paramName',
+    type: 'string',
+    description: 'This is a parameter',
+    example: 'exampleValue'
+};
+</code></pre>
+<h2 id="functionreturninterface">### 🌉 FunctionReturn - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing the return value of a function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">interface FunctionReturn {
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> annotations.ts (./src/annotations.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-44">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>FunctionReturn</code> interface defines the structure for representing the return value of a function. It includes the type, description, and an example of the return value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const functionReturnValue: FunctionReturn = {
+    type: 'string',
+    description: 'This is a string return value',
+    example: 'Hello, world!'
+};
+</code></pre>

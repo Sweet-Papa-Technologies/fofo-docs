@@ -1,0 +1,2520 @@
+<h1 id="srcdocumentationgeneratortsfofodocs">src/documentationGenerator.ts - fofo-docs</h1>
+<p><strong>Summary:</strong> The code generates documentation for a project in Markdown and HTML formats. It takes a ProjectSummary object containing project information, code files, and dependencies, and creates a directory structure with Markdown files for each code file and a README.md file for the project overview. It then converts the Markdown files to HTML.</p>
+<ul>
+<li><strong>File Location:</strong> ./src/documentationGenerator.ts</li>
+<li><strong>Language:</strong> language: TypeScript </li>
+</ul>
+<h2 id="tableofcontents">Table of Contents</h2>
+<ul>
+<li><a href="#classes">classes</a></li>
+<li><a href="#functions">functions</a></li>
+<li><a href="#variables">variables</a></li>
+<li><a href="#types">types</a></li>
+<li><a href="#imports">imports</a></li>
+<li><a href="#exports">exports</a></li>
+<li><a href="#interfaces">interfaces</a></li>
+</ul>
+<h2 id="classes">classes</h2>
+<h2 id="jsontomarkdownclass">### 📘 jsonToMarkdown - CLASS</h2>
+<p><strong>Description:</strong> This function takes a ProjectSummary object and an output folder path as input. It generates a Markdown file for each code file in the ProjectSummary object and a README.md file containing a table of contents for the project.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const projectFolder = path.join(outputFolder, <code>${projectSummary.projectName}-${timestamp}</code>);
+    fs.mkdirSync(projectFolder, { recursive: true });</p>
+<pre><code>const toc: string[] = [];
+
+toc.push(`[Back to Readme](./README.md)\n\n`);
+
+toc.push(`# Project | ${escapeStringForMD(projectSummary.projectName)}`);
+toc.push(`\n## Project Description\n${escapeStringForMD(projectSummary.projectDescription.goal)}`);
+toc.push(`\n## Tech Stack Description\n${escapeStringForMD(projectSummary.projectTechStackDescription)}`);
+toc.push(`\n## Features and Functions\n${escapeStringForMD(projectSummary.projectDescription.features_functions)}`);
+
+// List out dependencies:
+toc.push(`\n## Project Dependencies / Modules:`);
+projectSummary.projectDependencies.forEach(dep =&gt; {
+    toc.push(`  - ${dep.name} - ${dep.version}`);
+});
+
+// Process Code Files
+toc.push(`\n## Table of Contents - Project Files\n`);
+
+projectSummary.codeFiles.forEach(file =&gt; {
+    const fileName = `${file.fileName}.md`;
+    const filePath = path.join(projectFolder, fileName);
+    toc.push(`\n- [${file.fileName}](./${fileName})`);
+
+    let fileContent = `# ${file.fileName} - ${projectSummary.projectName}\n`;
+    fileContent += `\n**Summary:** ${file.codeSummary.goal}\n`;
+    fileContent += `\n- **File Location:** ${file.fileLocation}`;
+    fileContent += `\n- **Language:** ${file.language}`;
+    fileContent += `\n## Table of Contents\n`;
+
+    const sectionLinks: string[] = [];
+
+    const sectionContent = {
+        classes: '',
+        functions: '',
+        variables: '',
+        types: '',
+        comments: '',
+        imports: '',
+        exports: '',
+        interfaces: ''
+    };
+
+    interface dupObj {
+        name?: string;
+        content?: string;
+        type: CodeObjectType;
+    }
+
+    interface dupTrack {
+        classes: dupObj[];
+        functions: dupObj[];
+        variables: dupObj[];
+        types: dupObj[];
+        comments: dupObj[];
+        imports: dupObj[];
+        exports: dupObj[];
+        interfaces: dupObj[];
+    }
+
+    const duplicateTracking: dupTrack = {
+        classes: [],
+        functions: [],
+        variables: [],
+        types: [],
+        comments: [],
+        imports: [],
+        exports: [],
+        interfaces: []
+    };
+
+    const duplicateCheck = (obj: CodeObject, type: CodeObjectType): boolean =&gt; {
+        const objName = obj.name;
+        const objContent = obj.codeSnippet;
+        const objType = obj.type;
+
+        if ((objName || objContent) &amp;&amp; objType) {
+            const dupObj = {
+                name: objName,
+                content: objContent,
+                type: objType
+            };
+
+            // Check to see if the object already exists in the duplicate tracking
+            let bFound = false;
+            for (const [section, content] of Object.entries(duplicateTracking)) {
+                const contentObj = content as dupObj[];
+
+                // If the same name and the same type, we will go ahead and omit it
+                const found = contentObj.find((item) =&gt; (item.name === objName || item.content === objContent) &amp;&amp; item.type === objType);
+
+                if (typeof found !== 'undefined') {
+                    bFound = true;
+                    break;
+                }
+            }
+
+            if (bFound === true) {
+                return true;
+            }
+
+            switch (type) {
+                case 'class':
+                    duplicateTracking.classes.push(dupObj);
+                    break;
+                case 'function':
+                    duplicateTracking.functions.push(dupObj);
+                    break;
+                case 'variable':
+                    duplicateTracking.variables.push(dupObj);
+                    break;
+                case 'type':
+                    duplicateTracking.types.push(dupObj);
+                    break;
+                // case 'comment':
+                //     duplicateTracking.comments.push(dupObj);
+                //     break;
+                case 'import':
+                    duplicateTracking.imports.push(dupObj);
+                    break;
+                case 'export':
+                    duplicateTracking.exports.push(dupObj);
+                    break;
+                case 'interface':
+                    duplicateTracking.interfaces.push(dupObj);
+                    break;
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        return false;
+    };
+
+    if (typeof file.codeObjects !== 'undefined' || file.codeObjects) {
+    Object.keys(file.codeObjects).forEach(key =&gt; {
+        const baseObject = file.codeObjects as any;
+        const obj = baseObject[key] as any[];
+        if (obj) {
+            obj.forEach((codeObject: CodeObject) =&gt; {
+
+                if (duplicateCheck(codeObject, codeObject.type) === true) {
+                    console.warn(`Duplicate object found: ${codeObject.name}`);
+                    return;
+                }
+
+                const content = generateCodeObjectContent(codeObject, 0);
+                switch (codeObject.type) {
+                    case 'class':
+                        sectionContent.classes += content;
+                        break;
+                    case 'function':
+                        sectionContent.functions += content;
+                        break;
+                    case 'variable':
+                        sectionContent.variables += content;
+                        break;
+                    case 'type':
+                        sectionContent.types += content;
+                        break;
+                    // case 'comment':
+                    //     sectionContent.comments += content;
+                    //     break;
+                    case 'import':
+                        sectionContent.imports += content;
+                        break;
+                    case 'export':
+                        sectionContent.exports += content;
+                        break;
+                    case 'interface':
+                        sectionContent.interfaces += content;
+                        break;
+                    default:
+                        break;
+                }
+            });
+        }
+
+    });
+}
+
+    for (const [section, content] of Object.entries(sectionContent)) {
+        if (content) {
+            const sectionString = `${section}`
+            const sectionTitle = `## ${sectionString}`;
+            fileContent += `${sectionTitle}
+</code></pre>
+<p>${content}
+<code>;
+                sectionLinks.push(</code>- <a href="#${sectionString}">${sectionString}</a>`);
+            }
+        }</p>
+<pre><code>    fileContent = fileContent.replace('## Table of Contents\n', `## Table of Contents\n${sectionLinks.join('\n')}\n`);
+
+    // Make sure the folder path for the file exists
+    const fileFolder = path.dirname(filePath);
+
+    try {
+        fs.mkdirSync(fileFolder, { recursive: true });
+    } catch (err) {
+        console.error(`Error creating folder for ${file.fileName}`);
+    }
+
+    fs.writeFileSync(filePath, fileContent);
+});
+
+
+
+if ( projectSummary.projectDependencies &amp;&amp; projectSummary.projectDependencies.length &gt; 0) {
+    toc.push(`\n## Project/Team Context\n${escapeStringForMD(projectSummary.teamContext)}`);
+}
+
+
+// Write TOC
+const tocPath = path.join(projectFolder, 'README.md');
+fs.writeFileSync(tocPath, toc.join('\n'));
+// return toc.join('\n');
+</code></pre>
+<p>}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>jsonToMarkdown</code> function generates Markdown documentation for a code project based on a provided <code>ProjectSummary</code> object. It creates a directory structure with Markdown files for each code file and a README.md file for the project overview.</li>
+<li><strong>Parameters:</strong> - <code>projectSummary</code>: A <code>ProjectSummary</code> object containing project information, code files, and dependencies.</li>
+<li><code>outputFolder</code>: The path to the output directory where the Markdown files will be generated.</li>
+<li><strong>Returns:</strong> The function does not explicitly return a value. It generates Markdown files in the specified output directory.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Assuming you have a ProjectSummary object called 'projectSummary'
+jsonToMarkdown(projectSummary, './output');
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the output directory does not exist, the function will create it recursively.</li>
+<li>If duplicate code objects are found, the function will log a warning and omit the duplicate objects from the documentation.</li>
+<li><strong>Dependencies:</strong> - <code>fs</code>: For file system operations (creating directories, writing files).</li>
+<li><code>path</code>: For manipulating file paths.</li>
+<li><code>escapeStringForMD</code>: A utility function for escaping strings for Markdown.</li>
+</ul>
+<h2 id="markdowntohtmlclass">### 📘 markdownToHTML - CLASS</h2>
+<p><strong>Description:</strong> This function takes a project folder path as input and converts all Markdown files within the folder (including subfolders) to HTML files.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>function markdownToHTML(projectFolder: string) {
+
+// Initialize showdown converter
+const converter = new showdown.Converter();
+
+const convertDat = (markdown: string) =&gt; {
+    // Convert Markdown to HTML
+    const html = converter.makeHtml(markdown);
+    return html;
+}
+
+// For all markdown files in the project folder, convert to HTML, including subfolders
+const walkSync = (dir: string, filelist: string[] = []) =&gt; {
+    const files = fs.readdirSync(dir);
+    filelist = filelist || [];
+    files.forEach((file) =&gt; {
+        if (fs.statSync(path.join(dir, file)).isDirectory()) {
+            filelist = walkSync(path.join(dir, file), filelist);
+        } else {
+            if (file.endsWith('.md')) {
+                filelist.push(path.join(dir, file));
+            }
+        }
+    });
+    return filelist;
+};
+
+const markdownFiles = walkSync(projectFolder);
+
+markdownFiles.forEach((file) =&gt; {
+    const markdown = fs.readFileSync(file, 'utf-8');
+    const html = convertDat(markdown);
+    const htmlFile = file.replace('.md', '.html');
+    fs.writeFileSync(htmlFile, html);
+});
+
+
+
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 237</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-1">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>markdownToHTML</code> function converts all Markdown files within a specified project folder (including subfolders) to HTML files.</li>
+<li><strong>Parameters:</strong> The function takes one parameter: <code>projectFolder</code>, which is a string representing the path to the project folder.</li>
+<li><strong>Returns:</strong> The function does not explicitly return a value. It modifies the files in the project folder by converting Markdown files to HTML files.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Assuming 'myProject' is the path to the project folder
+markdownToHTML('myProject');
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function assumes that the <code>projectFolder</code> path is valid and that the folder contains Markdown files. If the path is invalid or the folder does not contain Markdown files, the function may not work as expected.</li>
+<li><strong>Dependencies:</strong> The function depends on the following libraries:</li>
+<li><code>showdown</code>: A Markdown to HTML converter library.</li>
+<li><code>fs</code>: Node.js built-in module for file system operations.</li>
+</ul>
+<h2 id="generatecodeobjectcontentclass">### 📘 generateCodeObjectContent - CLASS</h2>
+<p><strong>Description:</strong> This function takes a CodeObject and an indentation level as input. It generates a Markdown string representing the CodeObject, including its name, type, description, code snippet, and other relevant details.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>function generateCodeObjectContent(codeObject: CodeObject, indent: number): string {
+    const indentation = '  '.repeat(indent);
+    const fancyBar = '---'.repeat(20);
+    const emoji = getEmoji(codeObject.type);</p>
+<pre><code>let content = `\n\n${indentation}### ${emoji} ${escapeStringForMD(codeObject.name) || 'Other Details'} - ${(escapeStringForMD(codeObject.type) || 'Undefined').toUpperCase()}`;
+content += `\n${fancyBar}`;
+content += `\n**Description:** ${escapeStringForMD(codeObject.description) || 'undefined'}`;
+
+if (codeObject.codeSnippet &amp;&amp; codeObject.codeSnippet.length &gt; 0) {
+    content += `\n\n**Code Snippet:**\n${cleanBackticks(codeObject.codeSnippet).includes('`') ? "" : "\`\`\`"}
+</code></pre>
+<p>${cleanBackticks(codeObject.codeSnippet)}
+${cleanBackticks(codeObject.codeSnippet).includes('<code>') ? "" : "\</code>``"}
+<code>;
+    }
+    content +=</code>\n${indentation}- <strong>Line:</strong> ${(codeObject.codeLine !== undefined &amp;&amp; codeObject.codeLine !== -1 &amp;&amp; codeObject.codeLine !== -2) ? codeObject.codeLine : 'Could Not Verify Line'}<code>;
+    content +=</code>\n${indentation}- <strong>Location:</strong> ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'Unable to Load'})<code>;
+    content +=</code>\n${indentation}- <strong>Exported:</strong> ${codeObject.isExported !== undefined ? codeObject.isExported : 'Could Not Determine'}<code>;
+    content +=</code>\n${indentation}- <strong>Private:</strong> ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Could Not Determine'}`;</p>
+<pre><code>if (codeObject.type === 'function' &amp;&amp; codeObject.isAsync !== undefined) {
+    content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'Could Not Determine'}\n\n`;
+}
+
+if (codeObject.functionParameters &amp;&amp; codeObject.functionParameters.length &gt; 0) {
+
+    content += `\n${indentation}###### Function Parameters:`;
+    codeObject.functionParameters.forEach(param =&gt; {
+        content += `\n${indentation}- **${escapeStringForMD(param.name)}** (${escapeStringForMD(param.type)}): ${escapeStringForMD(param.description)} \n Example: ${escapeStringForMD(param.example)}`;
+    });
+}
+
+if (codeObject.functionReturns) {
+    content += `\n${indentation}###### Function Returns:`;
+    content += `\n${indentation}- **Type:** ${escapeStringForMD(codeObject.functionReturns.type)}`;
+    content += `\n${indentation}- **Description:** ${escapeStringForMD(codeObject.functionReturns.description)}`;
+    content += `\n${indentation}- **Example:** ${escapeStringForMD(codeObject.functionReturns.example)}`;
+}
+
+if (codeObject.annotation) {
+    content += `\n${indentation}###### Annotations / Comments:`;
+
+    const annotation = codeObject.annotation;
+
+    if (annotation.purpose &amp;&amp; annotation.purpose.length &gt; 0) {
+        content += `\n${indentation}- **Purpose:** ${escapeStringForMD(annotation.purpose)}`;
+    }
+
+    if (annotation.parameters &amp;&amp; annotation.parameters.length &gt; 0) {
+        content += `\n${indentation}- **Parameters:** ${escapeStringForMD(annotation.parameters)}`;
+    }
+
+    if (annotation.returns &amp;&amp; annotation.returns.length &gt; 0) {
+        content += `\n${indentation}- **Returns:** ${escapeStringForMD(annotation.returns)}`;
+    }
+
+    if (annotation.usageExample &amp;&amp; annotation.usageExample.length &gt; 0) {
+        content += `\n${indentation}- **Usage Example:** \n${cleanBackticks(annotation.usageExample).includes('`') ? "" : "\`\`\`"}
+</code></pre>
+<p>${cleanBackticks(annotation.usageExample)}
+${cleanBackticks(annotation.usageExample).includes('<code>') ? "" : "\</code>``"}
+`;
+        }</p>
+<pre><code>    if (annotation.edgeCases &amp;&amp; annotation.edgeCases.length &gt; 0) {
+        content += `\n${indentation}- **Edge Cases:** ${escapeStringForMD(annotation.edgeCases)}`;
+    }
+
+    if (annotation.dependencies &amp;&amp; annotation.dependencies.length &gt; 0) {
+        content += `\n${indentation}- **Dependencies:** ${escapeStringForMD(annotation.dependencies)}`;
+    }
+} 
+
+if (codeObject.subObjects &amp;&amp; codeObject.subObjects.length &gt; 0) {
+    content += `\n${indentation}###### Sub Objects:`;
+    codeObject.subObjects.forEach(subObj =&gt; {
+        content += generateCodeObjectContent(subObj, indent + 1);
+    });
+}
+
+return content;
+</code></pre>
+<p>}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-2">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>generateCodeObjectContent</code> function is responsible for generating a Markdown representation of a <code>CodeObject</code>. It takes a <code>CodeObject</code> and an indentation level as input and returns a formatted Markdown string.</li>
+<li><strong>Parameters:</strong> - <code>codeObject</code>: A <code>CodeObject</code> representing a code element (class, function, variable, etc.)</li>
+<li><code>indent</code>: An integer representing the indentation level for the Markdown output.</li>
+<li><strong>Returns:</strong> A formatted Markdown string representing the <code>CodeObject</code>.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObject: CodeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something cool',
+  codeSnippet: 'function myFunction() { ... }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  isExported: true,
+  isPrivate: false,
+  isAsync: false,
+  functionParameters: [
+    { name: 'param1', type: 'string', description: 'First parameter', example: 'hello' },
+  ],
+  functionReturns: { type: 'void', description: 'Returns nothing', example: 'undefined' },
+};
+
+const markdownContent = generateCodeObjectContent(codeObject, 0);
+console.log(markdownContent);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function handles cases where the <code>CodeObject</code> might have missing or undefined properties. It also handles cases where the code snippet contains backticks, ensuring proper escaping.</li>
+<li><strong>Dependencies:</strong> - <code>escapeStringForMD</code>: A function to escape strings for Markdown.</li>
+<li><code>cleanBackticks</code>: A function to clean backticks in code blocks.</li>
+</ul>
+<h2 id="getemojiclass">### 📘 getEmoji - CLASS</h2>
+<p><strong>Description:</strong> This function takes a string representing a code object type and returns the corresponding emoji.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>function getEmoji(type: string): string {
+    type = type.toLowerCase();
+    if (type === 'classes' || type === 'class') {
+        return '📘';
+    } else if (type === 'functions' || type === 'function') {
+        return '🔧';
+    } else if (type === 'variables' || type === 'variable') {
+        return '🧮';
+    } else if (type === 'types' || type === 'type') {
+        return '🏷️';
+    } else if (type === 'comments' || type === 'comment') {
+        return '💬';
+    } else if (type === 'imports' || type === 'import') {
+        return '📥';
+    } else if (type === 'exports' || type === 'export') {
+        return '📤';
+    } else if (type === 'interfaces' || type === 'interface') {
+        return '🌉';
+    } else {
+        return '📦';
+    }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 353</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-3">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>getEmoji</code> function takes a string representing a code object type and returns the corresponding emoji. It maps different code object types to specific emojis, providing a visual representation for each type in the generated documentation.</li>
+<li><strong>Parameters:</strong> The function accepts a single parameter, <code>type</code>, which is a string representing the code object type. The type is expected to be one of the following: 'classes', 'functions', 'variables', 'types', 'comments', 'imports', 'exports', or 'interfaces'.</li>
+<li><strong>Returns:</strong> The function returns a string representing the emoji corresponding to the provided code object type. If the type is not recognized, it returns a default emoji '📦'.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const emoji = getEmoji('class'); // Returns '📘'
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function handles cases where the provided type is not recognized by returning a default emoji. It also handles cases where the type is provided in different cases (e.g., 'class' or 'Classes') by converting it to lowercase before comparison.</li>
+</ul>
+<h2 id="generatedocumentationclass">### 📘 generateDocumentation - CLASS</h2>
+<p><strong>Description:</strong> This function takes a folder path, an optional ProjectSummary object, and an optional JSON file path as input. It generates documentation for the project based on the provided information.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {
+    if (!fs.existsSync(folderPath)) {
+        try {
+            fs.mkdirSync(folderPath, { recursive: true });
+        } catch (err) {
+            console.error(err);
+            console.log("Using Backup Directory");</p>
+<pre><code>        if (!fs.existsSync(backupDirectory)) {
+            fs.mkdirSync(backupDirectory, { recursive: true });
+        }
+
+        if (!fs.existsSync(backupDirectory)) {
+            console.error("Backup Directory does not exist. We could not make it!");
+            return false;
+        }
+
+        folderPath = backupDirectory;
+    }
+}
+
+// Check to make sure the filepath is writeable before proceeding
+try {
+    fs.accessSync(folderPath, fs.constants.W_OK);
+} catch (err) {
+    console.error(`Cannot write to ${folderPath}. Please check the path and try again.`);
+    return false;
+}
+
+// Save projectContext to a JSON file
+if (!jsonFile) {
+    const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const model = process.env.LLM_TO_USE || 'ml';
+    const projectContextPath = path.join(path.resolve(folderPath), `${makeOSpathFriendly(projectContext?.projectName || '')}-${timeStamp}-${model}.json`);
+    jsonFile = projectContextPath;
+
+    console.log(`Original Path ${folderPath}`);
+    console.log(`Writing project context to ${projectContextPath}`) 
+
+    // if (folderPath.startsWith("./") || folderPath.startsWith("../") || folderPath.startsWith(".\\") || folderPath.startsWith("..\\")) {
+    //     folderPath = path.resolve(folderPath);
+    // }
+
+    try {
+        fs.writeFileSync(jsonFile, JSON.stringify(projectContext, null, 4));
+    } catch (err) {
+        console.error(err)
+        console.error(`Error writing project context to ${projectContextPath}`);
+    }
+} else {
+    const projectContextPath = jsonFile;
+
+    if (!projectContext) {
+        try {
+            projectContext = JSON.parse(fs.readFileSync(projectContextPath, 'utf-8')) as ProjectSummary;
+        } catch (err) {
+            console.error(`Error reading project context from ${projectContextPath}`);
+        }
+    }
+}
+
+// parse the context file, etc.
+if (!projectContext) {
+    console.error(`Error generating MD file. Project context is empty.`);
+    return false;
+}
+jsonToMarkdown(projectContext, folderPath);
+
+// Convert markdown to HTML
+markdownToHTML(folderPath);
+
+return true;
+</code></pre>
+<p>}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-4">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>generateDocumentation</code> function is responsible for generating documentation for a codebase. It takes a folder path, an optional <code>ProjectSummary</code> object, and an optional JSON file path as input. The function first checks if the provided folder path exists and creates it if it doesn't. It then checks if the folder path is writeable. If the <code>jsonFile</code> parameter is not provided, the function generates a JSON file containing the <code>ProjectSummary</code> object in the specified folder. If the <code>jsonFile</code> parameter is provided, the function reads the <code>ProjectSummary</code> object from the provided JSON file. The function then calls the <code>jsonToMarkdown</code> function to convert the <code>ProjectSummary</code> object to Markdown format and writes the Markdown files to the specified folder. Finally, the function calls the <code>markdownToHTML</code> function to convert the Markdown files to HTML format.</li>
+<li><strong>Parameters:</strong> - <code>folderPath</code>: The path to the folder where the documentation will be generated.</li>
+<li><code>projectContext</code>: An optional <code>ProjectSummary</code> object containing information about the project. If not provided, the function will attempt to read the <code>ProjectSummary</code> object from the <code>jsonFile</code> parameter.</li>
+<li><code>jsonFile</code>: An optional path to a JSON file containing the <code>ProjectSummary</code> object. If not provided, the function will generate a JSON file in the specified folder.</li>
+<li><strong>Returns:</strong> The function returns a boolean value indicating whether the documentation generation was successful.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Generate documentation for a project
+generateDocumentation('./output', projectSummary);
+
+// Generate documentation from a JSON file
+generateDocumentation('./output', null, './projectSummary.json');
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the provided folder path does not exist, the function will attempt to create it. If the folder cannot be created, the function will return <code>false</code>.</li>
+<li>If the provided folder path is not writeable, the function will return <code>false</code>.</li>
+<li>If the <code>jsonFile</code> parameter is provided but the file does not exist, the function will return <code>false</code>.</li>
+<li>If the <code>projectContext</code> parameter is not provided and the <code>jsonFile</code> parameter is not provided, the function will return <code>false</code>.</li>
+<li><strong>Dependencies:</strong> - <code>fs</code>: The <code>fs</code> module is used for file system operations, such as checking if a file exists, creating a directory, and writing to a file.</li>
+<li><code>path</code>: The <code>path</code> module is used for working with file paths, such as joining paths and resolving paths.</li>
+</ul>
+<h2 id="functions">functions</h2>
+<h2 id="jsontomarkdownfunction">### 🔧 jsonToMarkdown - FUNCTION</h2>
+<p><strong>Description:</strong> This function takes a ProjectSummary object and an output folder path as input. It generates a Markdown file for each code file in the ProjectSummary object, and a README.md file containing a table of contents for the project.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const projectFolder = path.join(outputFolder, <code>${projectSummary.projectName}-${timestamp}</code>);
+    fs.mkdirSync(projectFolder, { recursive: true });</p>
+<pre><code>const toc: string[] = [];
+
+toc.push(`[Back to Readme](./README.md)\n\n`);
+
+toc.push(`# Project | ${escapeStringForMD(projectSummary.projectName)}`);
+toc.push(`\n## Project Description\n${escapeStringForMD(projectSummary.projectDescription.goal)}`);
+toc.push(`\n## Tech Stack Description\n${escapeStringForMD(projectSummary.projectTechStackDescription)}`);
+toc.push(`\n## Features and Functions\n${escapeStringForMD(projectSummary.projectDescription.features_functions)}`);
+
+// List out dependencies:
+toc.push(`\n## Project Dependencies / Modules:`);
+projectSummary.projectDependencies.forEach(dep =&gt; {
+    toc.push(`  - ${dep.name} - ${dep.version}`);
+});
+
+// Process Code Files
+toc.push(`\n## Table of Contents - Project Files\n`);
+
+projectSummary.codeFiles.forEach(file =&gt; {
+    const fileName = `${file.fileName}.md`;
+    const filePath = path.join(projectFolder, fileName);
+    toc.push(`\n- [${file.fileName}](./${fileName})`);
+
+    let fileContent = `# ${file.fileName} - ${projectSummary.projectName}\n`;
+    fileContent += `\n**Summary:** ${file.codeSummary.goal}\n`;
+    fileContent += `\n- **File Location:** ${file.fileLocation}`;
+    fileContent += `\n- **Language:** ${file.language}`;
+    fileContent += `\n## Table of Contents\n`;
+
+    const sectionLinks: string[] = [];
+
+    const sectionContent = {
+        classes: '',
+        functions: '',
+        variables: '',
+        types: '',
+        comments: '',
+        imports: '',
+        exports: '',
+        interfaces: ''
+    };
+
+    interface dupObj {
+        name?: string;
+        content?: string;
+        type: CodeObjectType;
+    }
+
+    interface dupTrack {
+        classes: dupObj[];
+        functions: dupObj[];
+        variables: dupObj[];
+        types: dupObj[];
+        comments: dupObj[];
+        imports: dupObj[];
+        exports: dupObj[];
+        interfaces: dupObj[];
+    }
+
+    const duplicateTracking: dupTrack = {
+        classes: [],
+        functions: [],
+        variables: [],
+        types: [],
+        comments: [],
+        imports: [],
+        exports: [],
+        interfaces: []
+    };
+
+    const duplicateCheck = (obj: CodeObject, type: CodeObjectType): boolean =&gt; {
+        const objName = obj.name;
+        const objContent = obj.codeSnippet;
+        const objType = obj.type;
+
+        if ((objName || objContent) &amp;&amp; objType) {
+            const dupObj = {
+                name: objName,
+                content: objContent,
+                type: objType
+            };
+
+            // Check to see if the object already exists in the duplicate tracking
+            let bFound = false;
+            for (const [section, content] of Object.entries(duplicateTracking)) {
+                const contentObj = content as dupObj[];
+
+                // If the same name and the same type, we will go ahead and omit it
+                const found = contentObj.find((item) =&gt; (item.name === objName || item.content === objContent) &amp;&amp; item.type === objType);
+
+                if (typeof found !== 'undefined') {
+                    bFound = true;
+                    break;
+                }
+            }
+
+            if (bFound === true) {
+                return true;
+            }
+
+            switch (type) {
+                case 'class':
+                    duplicateTracking.classes.push(dupObj);
+                    break;
+                case 'function':
+                    duplicateTracking.functions.push(dupObj);
+                    break;
+                case 'variable':
+                    duplicateTracking.variables.push(dupObj);
+                    break;
+                case 'type':
+                    duplicateTracking.types.push(dupObj);
+                    break;
+                // case 'comment':
+                //     duplicateTracking.comments.push(dupObj);
+                //     break;
+                case 'import':
+                    duplicateTracking.imports.push(dupObj);
+                    break;
+                case 'export':
+                    duplicateTracking.exports.push(dupObj);
+                    break;
+                case 'interface':
+                    duplicateTracking.interfaces.push(dupObj);
+                    break;
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        return false;
+    };
+
+    if (typeof file.codeObjects !== 'undefined' || file.codeObjects) {
+    Object.keys(file.codeObjects).forEach(key =&gt; {
+        const baseObject = file.codeObjects as any;
+        const obj = baseObject[key] as any[];
+        if (obj) {
+            obj.forEach((codeObject: CodeObject) =&gt; {
+
+                if (duplicateCheck(codeObject, codeObject.type) === true) {
+                    console.warn(`Duplicate object found: ${codeObject.name}`);
+                    return;
+                }
+
+                const content = generateCodeObjectContent(codeObject, 0);
+                switch (codeObject.type) {
+                    case 'class':
+                        sectionContent.classes += content;
+                        break;
+                    case 'function':
+                        sectionContent.functions += content;
+                        break;
+                    case 'variable':
+                        sectionContent.variables += content;
+                        break;
+                    case 'type':
+                        sectionContent.types += content;
+                        break;
+                    // case 'comment':
+                    //     sectionContent.comments += content;
+                    //     break;
+                    case 'import':
+                        sectionContent.imports += content;
+                        break;
+                    case 'export':
+                        sectionContent.exports += content;
+                        break;
+                    case 'interface':
+                        sectionContent.interfaces += content;
+                        break;
+                    default:
+                        break;
+                }
+            });
+        }
+
+    });
+}
+
+    for (const [section, content] of Object.entries(sectionContent)) {
+        if (content) {
+            const sectionString = `${section}`
+            const sectionTitle = `## ${sectionString}`;
+            fileContent += `${sectionTitle}
+</code></pre>
+<p>${content}
+<code>;
+                sectionLinks.push(</code>- <a href="#${sectionString}">${sectionString}</a>`);
+            }
+        }</p>
+<pre><code>    fileContent = fileContent.replace('## Table of Contents\n', `## Table of Contents\n${sectionLinks.join('\n')}\n`);
+
+    // Make sure the folder path for the file exists
+    const fileFolder = path.dirname(filePath);
+
+    try {
+        fs.mkdirSync(fileFolder, { recursive: true });
+    } catch (err) {
+        console.error(`Error creating folder for ${file.fileName}`);
+    }
+
+    fs.writeFileSync(filePath, fileContent);
+});
+
+
+
+if ( projectSummary.projectDependencies &amp;&amp; projectSummary.projectDependencies.length &gt; 0) {
+    toc.push(`\n## Project/Team Context\n${escapeStringForMD(projectSummary.teamContext)}`);
+}
+
+
+// Write TOC
+const tocPath = path.join(projectFolder, 'README.md');
+fs.writeFileSync(tocPath, toc.join('\n'));
+// return toc.join('\n');
+</code></pre>
+<p>}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters">Function Parameters:</h6>
+<ul>
+<li><strong>projectSummary</strong> (ProjectSummary): An object containing information about the project, including the project name, description, dependencies, and code files. 
+Example: N/A</li>
+<li><strong>outputFolder</strong> (string): The path to the folder where the documentation will be generated. 
+Example: N/A</li>
+</ul>
+<h6 id="functionreturns">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> undefined</li>
+<li><strong>Description:</strong> This function does not return a value.</li>
+<li><strong>Example:</strong> N/A</li>
+</ul>
+<h6 id="annotationscomments-5">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>jsonToMarkdown</code> function generates Markdown documentation for a code project based on a provided <code>ProjectSummary</code> object. It creates a directory structure with Markdown files for each code file and a README.md file for the project overview.</li>
+<li><strong>Parameters:</strong> - <code>projectSummary</code>: A <code>ProjectSummary</code> object containing information about the project, including the project name, description, dependencies, and code files.</li>
+<li><code>outputFolder</code>: The path to the folder where the documentation will be generated.</li>
+<li><strong>Returns:</strong> This function does not return a value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const projectSummary = { ... }; // Your ProjectSummary object
+const outputFolder = './docs'; // Path to your output folder
+jsonToMarkdown(projectSummary, outputFolder);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the <code>ProjectSummary</code> object is invalid or missing, the function will throw an error.</li>
+<li>If the output folder path is invalid or inaccessible, the function will throw an error.</li>
+<li><strong>Dependencies:</strong> - <code>fs</code>: Node.js module for file system operations.</li>
+<li><code>path</code>: Node.js module for working with file paths.</li>
+<li><code>showdown</code>: A Markdown to HTML converter library.</li>
+</ul>
+<h2 id="markdowntohtmlfunction">### 🔧 markdownToHTML - FUNCTION</h2>
+<p><strong>Description:</strong> This function takes a project folder path as input and converts all Markdown files in the folder to HTML files.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>function markdownToHTML(projectFolder: string) {
+
+// Initialize showdown converter
+const converter = new showdown.Converter();
+
+const convertDat = (markdown: string) =&gt; {
+    // Convert Markdown to HTML
+    const html = converter.makeHtml(markdown);
+    return html;
+}
+
+// For all markdown files in the project folder, convert to HTML, including subfolders
+const walkSync = (dir: string, filelist: string[] = []) =&gt; {
+    const files = fs.readdirSync(dir);
+    filelist = filelist || [];
+    files.forEach((file) =&gt; {
+        if (fs.statSync(path.join(dir, file)).isDirectory()) {
+            filelist = walkSync(path.join(dir, file), filelist);
+        } else {
+            if (file.endsWith('.md')) {
+                filelist.push(path.join(dir, file));
+            }
+        }
+    });
+    return filelist;
+};
+
+const markdownFiles = walkSync(projectFolder);
+
+markdownFiles.forEach((file) =&gt; {
+    const markdown = fs.readFileSync(file, 'utf-8');
+    const html = convertDat(markdown);
+    const htmlFile = file.replace('.md', '.html');
+    fs.writeFileSync(htmlFile, html);
+});
+
+
+
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 237</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-1">Function Parameters:</h6>
+<ul>
+<li><strong>projectFolder</strong> (string): The path to the project folder containing the Markdown files. 
+Example: N/A</li>
+</ul>
+<h6 id="functionreturns-1">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> undefined</li>
+<li><strong>Description:</strong> This function does not return a value.</li>
+<li><strong>Example:</strong> N/A</li>
+</ul>
+<h6 id="annotationscomments-6">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>markdownToHTML</code> function converts all Markdown files within a specified project folder to their corresponding HTML files. It utilizes the Showdown library to perform the Markdown-to-HTML conversion.</li>
+<li><strong>Parameters:</strong> The function accepts a single parameter, <code>projectFolder</code>, which is a string representing the path to the project folder containing the Markdown files.</li>
+<li><strong>Returns:</strong> The function does not explicitly return a value. It modifies the files in the project folder by converting Markdown files to HTML files.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Assuming 'myProject' is the path to the project folder
+markdownToHTML('myProject');
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function assumes that the project folder contains Markdown files with the '.md' extension. It does not handle other file types or nested folders within the project folder.</li>
+<li><strong>Dependencies:</strong> The function relies on the following dependencies:</li>
+<li><code>fs</code> (Node.js file system module)</li>
+<li><code>path</code> (Node.js path module)</li>
+<li><code>showdown</code> (Showdown library for Markdown-to-HTML conversion)</li>
+</ul>
+<h2 id="generatecodeobjectcontentfunction">### 🔧 generateCodeObjectContent - FUNCTION</h2>
+<p><strong>Description:</strong> This function takes a CodeObject and an indentation level as input. It generates a Markdown string representing the CodeObject, including its name, type, description, code snippet, and annotations.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>function generateCodeObjectContent(codeObject: CodeObject, indent: number): string {
+    const indentation = '  '.repeat(indent);
+    const fancyBar = '---'.repeat(20);
+    const emoji = getEmoji(codeObject.type);</p>
+<pre><code>let content = `\n\n${indentation}### ${emoji} ${escapeStringForMD(codeObject.name) || 'Other Details'} - ${(escapeStringForMD(codeObject.type) || 'Undefined').toUpperCase()}`;
+content += `\n${fancyBar}`;
+content += `\n**Description:** ${escapeStringForMD(codeObject.description) || 'undefined'}`;
+
+if (codeObject.codeSnippet &amp;&amp; codeObject.codeSnippet.length &gt; 0) {
+    content += `\n\n**Code Snippet:**\n${cleanBackticks(codeObject.codeSnippet).includes('\`') ? "" : "\`\`\`"}
+</code></pre>
+<p>${cleanBackticks(codeObject.codeSnippet)}
+${cleanBackticks(codeObject.codeSnippet).includes('`') ? "" : "```"}
+<code>;
+    }
+    content +=</code>\n${indentation}- <strong>Line:</strong> ${(codeObject.codeLine !== undefined &amp;&amp; codeObject.codeLine !== -1 &amp;&amp; codeObject.codeLine !== -2) ? codeObject.codeLine : 'Could Not Verify Line'}<code>;
+    content +=</code>\n${indentation}- <strong>Location:</strong> ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'Unable to Load'})<code>;
+    content +=</code>\n${indentation}- <strong>Exported:</strong> ${codeObject.isExported !== undefined ? codeObject.isExported : 'Could Not Determine'}<code>;
+    content +=</code>\n${indentation}- <strong>Private:</strong> ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Could Not Determine'}`;</p>
+<pre><code>if (codeObject.type === 'function' &amp;&amp; codeObject.isAsync !== undefined) {
+    content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'Could Not Determine'}\n\n`;
+}
+
+if (codeObject.functionParameters &amp;&amp; codeObject.functionParameters.length &gt; 0) {
+
+    content += `\n${indentation}###### Function Parameters:`;
+    codeObject.functionParameters.forEach(param =&gt; {
+        content += `\n${indentation}- **${escapeStringForMD(param.name)}** (${escapeStringForMD(param.type)}): ${escapeStringForMD(param.description)} \n Example: ${escapeStringForMD(param.example)}`;
+    });
+}
+
+if (codeObject.functionReturns) {
+    content += `\n${indentation}###### Function Returns:`;
+    content += `\n${indentation}- **Type:** ${escapeStringForMD(codeObject.functionReturns.type)}`;
+    content += `\n${indentation}- **Description:** ${escapeStringForMD(codeObject.functionReturns.description)}`;
+    content += `\n${indentation}- **Example:** ${escapeStringForMD(codeObject.functionReturns.example)}`;
+}
+
+if (codeObject.annotation) {
+    content += `\n${indentation}###### Annotations / Comments:`;
+
+    const annotation = codeObject.annotation;
+
+    if (annotation.purpose &amp;&amp; annotation.purpose.length &gt; 0) {
+        content += `\n${indentation}- **Purpose:** ${escapeStringForMD(annotation.purpose)}`;
+    }
+
+    if (annotation.parameters &amp;&amp; annotation.parameters.length &gt; 0) {
+        content += `\n${indentation}- **Parameters:** ${escapeStringForMD(annotation.parameters)}`;
+    }
+
+    if (annotation.returns &amp;&amp; annotation.returns.length &gt; 0) {
+        content += `\n${indentation}- **Returns:** ${escapeStringForMD(annotation.returns)}`;
+    }
+
+    if (annotation.usageExample &amp;&amp; annotation.usageExample.length &gt; 0) {
+        content += `\n${indentation}- **Usage Example:** \n${cleanBackticks(annotation.usageExample).includes('\`') ? "" : "\`\`\`"}
+</code></pre>
+<p>${cleanBackticks(annotation.usageExample)}
+${cleanBackticks(annotation.usageExample).includes('`') ? "" : "```"}
+`;
+        }</p>
+<pre><code>    if (annotation.edgeCases &amp;&amp; annotation.edgeCases.length &gt; 0) {
+        content += `\n${indentation}- **Edge Cases:** ${escapeStringForMD(annotation.edgeCases)}`;
+    }
+
+    if (annotation.dependencies &amp;&amp; annotation.dependencies.length &gt; 0) {
+        content += `\n${indentation}- **Dependencies:** ${escapeStringForMD(annotation.dependencies)}`;
+    }
+} 
+
+if (codeObject.subObjects &amp;&amp; codeObject.subObjects.length &gt; 0) {
+    content += `\n${indentation}###### Sub Objects:`;
+    codeObject.subObjects.forEach(subObj =&gt; {
+        content += generateCodeObjectContent(subObj, indent + 1);
+    });
+}
+
+return content;
+</code></pre>
+<p>}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-2">Function Parameters:</h6>
+<ul>
+<li><strong>codeObject</strong> (CodeObject): An object representing a code object, such as a class, function, or variable. 
+Example: N/A</li>
+<li><strong>indent</strong> (number): The indentation level for the Markdown string. 
+Example: N/A</li>
+</ul>
+<h6 id="functionreturns-2">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> string</li>
+<li><strong>Description:</strong> A Markdown string representing the CodeObject.</li>
+<li><strong>Example:</strong> N/A</li>
+</ul>
+<h6 id="annotationscomments-7">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>generateCodeObjectContent</code> function takes a <code>CodeObject</code> and an <code>indent</code> level as input and generates a Markdown string representing the <code>CodeObject</code>. This string includes the object's name, type, description, code snippet, and annotations.</li>
+<li><strong>Parameters:</strong> - <code>codeObject</code>: An object representing a code object, such as a class, function, or variable.</li>
+<li><code>indent</code>: The indentation level for the Markdown string.</li>
+<li><strong>Returns:</strong> A Markdown string representing the <code>CodeObject</code>.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObject: CodeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something',
+  codeSnippet: 'function myFunction() { ... }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  isExported: true,
+  isPrivate: false,
+  isAsync: false,
+  functionParameters: [],
+  functionReturns: { type: 'string', description: 'Returns a string', example: 'Hello' },
+  annotation: { purpose: 'This function does something' }
+};
+
+const markdownContent = generateCodeObjectContent(codeObject, 2);
+console.log(markdownContent);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> N/A</li>
+<li><strong>Dependencies:</strong> - <code>escapeStringForMD</code>: Escapes backticks in strings for Markdown.</li>
+<li><code>cleanBackticks</code>: Removes backticks from strings.</li>
+</ul>
+<h2 id="getemojifunction">### 🔧 getEmoji - FUNCTION</h2>
+<p><strong>Description:</strong> This function takes a code object type as input and returns the corresponding emoji.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>function getEmoji(type: string): string {
+    type = type.toLowerCase();
+    if (type === 'classes' || type === 'class') {
+        return '📘';
+    } else if (type === 'functions' || type === 'function') {
+        return '🔧';
+    } else if (type === 'variables' || type === 'variable') {
+        return '🧮';
+    } else if (type === 'types' || type === 'type') {
+        return '🏷️';
+    } else if (type === 'comments' || type === 'comment') {
+        return '💬';
+    } else if (type === 'imports' || type === 'import') {
+        return '📥';
+    } else if (type === 'exports' || type === 'export') {
+        return '📤';
+    } else if (type === 'interfaces' || type === 'interface') {
+        return '🌉';
+    } else {
+        return '📦';
+    }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 353</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-3">Function Parameters:</h6>
+<ul>
+<li><strong>type</strong> (string): The type of the code object, such as 'class', 'function', or 'variable'. 
+Example: N/A</li>
+</ul>
+<h6 id="functionreturns-3">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> string</li>
+<li><strong>Description:</strong> The emoji corresponding to the code object type.</li>
+<li><strong>Example:</strong> N/A</li>
+</ul>
+<h6 id="annotationscomments-8">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>getEmoji</code> function takes a string representing a code object type as input and returns the corresponding emoji. It uses a series of <code>if</code> and <code>else if</code> statements to check the input string against various code object types and return the appropriate emoji.</li>
+<li><strong>Parameters:</strong> The function takes one parameter: <code>type</code> (string). This parameter represents the type of the code object, such as 'class', 'function', or 'variable'.</li>
+<li><strong>Returns:</strong> The function returns a string representing the emoji corresponding to the input code object type. If the input type is not recognized, it returns the '📦' emoji.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const emoji = getEmoji('function');
+console.log(emoji); // Output: 🔧
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function handles cases where the input type is not recognized by returning the '📦' emoji. It also handles cases where the input type is provided in different cases (e.g., 'class' vs. 'Classes') by converting the input to lowercase before comparison.</li>
+</ul>
+<h2 id="generatedocumentationfunction">### 🔧 generateDocumentation - FUNCTION</h2>
+<p><strong>Description:</strong> This function takes a folder path, a ProjectSummary object, and an optional JSON file path as input. It generates documentation for the project in the specified folder, using the ProjectSummary object as the source of information. If a JSON file path is provided, it will read the ProjectSummary object from the file instead.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {
+    if (!fs.existsSync(folderPath)) {
+        try {
+            fs.mkdirSync(folderPath, {
+                recursive: true
+            });
+        } catch (err) {
+            console.error(err);
+            console.log("Using Backup Directory");</p>
+<pre><code>        if (!fs.existsSync(backupDirectory)) {
+            fs.mkdirSync(backupDirectory, {
+                recursive: true
+            });
+        }
+
+        if (!fs.existsSync(backupDirectory)) {
+            console.error("Backup Directory does not exist. We could not make it!");
+            return false;
+        }
+
+        folderPath = backupDirectory;
+    }
+}
+
+// Check to make sure the filepath is writeable before proceeding
+try {
+    fs.accessSync(folderPath, fs.constants.W_OK);
+} catch (err) {
+    console.error(`Cannot write to ${folderPath}. Please check the path and try again.`);
+    return false;
+}
+
+// Save projectContext to a JSON file
+if (!jsonFile) {
+    const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const model = process.env.LLM_TO_USE || 'ml';
+    const projectContextPath = path.join(path.resolve(folderPath), `${makeOSpathFriendly(projectContext?.projectName || '')}-${timeStamp}-${model}.json`);
+    jsonFile = projectContextPath;
+
+    console.log(`Original Path ${folderPath}`);
+    console.log(`Writing project context to ${projectContextPath}`) 
+
+    // if (folderPath.startsWith("./") || folderPath.startsWith("../") || folderPath.startsWith(".\") || folderPath.startsWith("..\")) {
+    //     folderPath = path.resolve(folderPath);
+    // }
+
+    try {
+        fs.writeFileSync(jsonFile, JSON.stringify(projectContext, null, 4));
+    } catch (err) {
+        console.error(err)
+        console.error(`Error writing project context to ${projectContextPath}`);
+    }
+} else {
+    const projectContextPath = jsonFile;
+
+    if (!projectContext) {
+        try {
+            projectContext = JSON.parse(fs.readFileSync(projectContextPath, 'utf-8')) as ProjectSummary;
+        } catch (err) {
+            console.error(`Error reading project context from ${projectContextPath}`);
+        }
+    }
+}
+
+// parse the context file, etc.
+if (!projectContext) {
+    console.error(`Error generating MD file. Project context is empty.`);
+    return false;
+}
+jsonToMarkdown(projectContext, folderPath);
+
+// Convert markdown to HTML
+markdownToHTML(folderPath);
+
+return true;
+</code></pre>
+<p>}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-4">Function Parameters:</h6>
+<ul>
+<li><strong>folderPath</strong> (string): The path to the folder where the documentation will be generated. 
+Example: N/A</li>
+<li><strong>projectContext</strong> (ProjectSummary | null): An object containing information about the project, including the project name, description, dependencies, and code files. If null, the ProjectSummary object will be read from the JSON file specified by the jsonFile parameter. 
+Example: N/A</li>
+<li><strong>jsonFile</strong> (string | undefined): The path to the JSON file containing the ProjectSummary object. If undefined, the ProjectSummary object will be used directly. 
+Example: N/A</li>
+</ul>
+<h6 id="functionreturns-4">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> boolean</li>
+<li><strong>Description:</strong> Returns true if the documentation was generated successfully, false otherwise.</li>
+<li><strong>Example:</strong> N/A</li>
+</ul>
+<h6 id="annotationscomments-9">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>generateDocumentation</code> function is responsible for generating documentation for a codebase. It takes a folder path, a <code>ProjectSummary</code> object (containing information about the project), and an optional JSON file path as input. The function generates documentation in both Markdown and HTML formats, creating a directory structure with Markdown files for each code file and a README.md file for the project overview. It then converts the Markdown files to HTML.</li>
+<li><strong>Parameters:</strong> - <code>folderPath</code>: The path to the folder where the documentation will be generated.</li>
+<li><code>projectContext</code>: An object containing information about the project, including the project name, description, dependencies, and code files. If null, the <code>ProjectSummary</code> object will be read from the JSON file specified by the <code>jsonFile</code> parameter.</li>
+<li><code>jsonFile</code>: The path to the JSON file containing the <code>ProjectSummary</code> object. If undefined, the <code>ProjectSummary</code> object will be used directly.</li>
+<li><strong>Returns:</strong> The function returns a boolean value indicating whether the documentation was generated successfully. It returns <code>true</code> if the documentation was generated successfully, and <code>false</code> otherwise.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Generate documentation for a project using a ProjectSummary object
+generateDocumentation('./output', projectSummary);
+
+// Generate documentation for a project using a JSON file
+generateDocumentation('./output', null, './projectSummary.json');
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the specified folder path does not exist, the function will attempt to create it. If the folder cannot be created, the function will use a backup directory.</li>
+<li>If the specified folder path is not writeable, the function will return <code>false</code> and log an error message.</li>
+<li>If the <code>jsonFile</code> parameter is provided but the file does not exist, the function will return <code>false</code> and log an error message.</li>
+<li>If the <code>projectContext</code> parameter is null and the <code>jsonFile</code> parameter is not provided, the function will return <code>false</code> and log an error message.</li>
+<li><strong>Dependencies:</strong> - <code>fs</code>: Node.js module for file system operations.</li>
+<li><code>path</code>: Node.js module for working with file paths.</li>
+<li><code>makeOSpathFriendly</code>: A function from the <code>shared</code> module that makes file paths OS-friendly.</li>
+<li><code>jsonToMarkdown</code>: A function from the <code>documentationGenerator</code> module that converts a <code>ProjectSummary</code> object to Markdown.</li>
+<li><code>markdownToHTML</code>: A function from the <code>documentationGenerator</code> module that converts Markdown to HTML.</li>
+</ul>
+<h2 id="variables">variables</h2>
+<h2 id="backupdirectoryvariable">### 🧮 backupDirectory - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the path to the backup directory, which is located in the same directory as the current file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const backupDirectory = path.join(__dirname, 'backup');
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 10</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-10">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable defines the path to the backup directory, which is used to store documentation files if the primary output directory is not writeable.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const backupDirectory = path.join(__dirname, 'backup');
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> path</li>
+</ul>
+<h2 id="timestampvariable">### 🧮 timestamp - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores a timestamp representing the current date and time, formatted in ISO 8601 format with hyphens replacing colons and periods.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 13</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-11">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores a timestamp representing the current date and time, formatted in ISO 8601 format with hyphens replacing colons and periods.</li>
+<li><strong>Returns:</strong> A string representing the timestamp in ISO 8601 format with hyphens replacing colons and periods.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> Date object</li>
+</ul>
+<h2 id="projectfoldervariable">### 🧮 projectFolder - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the path to the folder where the documentation for the project will be generated. The folder name is a combination of the project name, a hyphen, and the timestamp.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>const projectFolder = path.join(outputFolder, <code>${projectSummary.projectName}-${timestamp}</code>);</p>
+<ul>
+<li><strong>Line:</strong> 14</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-12">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the path to the folder where the documentation for the project will be generated. The folder name is a combination of the project name, a hyphen, and the timestamp.</li>
+<li><strong>Returns:</strong> string</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const projectFolder = path.join(outputFolder, `${projectSummary.projectName}-${timestamp}`);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> path</li>
+</ul>
+<h2 id="tocvariable">### 🧮 toc - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores an array of strings that will be used to create the table of contents for the documentation.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const toc: string[] = [];
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 17</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-13">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>toc</code> variable is an array of strings that will be used to create the table of contents for the documentation. It is initialized as an empty array.</li>
+</ul>
+<h2 id="filenamevariable">### 🧮 fileName - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the name of the markdown file that will be generated for each code file in the project.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>const fileName = <code>${file.fileName}.md</code>;</p>
+<ul>
+<li><strong>Line:</strong> 36</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-14">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the name of the markdown file that will be generated for each code file in the project. It is constructed by concatenating the file's name with the '.md' extension.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const fileName = `${file.fileName}.md`;
+</code></pre>
+<h2 id="filepathvariable">### 🧮 filePath - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the full path to the markdown file that will be generated for each code file in the project.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const filePath = path.join(projectFolder, fileName);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 37</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-15">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>filePath</code> variable stores the full path to the markdown file that will be generated for each code file in the project. This path is constructed by joining the <code>projectFolder</code> (the directory where the documentation will be output) with the <code>fileName</code> (the name of the code file).</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const filePath = path.join(projectFolder, fileName);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>path</code> module is used to construct the file path.</li>
+</ul>
+<h2 id="filecontentvariable">### 🧮 fileContent - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the content of the markdown file that will be generated for each code file in the project.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>let fileContent = <code># ${file.fileName} - ${projectSummary.projectName}
+</code>;</p>
+<ul>
+<li><strong>Line:</strong> 36</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-16">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>fileContent</code> variable is used to store the Markdown content that will be generated for each code file in the project. It initializes the Markdown file with the file name, project name, and a summary section.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">let fileContent = `# ${file.fileName} - ${projectSummary.projectName}
+`;
+</code></pre>
+<h2 id="sectionlinksvariable">### 🧮 sectionLinks - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores an array of strings that will be used to create the links to the different sections of the documentation for each code file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const sectionLinks: string[] = [];
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 46</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-17">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>sectionLinks</code> variable is an array of strings that will be used to create the links to the different sections of the documentation for each code file. It is initialized as an empty array and populated later in the code.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of sectionLinks
+const sectionLinks: string[] = [];
+sectionLinks.push('- [Classes](#classes)');
+sectionLinks.push('- [Functions](#functions)');
+// ... add more links
+
+// Use sectionLinks to create the table of contents
+const toc = `## Table of Contents
+${sectionLinks.join('\n')}
+`;
+</code></pre>
+<h2 id="sectioncontentvariable">### 🧮 sectionContent - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores an object that will be used to store the content of the different sections of the documentation for each code file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const sectionContent = {
+            classes: '',
+            functions: '',
+            variables: '',
+            types: '',
+            comments: '',
+            imports: '',
+            exports: '',
+            interfaces: ''
+        };
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 49</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-18">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable is used to store the content of different sections (classes, functions, variables, types, imports, exports, interfaces) of the documentation for each code file. It is initialized as an empty object with keys for each section.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const sectionContent = {
+  classes: '',
+  functions: '',
+  variables: '',
+  types: '',
+  imports: '',
+  exports: '',
+  interfaces: ''
+};
+
+// Add content to the sections
+sectionContent.classes = 'Class content...';
+sectionContent.functions = 'Function content...';
+
+// Use the content to generate documentation
+console.log(sectionContent.classes);
+console.log(sectionContent.functions);
+</code></pre>
+<h2 id="duplicatetrackingvariable">### 🧮 duplicateTracking - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores an object that will be used to track duplicate code objects, preventing them from being added to the documentation multiple times.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const duplicateTracking: dupTrack = {
+            classes: [],
+            functions: [],
+            variables: [],
+            types: [],
+            comments: [],
+            imports: [],
+            exports: [],
+            interfaces: []
+        };
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 77</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-19">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>duplicateTracking</code> variable is an object used to track duplicate code objects within a project. This helps prevent redundant entries in the documentation by ensuring that each code object is only documented once.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage within the code:
+const duplicateCheck = (obj: CodeObject, type: CodeObjectType): boolean =&gt; {
+    // ...
+    if (bFound === true) {
+        return true;
+    }
+
+    switch (type) {
+        case 'class':
+            duplicateTracking.classes.push(dupObj);
+            break;
+        // ...
+    }
+
+    return false;
+};
+</code></pre>
+<h2 id="objnamevariable">### 🧮 objName - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the name of the code object being checked for duplicates.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const objName = obj.name;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 88</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-20">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the name of the code object being checked for duplicates.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const objName = obj.name;
+</code></pre>
+<h2 id="objcontentvariable">### 🧮 objContent - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the code snippet of the code object being checked for duplicates.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const objContent = obj.codeSnippet;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 89</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-21">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the code snippet of the code object being checked for duplicates. It is used in the <code>duplicateCheck</code> function to compare the code snippet of a new code object with existing code objects in the <code>duplicateTracking</code> object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const objContent = obj.codeSnippet;
+</code></pre>
+<h2 id="objtypevariable">### 🧮 objType - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the type of the code object being checked for duplicates.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const objType = obj.type;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 90</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-22">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the type of the code object being checked for duplicates. It is used in the <code>duplicateCheck</code> function to determine if a code object with the same name and type already exists in the <code>duplicateTracking</code> object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const objType = obj.type;
+</code></pre>
+<h2 id="bfoundvariable">### 🧮 bFound - VARIABLE</h2>
+<p><strong>Description:</strong> This variable is a boolean flag that indicates whether a duplicate code object has been found.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>let bFound = false;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 100</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-23">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable is a boolean flag that indicates whether a duplicate code object has been found. It is used to prevent duplicate code objects from being added to the documentation.</li>
+</ul>
+<h2 id="contentobjvariable">### 🧮 contentObj - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the array of objects for the current section being checked for duplicates.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const contentObj = content as dupObj[];
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 102</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-24">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the array of objects for the current section being checked for duplicates.</li>
+</ul>
+<h2 id="foundvariable">### 🧮 found - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the result of searching for a duplicate code object in the current section.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const found = contentObj.find((item) =&gt; (item.name === objName || item.content === objContent) &amp;&amp; item.type === objType);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 105</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-25">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>found</code> variable is used to store the result of searching for a duplicate code object within the <code>contentObj</code> array. It uses the <code>find</code> method to check if an object with the same name, content, and type already exists in the array.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const found = contentObj.find((item) =&gt; (item.name === objName || item.content === objContent) &amp;&amp; item.type === objType);
+</code></pre>
+<h2 id="baseobjectvariable">### 🧮 baseObject - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the code objects for the current file, cast as any to allow access to all properties.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const baseObject = file.codeObjects as any;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 154</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-26">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the code objects for the current file, cast as any to allow access to all properties.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const baseObject = file.codeObjects as any;
+</code></pre>
+<h2 id="objvariable">### 🧮 obj - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the array of code objects for the current key, cast as any to allow access to all properties.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const obj = baseObject[key] as any[];
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 155</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-27">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the array of code objects for the current key, cast as any to allow access to all properties.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const obj = baseObject[key] as any[];
+</code></pre>
+<h2 id="sectionstringvariable">### 🧮 sectionString - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the name of the current section being processed.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>const sectionString = <code>${section}</code></p>
+<ul>
+<li><strong>Line:</strong> 201</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-28">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the name of the current section being processed, which is used to create a section title and link in the documentation.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const sectionString = `classes`;
+// This will create a section titled "## Classes" in the documentation.
+</code></pre>
+<h2 id="sectiontitlevariable">### 🧮 sectionTitle - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the title of the current section being processed.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>const sectionTitle = <code>## ${sectionString}</code>;</p>
+<ul>
+<li><strong>Line:</strong> 202</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-29">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the title of the current section being processed, which is used to generate the markdown documentation for the project.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const sectionTitle = `## ${sectionString}`;
+</code></pre>
+<h2 id="filefoldervariable">### 🧮 fileFolder - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the path to the folder where the markdown file for the current code file will be saved.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const fileFolder = path.dirname(filePath);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 211</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-30">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>fileFolder</code> variable stores the path to the directory where the markdown file for the current code file will be saved. This is used to ensure that the markdown file is saved in the correct location within the project's documentation structure.</li>
+<li><strong>Dependencies:</strong> The <code>fileFolder</code> variable depends on the <code>path</code> module, which is used to extract the directory name from the <code>filePath</code> variable.</li>
+</ul>
+<h2 id="convertervariable">### 🧮 converter - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores an instance of the Showdown converter, which is used to convert markdown to HTML.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const converter = new showdown.Converter();
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 238</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-31">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable initializes an instance of the Showdown converter, which is used to convert Markdown text into HTML.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const html = converter.makeHtml(markdown);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> showdown library</li>
+</ul>
+<h2 id="htmlvariable">### 🧮 html - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the HTML code generated by the Showdown converter.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const html = converter.makeHtml(markdown);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 242</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-32">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>html</code> variable is declared and assigned the result of converting Markdown to HTML using the <code>converter.makeHtml(markdown)</code> function.</li>
+<li><strong>Dependencies:</strong> The <code>html</code> variable depends on the <code>converter</code> object, which is an instance of the Showdown converter.</li>
+</ul>
+<h2 id="htmlfilevariable">### 🧮 htmlFile - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores the path to the HTML file that will be generated from the markdown file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const htmlFile = file.replace('.md', '.html');
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 267</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-33">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the path to the HTML file that will be generated from the markdown file. It is created by replacing the '.md' extension of the markdown file with '.html'.</li>
+</ul>
+<h2 id="indentationvariable">### 🧮 indentation - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores a string containing the appropriate number of spaces for indentation based on the given indent level.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const indentation = '  '.repeat(indent);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 276</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-34">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores a string containing the appropriate number of spaces for indentation based on the given indent level. It is used to create the correct indentation for the markdown output of the code objects.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const indentation = '  '.repeat(indent);
+</code></pre>
+<h2 id="fancybarvariable">### 🧮 fancyBar - VARIABLE</h2>
+<p><strong>Description:</strong> This variable stores a string containing a series of hyphens, used as a visual separator in the generated markdown.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const fancyBar = '---'.repeat(20);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 277</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-35">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>fancyBar</code> variable is a constant that stores a string of 20 hyphens, used as a visual separator in the generated markdown output. It's used to visually separate different sections within the markdown files, enhancing readability and organization.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="markdown language-markdown">### Function Name - [FUNCTION]
+---
+**Description:** Description of the function
+**Code Snippet:**
+</code></pre>
+<pre><code>### 🧮 emoji - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores the emoji that will be used to represent the type of the current code object.
+
+**Code Snippet:**
+</code></pre>
+<p>const emoji = getEmoji(codeObject.type);</p>
+<pre><code>- **Line:** 278
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores the emoji that will be used to represent the type of the current code object.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const emoji = getEmoji(codeObject.type);</p>
+<pre><code>- **Dependencies:** The `getEmoji` function is a dependency.
+
+### 🧮 annotation - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores the annotations for the current code object.
+
+**Code Snippet:**
+</code></pre>
+<p>const annotation = codeObject.annotation;</p>
+<pre><code>- **Line:** 315
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `annotation` variable stores the annotations for the current code object. It is used to access and display the annotations in the documentation generation process.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+// Accessing the annotations for a code object
+const annotation = codeObject.annotation;
+// Displaying the annotations in the documentation
+console.log(annotation.purpose);</p>
+<pre><code>### 🧮 subObj - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores the current sub-object being processed.
+
+**Code Snippet:**
+</code></pre>
+<p>codeObject.subObjects.forEach(subObj =&gt; {</p>
+<pre><code>- **Line:** 344
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable is used to iterate over the `subObjects` array of a `codeObject`.
+
+### 🧮 timeStamp - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores a timestamp representing the current date and time, formatted in ISO 8601 format with hyphens replacing colons and periods.
+
+**Code Snippet:**
+</code></pre>
+<p>const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');</p>
+<pre><code>- **Line:** 410
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores a timestamp representing the current date and time, formatted in ISO 8601 format with hyphens replacing colons and periods.
+- **Returns:** A string representing the timestamp in ISO 8601 format with hyphens replacing colons and periods.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');</p>
+<pre><code>- **Dependencies:** Date object
+
+### 🧮 model - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores the name of the LLM model to be used for generating documentation.
+
+**Code Snippet:**
+</code></pre>
+<p>const model = process.env.LLM<em>TO</em>USE || 'ml';</p>
+<pre><code>- **Line:** 411
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores the name of the LLM model to be used for generating documentation.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const model = process.env.LLM<em>TO</em>USE || 'ml';</p>
+<pre><code>- **Edge Cases:** If the environment variable `LLM_TO_USE` is not set, the default model 'ml' will be used.
+- **Dependencies:** The `process.env` object is used to access environment variables.
+
+### 🧮 jsonFile - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores the path to the JSON file where the project context will be saved.
+
+**Code Snippet:**
+</code></pre>
+<p>jsonFile = projectContextPath;</p>
+<pre><code>- **Line:** 413
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `jsonFile` variable stores the path to the JSON file where the project context will be saved. This file will contain all the information about the project, including the project name, description, dependencies, code files, and annotations.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+// Example usage:
+const projectContextPath = './my-project.json';
+const jsonFile = projectContextPath;</p>
+<pre><code>### 🧮 projectContext - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores the project context loaded from the JSON file.
+
+**Code Snippet:**
+</code></pre>
+<p>projectContext = JSON.parse(fs.readFileSync(projectContextPath, 'utf-8')) as ProjectSummary;</p>
+<pre><code>- **Line:** 433
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores the project context loaded from the JSON file. It is used to access information about the project, such as the project name, description, dependencies, and code files.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const projectContext = JSON.parse(fs.readFileSync(projectContextPath, 'utf-8')) as ProjectSummary;</p>
+<pre><code>- **Edge Cases:** If the JSON file does not exist or is invalid, an error will be thrown.
+- **Dependencies:** fs, path, ProjectSummary
+
+### 🧮 files - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores an array of file names in the current directory.
+
+**Code Snippet:**
+</code></pre>
+<p>const files = fs.readdirSync(dir);</p>
+<pre><code>- **Line:** 248
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores an array of file names in the current directory, obtained using the `fs.readdirSync` function.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const files = fs.readdirSync(dir);</p>
+<pre><code>- **Edge Cases:** If the directory does not exist or is inaccessible, an error will be thrown.
+- **Dependencies:** fs (Node.js file system module)
+
+### 🧮 filelist - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores an array of file paths, recursively collected from the given directory.
+
+**Code Snippet:**
+</code></pre>
+<p>filelist = filelist || [];</p>
+<pre><code>- **Line:** 249
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable is used to store an array of file paths, which are collected recursively from the given directory. It is initialized as an empty array if it is not already defined.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const filelist = walkSync(dir, filelist || []);</p>
+<pre><code>### 🧮 markdownFiles - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores an array of file paths to all markdown files in the project folder.
+
+**Code Snippet:**
+</code></pre>
+<p>const markdownFiles = walkSync(projectFolder);</p>
+<pre><code>- **Line:** 262
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `markdownFiles` variable stores an array of file paths to all markdown files within the `projectFolder` directory. This array is used later in the code to convert each markdown file to HTML.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+// Example usage of markdownFiles variable
+markdownFiles.forEach((file) =&gt; {
+  // Read the markdown content from the file
+  const markdown = fs.readFileSync(file, 'utf-8');
+  // Convert the markdown to HTML
+  const html = convertDat(markdown);
+  // Write the HTML to a new file
+  const htmlFile = file.replace('.md', '.html');
+  fs.writeFileSync(htmlFile, html);
+});</p>
+<pre><code>- **Dependencies:** The `markdownFiles` variable depends on the `walkSync` function, which is responsible for recursively traversing the `projectFolder` directory and collecting all markdown file paths.
+
+### 🧮 markdown - VARIABLE
+------------------------------------------------------------
+**Description:** This variable stores the content of the current markdown file being processed.
+
+**Code Snippet:**
+</code></pre>
+<p>const markdown = fs.readFileSync(file, 'utf-8');</p>
+<pre><code>- **Line:** 265
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `markdown` variable stores the content of the current markdown file being processed, which is read from the file system using the `fs.readFileSync` function.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const markdown = fs.readFileSync(file, 'utf-8');</p>
+<pre><code>- **Edge Cases:** If the file does not exist or cannot be read, an error will be thrown.
+- **Dependencies:** The `fs` module is required for reading the file content.
+## types
+
+
+### 🏷️ CodeObject - TYPE
+------------------------------------------------------------
+**Description:** Interface for representing code objects, such as classes, functions, variables, types, interfaces, comments, imports, and exports.
+
+**Code Snippet:**
+</code></pre>
+<p>typescript
+interface CodeObject {
+  name?: string;
+  type: CodeObjectType;
+  description?: string;
+  codeSnippet?: string;
+  codeLine?: number;
+  codeIndent?: number;
+  fileName?: string;
+  fileLocation?: string;
+  isExported?: boolean;
+  isPrivate?: boolean;
+  isAsync?: boolean;
+  functionParameters?: FunctionParameter[];
+  functionReturns?: FunctionReturn;
+  annotation?: Annotation;
+  subObjects?: CodeObject[];
+}</p>
+<pre><code>- **Line:** Could Not Verify Line
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `CodeObject` interface defines the structure for representing various code elements within a project, such as classes, functions, variables, types, interfaces, comments, imports, and exports. It provides a standardized way to store and analyze information about these code elements.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const myFunction: CodeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something',
+  codeSnippet: 'function myFunction() { … }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  isExported: true,
+  isPrivate: false,
+  isAsync: false,
+  functionParameters: [
+    {
+      name: 'param1',
+      type: 'string',
+      description: 'Description of the parameter',
+      example: 'exampleValue'
+    }
+  ],
+  functionReturns: {
+    type: 'string',
+    description: 'Description of the return value',
+    example: 'exampleReturn'
+  }
+};</p>
+<pre><code>### 🏷️ ProjectSummary - TYPE
+------------------------------------------------------------
+**Description:** Interface for representing a project summary, containing information about the project, its dependencies, code files, and other relevant details.
+
+**Code Snippet:**
+</code></pre>
+<p>typescript
+interface ProjectSummary {
+  projectName: string;
+  projectDescription: codeSummary;
+  projectDependencies: ModuleObject[];
+  projectLocation: string;
+  projectTechStackDescription: string;
+  codeFiles: CodeFileSummary[];
+  ragData: RagData[];
+  teamContext: string;
+}</p>
+<pre><code>- **Line:** Could Not Verify Line
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `ProjectSummary` interface represents a comprehensive summary of a software project, encompassing various aspects like project name, description, dependencies, code files, and contextual information.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const projectSummary: ProjectSummary = {
+  projectName: "MyProject",
+  projectDescription: {
+    goal: "This project aims to…",
+    features_functions: "Key features include…"
+  },
+  projectDependencies: [
+    { name: "express", version: "^4.18.2" },
+    { name: "typescript", version: "^4.9.4" }
+  ],
+  projectLocation: "/path/to/project",
+  projectTechStackDescription: "This project uses Node.js, Express, and TypeScript.",
+  codeFiles: [
+    // … code file summaries
+  ],
+  ragData: [
+    // … RAG data
+  ],
+  teamContext: "This project is developed by…"
+};</p>
+<pre><code>### 🏷️ CodeObjectType - TYPE
+------------------------------------------------------------
+**Description:** Enum for representing different types of code objects.
+
+**Code Snippet:**
+</code></pre>
+<p>typescript
+enum CodeObjectType {
+  class = 'class',
+  function = 'function',
+  variable = 'variable',
+  type = 'type',
+  comment = 'comment',
+  import = 'import',
+  export = 'export',
+  interface = 'interface'
+}</p>
+<pre><code>- **Line:** Could Not Verify Line
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This type defines an enum called `CodeObjectType` which represents different types of code objects, such as classes, functions, variables, types, comments, imports, exports, and interfaces.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const codeObjectType: CodeObjectType = CodeObjectType.class;</p>
+<pre><code>### 🏷️ dupObj - TYPE
+------------------------------------------------------------
+**Description:** Interface for representing a duplicate object, used for tracking duplicate code objects during documentation generation.
+
+**Code Snippet:**
+</code></pre>
+<p>typescript
+interface dupObj {
+  name?: string;
+  content?: string;
+  type: CodeObjectType;
+}</p>
+<pre><code>- **Line:** 59
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `dupObj` interface is used to represent a duplicate code object during documentation generation. It stores the name, content, and type of the code object.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const duplicateObject: dupObj = {
+  name: 'MyClass',
+  content: 'class MyClass { … }',
+  type: 'class'
+};</p>
+<pre><code>### 🏷️ dupTrack - TYPE
+------------------------------------------------------------
+**Description:** Interface for representing a duplicate tracking object, used for keeping track of duplicate code objects during documentation generation.
+
+**Code Snippet:**
+</code></pre>
+<p>typescript
+interface dupTrack {
+  classes: dupObj[];
+  functions: dupObj[];
+  variables: dupObj[];
+  types: dupObj[];
+  comments: dupObj[];
+  imports: dupObj[];
+  exports: dupObj[];
+  interfaces: dupObj[];
+}</p>
+<pre><code>- **Line:** 65
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `dupTrack` type is an interface used to track duplicate code objects during documentation generation. It helps ensure that the documentation doesn't include redundant information about the same code object multiple times.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const duplicateTracking: dupTrack = {
+  classes: [],
+  functions: [],
+  variables: [],
+  types: [],
+  comments: [],
+  imports: [],
+  exports: [],
+  interfaces: []
+};</p>
+<pre><code>## imports
+
+
+### 📥 CodeObject - IMPORT
+------------------------------------------------------------
+**Description:** Imports the CodeObject interface from the objectSchemas module.
+
+**Code Snippet:**
+</code></pre>
+<p>import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";</p>
+<pre><code>- **Line:** 1
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code object imports the `CodeObject`, `ProjectSummary`, and `CodeObjectType` interfaces from the `objectSchemas` module.
+- **Dependencies:** objectSchemas module
+
+### 📥 fs - IMPORT
+------------------------------------------------------------
+**Description:** Imports the fs module for file system operations.
+
+**Code Snippet:**
+</code></pre>
+<p>import fs from 'fs';</p>
+<pre><code>- **Line:** 2
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code object imports the `fs` module from Node.js, providing access to file system operations.
+- **Dependencies:** Node.js `fs` module
+
+### 📥 path - IMPORT
+------------------------------------------------------------
+**Description:** Imports the path module for working with file paths.
+
+**Code Snippet:**
+</code></pre>
+<p>import path from 'path';</p>
+<pre><code>- **Line:** 3
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code object imports the `path` module, which provides utilities for working with file paths.
+- **Dependencies:** path module
+
+### 📥 dotenv/config - IMPORT
+------------------------------------------------------------
+**Description:** Imports the dotenv/config module to load environment variables from a .env file.
+
+**Code Snippet:**
+</code></pre>
+<p>import "dotenv/config";</p>
+<pre><code>- **Line:** 4
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This import statement loads the `dotenv/config` module, which is used to load environment variables from a `.env` file.
+- **Dependencies:** dotenv
+
+### 📥 cleanBackticks - IMPORT
+------------------------------------------------------------
+**Description:** Imports the cleanBackticks function from the shared module.
+
+**Code Snippet:**
+</code></pre>
+<p>import { cleanBackticks, escapeStringForMD, makeOSpathFriendly } from "./shared";</p>
+<pre><code>- **Line:** 5
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code imports the `cleanBackticks` function from the `shared` module.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const cleanedCode = cleanBackticks(codeSnippet);</p>
+<pre><code>- **Dependencies:** The `cleanBackticks` function is defined in the `shared` module.
+
+### 📥 showdown - IMPORT
+------------------------------------------------------------
+**Description:** Imports the showdown module for converting Markdown to HTML.
+
+**Code Snippet:**
+</code></pre>
+<p>import showdown from 'showdown';</p>
+<pre><code>- **Line:** 6
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code object imports the `showdown` module, which is a library for converting Markdown to HTML.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const converter = new showdown.Converter();
+const html = converter.makeHtml(markdown);</p>
+<pre><code>- **Dependencies:** showdown library
+
+### 📥 ./logger - IMPORT
+------------------------------------------------------------
+**Description:** Imports the logger module.
+
+**Code Snippet:**
+</code></pre>
+<p>import "./logger";</p>
+<pre><code>- **Line:** 7
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This line imports the `logger` module, which is likely responsible for logging messages and events within the application.
+- **Dependencies:** logger module
+## exports
+
+
+### 📤 generateDocumentation - EXPORT
+------------------------------------------------------------
+**Description:** Generates documentation for a project, either from a ProjectSummary object or a JSON file.
+
+**Code Snippet:**
+</code></pre>
+<p>export async function generateDocumentation(folderPath: string, projectContext: ProjectSummary | null = null, jsonFile?: string): Promise<boolean> {</p>
+<pre><code>- **Line:** 375
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `generateDocumentation` function is responsible for generating documentation for a code project. It takes a folder path, an optional ProjectSummary object, and an optional JSON file path as input. The function first checks if the provided folder path exists and creates it if it doesn't. It then checks if the folder path is writeable. If a JSON file path is provided, it reads the ProjectSummary object from the file. Otherwise, it uses the provided ProjectSummary object. The function then calls the `jsonToMarkdown` function to convert the ProjectSummary object to Markdown files and the `markdownToHTML` function to convert the Markdown files to HTML files. Finally, it returns a boolean value indicating whether the documentation generation was successful.
+- **Parameters:** - `folderPath`: A string representing the path to the output folder where the documentation will be generated.
+- `projectContext`: An optional ProjectSummary object containing information about the project, including code files, dependencies, and descriptions. If not provided, the function will attempt to read the ProjectSummary object from the JSON file path.
+- `jsonFile`: An optional string representing the path to a JSON file containing the ProjectSummary object. If provided, the function will read the ProjectSummary object from this file.
+- **Returns:** A boolean value indicating whether the documentation generation was successful. `true` if successful, `false` otherwise.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+// Generate documentation from a ProjectSummary object
+generateDocumentation('./output', projectSummary);</p>
+<p>// Generate documentation from a JSON file
+generateDocumentation('./output', null, './projectContext.json');</p>
+<pre><code>- **Edge Cases:** - If the provided folder path does not exist, the function will attempt to create it. If the creation fails, the function will log an error and return `false`.
+- If the provided folder path is not writeable, the function will log an error and return `false`.
+- If the provided JSON file path does not exist or cannot be read, the function will log an error and return `false`.
+- If the provided ProjectSummary object is invalid or missing, the function will log an error and return `false`.
+- **Dependencies:** - `fs`: The Node.js file system module for file operations.
+- `path`: The Node.js path module for working with file paths.
+- `jsonToMarkdown`: A function that converts a ProjectSummary object to Markdown files.
+- `markdownToHTML`: A function that converts Markdown files to HTML files.
+
+### 📤 jsonToMarkdown - EXPORT
+------------------------------------------------------------
+**Description:** Converts a ProjectSummary object into a Markdown file.
+
+**Code Snippet:**
+</code></pre>
+<p>function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {</p>
+<pre><code>- **Line:** 12
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `jsonToMarkdown` function takes a `ProjectSummary` object and an output folder path as input. It generates a Markdown file for the project, including a table of contents, project description, tech stack, dependencies, and code file summaries.
+- **Parameters:** - `projectSummary`: A `ProjectSummary` object containing information about the project, code files, and dependencies.
+- `outputFolder`: The path to the output directory where the Markdown files will be generated.
+- **Returns:** The function does not explicitly return a value. It generates Markdown files in the specified output folder.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+// Assuming you have a ProjectSummary object called 'projectSummary'
+jsonToMarkdown(projectSummary, './output');</p>
+<pre><code>- **Edge Cases:** The function handles edge cases such as empty project descriptions, dependencies, or code files. It also handles duplicate code objects by omitting them from the output.
+- **Dependencies:** - `fs`: Node.js module for file system operations.
+- `path`: Node.js module for working with file paths.
+- `escapeStringForMD`: A utility function from the `shared` module for escaping strings for Markdown.
+
+### 📤 markdownToHTML - EXPORT
+------------------------------------------------------------
+**Description:** Converts Markdown files in a project folder to HTML.
+
+**Code Snippet:**
+</code></pre>
+<p>function markdownToHTML(projectFolder: string) {</p>
+<pre><code>- **Line:** 235
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `markdownToHTML` function converts all Markdown files within a specified project folder to HTML format.
+- **Parameters:** The function takes a single parameter, `projectFolder`, which is a string representing the path to the project folder containing the Markdown files.
+- **Returns:** The function does not explicitly return a value. It directly modifies the Markdown files in the project folder by converting them to HTML and saving them with the `.html` extension.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+// Assuming 'myProject' is the path to the project folder containing Markdown files
+markdownToHTML('myProject');</p>
+<pre><code>- **Edge Cases:** The function assumes that the project folder contains Markdown files with the `.md` extension. It does not handle other file types or nested folders within the project folder.
+- **Dependencies:** The function relies on the `showdown` library for Markdown to HTML conversion. It also uses the `fs` module for file system operations.
+
+### 📤 generateCodeObjectContent - EXPORT
+------------------------------------------------------------
+**Description:** Generates Markdown content for a CodeObject, including its details and annotations.
+
+**Code Snippet:**
+</code></pre>
+<p>function generateCodeObjectContent(codeObject: CodeObject, indent: number): string {</p>
+<pre><code>- **Line:** 275
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** The `generateCodeObjectContent` function takes a `CodeObject` and an indentation level as input and generates Markdown content for the code object, including its details and annotations.
+- **Parameters:** - `codeObject`: A `CodeObject` representing a code element (class, function, variable, etc.)
+- `indent`: An integer representing the indentation level for the Markdown output.
+- **Returns:** A string containing the Markdown representation of the `CodeObject`.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const codeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something',
+  codeSnippet: 'function myFunction() { … }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts'
+};</p>
+<p>const markdownContent = generateCodeObjectContent(codeObject, 0);</p>
+<p>console.log(markdownContent);</p>
+<pre><code>- **Edge Cases:** None specifically mentioned in the code.
+- **Dependencies:** - `escapeStringForMD`: A function from the `shared` module to escape backticks in Markdown.
+
+### 📤 getEmoji - EXPORT
+------------------------------------------------------------
+**Description:** Returns an emoji based on the type of CodeObject.
+
+**Code Snippet:**
+</code></pre>
+<p>function getEmoji(type: string): string {</p>
+<pre><code>- **Line:** 352
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This function returns an emoji based on the type of CodeObject. It is used to add visual flair to the generated documentation.
+- **Parameters:** type: string - The type of CodeObject, such as 'classes', 'functions', 'variables', etc.
+- **Returns:** string - The emoji corresponding to the given CodeObject type.
+- **Usage Example:** 
+</code></pre>
+<p>typescript
+const emoji = getEmoji('classes'); // Returns '📘'</p>
+<pre><code>- **Edge Cases:** If the type is not recognized, an empty string is returned.
+- **Dependencies:** None
+## interfaces
+
+
+### 🌉 dupObj - INTERFACE
+------------------------------------------------------------
+**Description:** Interface for duplicate object tracking
+
+**Code Snippet:**
+</code></pre>
+<p>interface dupObj {
+            name?: string;
+            content?: string;
+            type: CodeObjectType;
+        }</p>
+<pre><code>- **Line:** 60
+- **Location:** documentationGenerator.ts (./src/documentationGenerator.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This interface defines the structure of an object used for tracking duplicate code objects within a file.
+
+### 🌉 dupTrack - INTERFACE
+------------------------------------------------------------
+**Description:** Interface for duplicate object tracking
+
+**Code Snippet:**
+</code></pre>
+<p>interface dupTrack {
+            classes: dupObj[];
+            functions: dupObj[];
+            variables: dupObj[];
+            types: dupObj[];
+            comments: dupObj[];
+            imports: dupObj[];
+            exports: dupObj[];
+            interfaces: dupObj[];
+        }
+```</p>
+<ul>
+<li><strong>Line:</strong> 66</li>
+<li><strong>Location:</strong> documentationGenerator.ts (./src/documentationGenerator.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-36">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for tracking duplicate code objects within a project.</li>
+</ul>

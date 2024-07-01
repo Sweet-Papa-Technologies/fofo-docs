@@ -1,0 +1,416 @@
+<h1 id="srcloggertsfofodocs">src/logger.ts - fofo-docs</h1>
+<p><strong>Summary:</strong> The code aims to create a custom logging system that enhances the default console logging functionality by adding color-coded output, timestamps, and file logging. It replaces the original console methods (log, error, warn, debug, info) with custom functions that provide these enhancements.</p>
+<ul>
+<li><strong>File Location:</strong> ./src/logger.ts</li>
+<li><strong>Language:</strong> language: TypeScript </li>
+</ul>
+<h2 id="tableofcontents">Table of Contents</h2>
+<ul>
+<li><a href="#functions">functions</a></li>
+<li><a href="#variables">variables</a></li>
+<li><a href="#types">types</a></li>
+<li><a href="#imports">imports</a></li>
+</ul>
+<h2 id="functions">functions</h2>
+<h2 id="logtofilefunction">### 🔧 logToFile - FUNCTION</h2>
+<p><strong>Description:</strong> Helper function to log to a file</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">function logToFile(level: string, message: string): void {
+    const timestamp = new Date().toISOString();
+    const logMessage = `${timestamp} [${level}] ${message}
+`;
+    appendFileSync(logFilePath, logMessage);
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters">Function Parameters:</h6>
+<ul>
+<li><strong>level</strong> (string): The log level 
+Example: 'LOG'</li>
+<li><strong>message</strong> (string): The message to log 
+Example: 'This is a log message'</li>
+</ul>
+<h6 id="functionreturns">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> void</li>
+<li><strong>Description:</strong> Returns nothing</li>
+<li><strong>Example:</strong> undefined</li>
+</ul>
+<h6 id="annotationscomments">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function logs a message to a file with a timestamp and log level.</li>
+<li><strong>Parameters:</strong> - level: string - The log level (e.g., 'LOG', 'ERROR', 'WARN', 'DEBUG').</li>
+<li>message: string - The message to log.</li>
+<li><strong>Returns:</strong> void - The function does not return any value.</li>
+<li><strong>Dependencies:</strong> - appendFileSync from 'fs' - Used to append the log message to the file.</li>
+</ul>
+<h2 id="customlogfunction">### 🔧 customLog - FUNCTION</h2>
+<p><strong>Description:</strong> Custom log function</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export function customLog(...args: any[]): void {
+    const message = args.join(' ');
+    originalConsole.log(chalk.blue(`ℹ️ [LOG] ${message}`));
+    logToFile('LOG', message);
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 45</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-1">Function Parameters:</h6>
+<ul>
+<li><strong>args</strong> (any[]): The arguments to log 
+Example: ['This', 'is', 'a', 'log', 'message']</li>
+</ul>
+<h6 id="functionreturns-1">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> void</li>
+<li><strong>Description:</strong> Returns nothing</li>
+<li><strong>Example:</strong> undefined</li>
+</ul>
+<h6 id="annotationscomments-1">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function logs a message to the console and to a log file. It uses chalk to colorize the message and adds a timestamp and level to the log message.</li>
+<li><strong>Parameters:</strong> args: any[] - The arguments to log. These arguments will be joined together with spaces to form the log message.</li>
+<li><strong>Returns:</strong> void - This function does not return any value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code>customLog('This is a log message');
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> chalk, originalConsole, logToFile</li>
+</ul>
+<h2 id="customerrorfunction">### 🔧 customError - FUNCTION</h2>
+<p><strong>Description:</strong> Custom error function</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export function customError(...args: any[]): void {
+    const message = args.join(' ');
+    originalConsole.error(chalk.red(`❌ [ERROR] ${message}`));
+    logToFile('ERROR', message);
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 51</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-2">Function Parameters:</h6>
+<ul>
+<li><strong>args</strong> (any[]): The arguments to log 
+Example: ['This', 'is', 'an', 'error', 'message']</li>
+</ul>
+<h6 id="functionreturns-2">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> void</li>
+<li><strong>Description:</strong> Returns nothing</li>
+<li><strong>Example:</strong> undefined</li>
+</ul>
+<h6 id="annotationscomments-2">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function logs an error message to the console and to a log file.</li>
+<li><strong>Parameters:</strong> args: any[] - The arguments to log. These arguments will be joined together with spaces to form the error message.</li>
+<li><strong>Returns:</strong> void - This function does not return any value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code>customError('This is an error message');
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> - chalk: Used for colorizing the error message.</li>
+<li>originalConsole: Stores the original console methods (log, error, warn, debug, info).</li>
+<li>logToFile: A helper function to log messages to a file.</li>
+</ul>
+<h2 id="customwarnfunction">### 🔧 customWarn - FUNCTION</h2>
+<p><strong>Description:</strong> Custom warn function</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export function customWarn(...args: any[]): void {
+    const message = args.join(' ');
+    originalConsole.warn(chalk.yellow(`⚠️ [WARN] ${message}`));
+    logToFile('WARN', message);
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 57</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-3">Function Parameters:</h6>
+<ul>
+<li><strong>args</strong> (any[]): The arguments to log 
+Example: ['This', 'is', 'a', 'warning', 'message']</li>
+</ul>
+<h6 id="functionreturns-3">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> void</li>
+<li><strong>Description:</strong> Returns nothing</li>
+<li><strong>Example:</strong> undefined</li>
+</ul>
+<h6 id="annotationscomments-3">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function logs a warning message to the console and to a log file.</li>
+<li><strong>Parameters:</strong> args: any[] - An array of arguments to be logged as a warning message.</li>
+<li><strong>Returns:</strong> void - The function does not return any value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code>customWarn('This is a warning message');
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> originalConsole, chalk, logToFile</li>
+</ul>
+<h2 id="customdebugfunction">### 🔧 customDebug - FUNCTION</h2>
+<p><strong>Description:</strong> Custom debug function</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export function customDebug(...args: any[]): void {
+    const message = args.join(' ');
+    originalConsole.debug(chalk.gray(`🐞 [DEBUG] ${message}`));
+    logToFile('DEBUG', message);
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 63</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-4">Function Parameters:</h6>
+<ul>
+<li><strong>args</strong> (any[]): The arguments to log 
+Example: ['This', 'is', 'a', 'debug', 'message']</li>
+</ul>
+<h6 id="functionreturns-4">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> void</li>
+<li><strong>Description:</strong> Returns nothing</li>
+<li><strong>Example:</strong> undefined</li>
+</ul>
+<h6 id="annotationscomments-4">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>customDebug</code> function is a custom logging function that logs debug messages to both the console and a log file. It uses the <code>chalk</code> library to colorize the output and adds a timestamp and log level to the message.</li>
+<li><strong>Parameters:</strong> args: any[] - An array of arguments to be logged. The arguments are joined together with spaces to form the final log message.</li>
+<li><strong>Returns:</strong> void - The function does not return any value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code>customDebug('This is a debug message');
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> chalk, originalConsole, logToFile</li>
+</ul>
+<h2 id="variables">variables</h2>
+<h2 id="colorsvariable">### 🧮 colors - VARIABLE</h2>
+<p><strong>Description:</strong> An object containing ANSI color codes for different colors.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const colors = {
+    reset: "\x1b[0m",
+    blue: "\x1b[34m",
+    red: "\x1b[31m",
+    yellow: "\x1b[33m",
+    gray: "\x1b[90m",
+};
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 5</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-5">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable defines an object called <code>colors</code> that stores ANSI color codes for different colors. These codes are used to colorize the output of the logging system.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">console.log(chalk.blue("This text will be blue"));
+</code></pre>
+<h2 id="chalkvariable">### 🧮 chalk - VARIABLE</h2>
+<p><strong>Description:</strong> An object containing functions to colorize text using the ANSI color codes defined in the <code>colors</code> object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const chalk = {
+    blue: (text: string) =&gt; `${colors.blue}${text}${colors.reset}`,
+    red: (text: string) =&gt; `${colors.red}${text}${colors.reset}`,
+    yellow: (text: string) =&gt; `${colors.yellow}${text}${colors.reset}`,
+    gray: (text: string) =&gt; `${colors.gray}${text}${colors.reset}`,
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 13</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-6">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>chalk</code> variable is an object that provides functions to colorize text using ANSI escape codes. It's used to enhance the logging output by adding color to different log levels.</li>
+<li><strong>Parameters:</strong> Each function within the <code>chalk</code> object takes a single parameter, <code>text</code>, which is the string to be colorized.</li>
+<li><strong>Returns:</strong> Each function returns a string with the ANSI escape codes applied to the input text, resulting in colored output when printed to the console.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">console.log(chalk.blue("This is blue text"));
+console.log(chalk.red("This is red text"));
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>chalk</code> object depends on the <code>colors</code> object, which defines the ANSI color codes.</li>
+</ul>
+<h2 id="logsfoldervariable">### 🧮 logsFolder - VARIABLE</h2>
+<p><strong>Description:</strong> A string representing the path to the logs folder, which is located in the same directory as the current file.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const logsFolder = join(__dirname, 'logs');
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 22</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-7">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>logsFolder</code> variable stores the path to the directory where log files will be saved. It is created by joining the directory of the current file (<code>__dirname</code>) with the string 'logs'.</li>
+<li><strong>Dependencies:</strong> The <code>logsFolder</code> variable depends on the <code>join</code> function from the <code>path</code> module.</li>
+</ul>
+<h2 id="logfilepathvariable">### 🧮 logFilePath - VARIABLE</h2>
+<p><strong>Description:</strong> A string representing the path to the log file, which is located in the logs folder and named <code>log-{timestamp}.txt</code>.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const logFilePath = join(logsFolder, `log-${timestamp}.txt`);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 26</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-8">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>logFilePath</code> variable stores the path to the log file, which is dynamically generated based on the current timestamp.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of logFilePath
+console.log(`Logging to file: ${logFilePath}`);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>logFilePath</code> variable depends on the <code>join</code> function from the <code>path</code> module and the <code>timestamp</code> variable, which is generated using the <code>Date</code> object.</li>
+</ul>
+<h2 id="logmessagevariable">### 🧮 logMessage - VARIABLE</h2>
+<p><strong>Description:</strong> A string representing the log message to be written to the log file, including the timestamp, level, and message.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">function logToFile(level: string, message: string): void {
+    const timestamp = new Date().toISOString();
+    const logMessage = `${timestamp} [${level}] ${message}
+`;
+    appendFileSync(logFilePath, logMessage);
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-9">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>logMessage</code> variable is a string that stores the formatted log message, which includes the timestamp, log level, and the actual message.</li>
+</ul>
+<h2 id="originalconsolevariable">### 🧮 originalConsole - VARIABLE</h2>
+<p><strong>Description:</strong> An object containing references to the original console methods (log, error, warn, debug, info).</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const originalConsole = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn,
+    debug: console.debug,
+    info: console.info,
+};
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 36</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-10">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>originalConsole</code> variable stores references to the original console methods (log, error, warn, debug, info) from the Node.js standard library. This is done to preserve the original console functionality before it's replaced with custom logging functions.</li>
+</ul>
+<h2 id="types">types</h2>
+<h2 id="colortype">### 🏷️ Color - TYPE</h2>
+<p><strong>Description:</strong> Type alias for color names.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-11">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines a set of possible color names for use in the code.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const color: Color = 'red';
+</code></pre>
+<h2 id="imports">imports</h2>
+<h2 id="appendfilesyncimport">### 📥 appendFileSync - IMPORT</h2>
+<p><strong>Description:</strong> Imports the appendFileSync function from the 'fs' module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { appendFileSync, existsSync, mkdirSync } from 'fs';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-12">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>appendFileSync</code>, <code>existsSync</code>, and <code>mkdirSync</code> functions from the 'fs' module, which provides file system operations in Node.js.</li>
+<li><strong>Dependencies:</strong> fs</li>
+</ul>
+<h2 id="existssyncimport">### 📥 existsSync - IMPORT</h2>
+<p><strong>Description:</strong> Imports the existsSync function from the 'fs' module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { appendFileSync, existsSync, mkdirSync } from 'fs';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-13">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>existsSync</code>, <code>appendFileSync</code>, and <code>mkdirSync</code> functions from the <code>fs</code> module, which provides file system operations in Node.js.</li>
+<li><strong>Dependencies:</strong> fs module</li>
+</ul>
+<h2 id="joinimport">### 📥 join - IMPORT</h2>
+<p><strong>Description:</strong> Imports the join function from the 'path' module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { join } from 'path';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 2</li>
+<li><strong>Location:</strong> logger.ts (./src/logger.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-14">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the `join` function from the `path` module, which is used for joining path segments into a single path string.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const filePath = join(__dirname, 'logs');
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> path module</li>
+</ul>

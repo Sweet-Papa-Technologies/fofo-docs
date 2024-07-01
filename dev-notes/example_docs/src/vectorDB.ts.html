@@ -1,0 +1,1576 @@
+<h1 id="srcvectordbtsfofodocs">src/vectorDB.ts - fofo-docs</h1>
+<p><strong>Summary:</strong> This code implements a vector database for storing and retrieving code snippets using ChromaDB. It provides functions to load or create a collection, save code snippets to the database, and search for relevant code snippets based on a given search string.</p>
+<ul>
+<li><strong>File Location:</strong> ./src/vectorDB.ts</li>
+<li><strong>Language:</strong> language: TypeScript </li>
+</ul>
+<h2 id="tableofcontents">Table of Contents</h2>
+<ul>
+<li><a href="#classes">classes</a></li>
+<li><a href="#functions">functions</a></li>
+<li><a href="#variables">variables</a></li>
+<li><a href="#types">types</a></li>
+<li><a href="#imports">imports</a></li>
+<li><a href="#interfaces">interfaces</a></li>
+</ul>
+<h2 id="classes">classes</h2>
+<h2 id="chromaclientclass">### 📘 ChromaClient - CLASS</h2>
+<p><strong>Description:</strong> A class representing a ChromaDB client.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const client = new ChromaClient(chromaSettings);
+//
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 75</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="functionreturns">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Data Not Available</li>
+<li><strong>Description:</strong> Data Not Available</li>
+<li><strong>Example:</strong> Data Not Available</li>
+</ul>
+<h6 id="annotationscomments">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object creates a new instance of the <code>ChromaClient</code> class, which is used to interact with a ChromaDB vector database.</li>
+<li><strong>Parameters:</strong> chromaSettings: An object containing settings for the ChromaDB client, including the path to the database and authentication credentials.</li>
+<li><strong>Returns:</strong> An instance of the <code>ChromaClient</code> class.</li>
+<li><strong>Dependencies:</strong> chromadb</li>
+</ul>
+<h2 id="googlegenerativeaiembeddingfunctionclass">### 📘 GoogleGenerativeAiEmbeddingFunction - CLASS</h2>
+<p><strong>Description:</strong> A class representing a Google Generative AI embedding function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">embedder = new GoogleGenerativeAiEmbeddingFunction({
+      googleApiKey: geminiKey,
+    });
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 34</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="functionreturns-1">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Data Not Available</li>
+<li><strong>Description:</strong> Data Not Available</li>
+<li><strong>Example:</strong> Data Not Available</li>
+</ul>
+<h6 id="annotationscomments-1">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This class represents a Google Generative AI embedding function, which is used to generate embeddings for text data. Embeddings are numerical representations of text that can be used for tasks like similarity search and clustering.</li>
+<li><strong>Parameters:</strong> The constructor takes a single parameter, <code>googleApiKey</code>, which is the API key for Google Generative AI.</li>
+<li><strong>Returns:</strong> The class does not return any value. It is used to create an instance of the embedding function.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const embedder = new GoogleGenerativeAiEmbeddingFunction({
+  googleApiKey: 'YOUR_API_KEY',
+});
+
+const embeddings = await embedder.generate(['This is a test sentence.']);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the <code>googleApiKey</code> is invalid or missing, the constructor will throw an error.</li>
+<li><strong>Dependencies:</strong> This class depends on the <code>@google-cloud/vertexai</code> library.</li>
+</ul>
+<h2 id="openaiembeddingfunctionclass">### 📘 OpenAIEmbeddingFunction - CLASS</h2>
+<p><strong>Description:</strong> A class representing an OpenAI embedding function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">embedder = new OpenAIEmbeddingFunction({
+      openai_api_key: process.env.OPENAI_API_KEY || "",
+      openai_organization_id: process.env.OPENAI_ORG_ID || "",
+      openai_model: process.env.OPENAI_EMBEDDER || "text-embedding-3-small",
+    });
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 40</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="functionreturns-2">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Data Not Available</li>
+<li><strong>Description:</strong> Data Not Available</li>
+<li><strong>Example:</strong> Data Not Available</li>
+</ul>
+<h6 id="annotationscomments-2">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This class represents an OpenAI embedding function, which is used to generate embeddings for text data. Embeddings are numerical representations of text that can be used for tasks like similarity search and clustering.</li>
+<li><strong>Parameters:</strong> The constructor takes the following parameters:</li>
+<li><code>openai_api_key</code>: The API key for OpenAI.</li>
+<li><code>openai_organization_id</code>: The organization ID for OpenAI.</li>
+<li><code>openai_model</code>: The OpenAI model to use for embedding generation. The default value is <code>"text-embedding-3-small"</code>.</li>
+<li><strong>Returns:</strong> The constructor returns an instance of the <code>OpenAIEmbeddingFunction</code> class.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const embedder = new OpenAIEmbeddingFunction({
+  openai_api_key: process.env.OPENAI_API_KEY || "",
+  openai_organization_id: process.env.OPENAI_ORG_ID || "",
+  openai_model: process.env.OPENAI_EMBEDDER || "text-embedding-3-small",
+});
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the OpenAI API key or organization ID is invalid, the embedding function will not work. Additionally, if the OpenAI model is not supported, an error will be thrown.</li>
+<li><strong>Dependencies:</strong> This class depends on the <code>openai</code> library, which is used to interact with the OpenAI API.</li>
+</ul>
+<h2 id="collectionclass">### 📘 Collection - CLASS</h2>
+<p><strong>Description:</strong> A class representing a ChromaDB collection.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import {
+  ChromaClient,
+  GoogleGenerativeAiEmbeddingFunction,
+  OpenAIEmbeddingFunction,
+  Collection,
+} from "chromadb";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 3</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="functionreturns-3">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Data Not Available</li>
+<li><strong>Description:</strong> Data Not Available</li>
+<li><strong>Example:</strong> Data Not Available</li>
+</ul>
+<h6 id="annotationscomments-3">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>Collection</code> class represents a ChromaDB collection, which is a data structure used for storing and retrieving data in a vector database.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const client = new ChromaClient({ path: 'http://localhost:8000' });
+const collection = await client.getOrCreateCollection({ name: 'my-collection', embeddingFunction: embedder });
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>Collection</code> class depends on the <code>chromadb</code> library, which provides the functionality for interacting with ChromaDB.</li>
+</ul>
+<h2 id="functions">functions</h2>
+<h2 id="load_create_collectionfunction">### 🔧 load<em>create</em>collection - FUNCTION</h2>
+<p><strong>Description:</strong> This function is specifc to Chroma DB</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export async function load_create_collection(
+  projectName: string
+): Promise&lt;Collection | void&gt; {
+  const name = projectName;
+
+  let collection: Collection | void;
+
+  console.log("Loading/Creating Collection: " + name);
+  console.log("API URL: " + chromaSettings.path);
+
+  if (chromaSettings.path) {
+    const hb = await client.heartbeat().catch((err: any) =&gt; {
+      console.log("Error connecting to database");
+      console.error(err);
+    });
+
+    console.log("Heartbeat for Database:");
+    console.log(hb);
+  }
+
+  try {
+    collection = await client.getOrCreateCollection({
+      name: prefix + makeWebSafe(name),
+      embeddingFunction: embedder,
+    });
+    if (collection instanceof Collection &amp;&amp; "name" in collection) {
+      return collection;
+    }
+  } catch (err) {
+    console.log("Collection not found, attempting to create collection AGAIN");
+  }
+
+  collection = await client
+    .createCollection({ name:prefix + makeWebSafe(name), embeddingFunction: embedder })
+    .catch((err: any) =&gt; {
+      console.log("Error creating collection");
+      console.error(err);
+    });
+
+  return collection;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 82</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters">Function Parameters:</h6>
+<ul>
+<li><strong>projectName</strong> (string): Name of the project 
+Example: MyProject</li>
+</ul>
+<h6 id="functionreturns-4">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Collection | void</li>
+<li><strong>Description:</strong> Returns a Collection object if successful, otherwise undefined</li>
+<li><strong>Example:</strong> undefined</li>
+</ul>
+<h6 id="annotationscomments-4">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function loads or creates a collection in the ChromaDB vector database based on the provided project name.</li>
+<li><strong>Parameters:</strong> projectName: string - The name of the project for which the collection is being loaded or created.</li>
+<li><strong>Returns:</strong> Collection | void - Returns a Collection object if the collection is successfully loaded or created, otherwise returns undefined.</li>
+<li><strong>Edge Cases:</strong> If the collection is not found, the function attempts to create it again. If there is an error connecting to the database or creating the collection, the function returns undefined.</li>
+<li><strong>Dependencies:</strong> ChromaDB client, makeWebSafe function, embedder (GoogleGenerativeAiEmbeddingFunction or OpenAIEmbeddingFunction)</li>
+</ul>
+<h2 id="savetovectordatabasefunction">### 🔧 saveToVectorDatabase - FUNCTION</h2>
+<p><strong>Description:</strong> Save to Loaded Vector Database</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export async function saveToVectorDatabase(
+  projectName: string,
+  code: string,
+  ragData: RagData
+): Promise&lt;boolean&gt; {
+  let bOK = false;
+
+  projectName = projectName.replace(/\s*/g, "")
+
+  if (embedderMode === "OFF") {
+    console.log("Embedder is off");
+    return bOK;
+  }
+
+  if (embedderENGINE === "CHROMA_DB") {
+    if (!embedder) {
+      console.error("Embedder not initialized");
+      return bOK;
+    }
+
+
+    const meta = ragData.metadata as any;
+
+    const filename = meta.filename;
+
+    delete meta.codeObjects;
+
+    const collection = await load_create_collection(`${projectName}`);
+
+    if (!collection) {
+      console.error("Error creating collection");
+      return false;
+    }
+
+    try {
+      const embeddings = await embedder?.generate([code]);
+      console.log(embeddings);
+
+      const res = await collection.add({
+        ids: [`${projectName}-${filename}-${ragData.metadata.codeChunkId}`],
+        documents: [code],
+        embeddings: embeddings,
+        metadatas: [meta],
+      });
+
+      console.log("Saved to Vector Database:");
+      console.log(res);
+      bOK = true
+    } catch(e:any){
+      console.log(e)
+    }
+
+  }
+
+  return bOK;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 125</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-1">Function Parameters:</h6>
+<ul>
+<li><strong>projectName</strong> (string): Name of the project 
+Example: MyProject</li>
+<li><strong>code</strong> (string): Code to be saved 
+Example: const myVar = 'hello world';</li>
+<li><strong>ragData</strong> (RagData): RagData object containing metadata about the code 
+Example: {}</li>
+</ul>
+<h6 id="functionreturns-5">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> boolean</li>
+<li><strong>Description:</strong> Returns true if the code was saved successfully, otherwise false</li>
+<li><strong>Example:</strong> true</li>
+</ul>
+<h6 id="annotationscomments-5">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function saves a code snippet and its associated metadata to a vector database. It uses the <code>embedder</code> to generate embeddings for the code and then adds the code, embeddings, and metadata to a ChromaDB collection.</li>
+<li><strong>Parameters:</strong> - projectName: string - The name of the project. This is used to identify the collection in the vector database.</li>
+<li>code: string - The code snippet to be saved.</li>
+<li>ragData: RagData - An object containing metadata about the code, including the filename, code chunk ID, line numbers, and code objects.</li>
+<li><strong>Returns:</strong> boolean - Returns <code>true</code> if the code was successfully saved to the vector database, otherwise <code>false</code>.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeSnippet = `const myVar = 'hello world';`;
+const ragData = { metadata: { filename: 'myFile.ts', codeChunkId: 0, codeChunkLineStart: 1, codeChunkLineEnd: 2, codeObjects: {}, codeChunkSummary: 'This code snippet defines a variable' } };
+await saveToVectorDatabase('MyProject', codeSnippet, ragData);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the <code>embedderMode</code> is set to "OFF", the function will not save the code to the vector database.</li>
+<li>If the <code>embedderENGINE</code> is not set to "CHROMA_DB", the function will not save the code to the vector database.</li>
+<li>If the <code>embedder</code> is not initialized, the function will not save the code to the vector database.</li>
+<li>If there is an error creating the collection, the function will return <code>false</code>.</li>
+<li><strong>Dependencies:</strong> - ChromaDB: Used for storing and retrieving code snippets.</li>
+<li>embedder: A function for generating embeddings for code snippets. This can be either a Google Generative AI embedding function or an OpenAI embedding function.</li>
+</ul>
+<h2 id="searchragfunction">### 🔧 searchRAG - FUNCTION</h2>
+<p><strong>Description:</strong> Search Loaded Vector Database</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export async function searchRAG(
+  projectName: string,
+  searchString: string,
+  bRetry=true,
+  AIusageData?: llmRuntimeData
+): Promise&lt;RagData&gt; {
+  let ragData: RagData = {} as RagData;
+
+  try {
+  if (embedderMode === "OFF") {
+    console.log("Embedder is off");
+    return ragData;
+  }
+
+  if (embedderENGINE === "CHROMA_DB") {
+    if (!embedder) {
+      console.error("Embedder not initialized");
+      return {} as RagData;
+    }
+
+    const collection = await load_create_collection(projectName);
+    if (!collection) {
+      console.error("Error creating collection");
+      return {} as RagData;
+    }
+
+
+      const searchEmbeddings = await embedder.generate([searchString]);
+      const searchResults = await collection.query({
+        queryEmbeddings: searchEmbeddings,
+      });
+
+
+    console.log("Search Results for RAG:");
+    console.log(searchResults);
+
+    ragData = {
+      metadata: (searchResults.metadatas[0] as any) || {},
+      embeddings: searchResults.embeddings ? ([0] as any) : {},
+      documentData: (searchResults.documents[0] as any) || [],
+      allSearchResults: searchResults,
+      allResults: {
+        documents: searchResults.documents,
+        embeddings: searchResults.embeddings,
+        metadatas: searchResults.metadatas,
+      }
+      }
+  };
+
+
+  console.log("RAG Data:");
+  console.log(ragData);
+
+  if (AIusageData){
+    AIusageData.totalAPIcalls++;
+    AIusageData.totalCharactersEmbed += searchString.length
+    const cost = typeof API_COST_PER_EMBEDDING  === 'string' ? parseFloat(API_COST_PER_EMBEDDING) : API_COST_PER_EMBEDDING;
+    AIusageData.totalCost += cost * searchString.length;
+  }
+
+
+  return ragData;
+
+} catch (err) {
+  console.error("Error searching collection");
+  console.error(err);
+
+  if (bRetry === true){
+    console.log("Retrying search after cool down period of 30 seconds");
+    await new Promise((resolve) =&gt; setTimeout(resolve, 30000));
+    return await searchRAG(projectName, searchString, false, AIusageData);
+  }
+  return {} as RagData;
+}
+
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 183</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-2">Function Parameters:</h6>
+<ul>
+<li><strong>projectName</strong> (string): Name of the project 
+Example: MyProject</li>
+<li><strong>searchString</strong> (string): String to search for 
+Example: What is the purpose of this function?</li>
+<li><strong>bRetry</strong> (boolean): Whether to retry the search if it fails 
+Example: true</li>
+<li><strong>AIusageData</strong> (llmRuntimeData): Object to track AI usage data 
+Example: {}</li>
+</ul>
+<h6 id="functionreturns-6">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> RagData</li>
+<li><strong>Description:</strong> Returns a RagData object containing the search results</li>
+<li><strong>Example:</strong> {}</li>
+</ul>
+<h6 id="annotationscomments-6">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This function searches a loaded vector database for relevant code snippets based on a given search string. It uses the <code>embedder</code> to generate embeddings for the search string and then queries the <code>collection</code> using these embeddings.</li>
+<li><strong>Parameters:</strong> - projectName: string - The name of the project associated with the vector database.</li>
+<li>searchString: string - The string to search for in the database.</li>
+<li>bRetry: boolean - Whether to retry the search if it fails. Defaults to <code>true</code>.</li>
+<li>AIusageData: llmRuntimeData - An optional object to track AI usage data. Defaults to <code>undefined</code>.</li>
+<li><strong>Returns:</strong> RagData - A <code>RagData</code> object containing the search results. This object includes metadata about the retrieved code snippets, embeddings, the actual code snippets, and information about the overall search results.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const searchResults = await searchRAG("MyProject", "What is the purpose of this function?", true);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the <code>embedderMode</code> is set to "OFF", the function will return an empty <code>RagData</code> object.</li>
+<li>If the <code>embedder</code> is not initialized, the function will return an empty <code>RagData</code> object.</li>
+<li>If there is an error creating the <code>collection</code>, the function will return an empty <code>RagData</code> object.</li>
+<li>If there is an error searching the <code>collection</code>, the function will log the error and return an empty <code>RagData</code> object. If <code>bRetry</code> is set to <code>true</code>, the function will retry the search after a 30-second cool-down period.</li>
+<li><strong>Dependencies:</strong> - <code>embedder</code> - An embedding function (e.g., <code>GoogleGenerativeAiEmbeddingFunction</code>, <code>OpenAIEmbeddingFunction</code>) used to generate embeddings for the search string.</li>
+<li><code>load_create_collection</code> - A function that loads or creates a <code>Collection</code> object in the vector database.</li>
+<li><code>RagData</code> - An interface that defines the structure of the search results object.</li>
+</ul>
+<h2 id="variables">variables</h2>
+<h2 id="api_cost_per_embeddingvariable">### 🧮 API<em>COST</em>PER_EMBEDDING - VARIABLE</h2>
+<p><strong>Description:</strong> Environment variable representing the cost per embedding for the API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">export const API_COST_PER_EMBEDDING = process.env.API_COST_PER_EMBEDDING || 0.000025;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 11</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-7">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable defines the cost per embedding for the API, which is used to calculate the cost of API calls.</li>
+<li><strong>Dependencies:</strong> process.env.API<em>COST</em>PER_EMBEDDING</li>
+</ul>
+<h2 id="apipassvariable">### 🧮 apiPass - VARIABLE</h2>
+<p><strong>Description:</strong> Environment variable representing the API password.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const apiPass = process.env.API_PASS;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 14</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-8">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>apiPass</code> variable stores the API password retrieved from the environment variable <code>API_PASS</code>.</li>
+</ul>
+<h2 id="apiuservariable">### 🧮 apiUser - VARIABLE</h2>
+<p><strong>Description:</strong> Environment variable representing the API username.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const apiUser = process.env.API_USER;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 15</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-9">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>apiUser</code> variable stores the value of the environment variable <code>API_USER</code>, which likely represents the username for accessing a ChromaDB API.</li>
+<li><strong>Dependencies:</strong> The code depends on the <code>process.env</code> object to access environment variables.</li>
+</ul>
+<h2 id="geminikeyvariable">### 🧮 geminiKey - VARIABLE</h2>
+<p><strong>Description:</strong> Environment variable representing the Gemini API key.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const geminiKey = process.env.GEMINI_KEY;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 16</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-10">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the Gemini API key, which is retrieved from the environment variable <code>GEMINI_KEY</code>.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Use the geminiKey to make requests to the Gemini API
+const response = await geminiClient.makeRequest(geminiKey, requestData);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the <code>GEMINI_KEY</code> environment variable is not set, the variable will be undefined.</li>
+<li><strong>Dependencies:</strong> The code depends on the <code>process.env</code> object to access environment variables.</li>
+</ul>
+<h2 id="apiurlvariable">### 🧮 apiURL - VARIABLE</h2>
+<p><strong>Description:</strong> Environment variable representing the API URL, defaulting to 'http://localhost:8000'.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const apiURL = process.env.API_URL || "http://localhost:8000";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 17</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-11">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>apiURL</code> variable stores the API URL for the ChromaDB vector database. It defaults to <code>http://localhost:8000</code> if the environment variable <code>API_URL</code> is not set.</li>
+<li><strong>Dependencies:</strong> The <code>process.env</code> object is used to access environment variables.</li>
+</ul>
+<h2 id="embeddermodevariable">### 🧮 embedderMode - VARIABLE</h2>
+<p><strong>Description:</strong> Environment variable representing the embedder mode, defaulting to 'OFF'.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const embedderMode = process.env.EMBEDDER_MODE || "OFF";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 18</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-12">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>embedderMode</code> variable stores the mode of the embedder, which is used for generating embeddings for code snippets. It defaults to 'OFF', meaning embeddings are not generated.</li>
+<li><strong>Dependencies:</strong> The <code>embedderMode</code> variable depends on the environment variable <code>EMBEDDER_MODE</code>.</li>
+</ul>
+<h2 id="embedderenginevariable">### 🧮 embedderENGINE - VARIABLE</h2>
+<p><strong>Description:</strong> Environment variable representing the embedder engine, defaulting to 'CHROMA_DB'.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const embedderENGINE = process.env.EMBEDDER_ENGINE || "CHROMA_DB";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 19</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-13">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>embedderENGINE</code> variable stores the name of the embedder engine used for vector database operations. It defaults to 'CHROMA_DB' but can be overridden by the environment variable <code>EMBEDDER_ENGINE</code>.</li>
+<li><strong>Dependencies:</strong> The <code>embedderENGINE</code> variable depends on the environment variable <code>EMBEDDER_ENGINE</code>.</li>
+</ul>
+<h2 id="embeddervariable">### 🧮 embedder - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the embedder, which can be either a GoogleGenerativeAiEmbeddingFunction, OpenAIEmbeddingFunction, or undefined.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">let embedder:
+  | GoogleGenerativeAiEmbeddingFunction
+  | OpenAIEmbeddingFunction
+  | undefined = undefined;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 22</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-14">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>embedder</code> variable is declared to store the embedding function used for vector database operations. It can be either a <code>GoogleGenerativeAiEmbeddingFunction</code>, <code>OpenAIEmbeddingFunction</code>, or <code>undefined</code> depending on the chosen embedding mode.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const embeddings = await embedder?.generate([code]);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the embedder mode is set to "OFF", the <code>embedder</code> variable will be <code>undefined</code>.</li>
+<li><strong>Dependencies:</strong> The <code>embedder</code> variable depends on the chosen embedding mode, which in turn depends on the environment variables <code>GEMINI_KEY</code>, <code>OPENAI_API_KEY</code>, <code>OPENAI_ORG_ID</code>, and <code>OPENAI_EMBEDDER</code>.</li>
+</ul>
+<h2 id="chromasettingsvariable">### 🧮 chromaSettings - VARIABLE</h2>
+<p><strong>Description:</strong> Object representing the ChromaDB settings, including the path and authentication details.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">let chromaSettings:any = {
+    path: apiURL,
+    auth: undefined
+  };
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 56</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-15">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>chromaSettings</code> variable is an object that stores the configuration settings for connecting to the ChromaDB vector database.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of chromaSettings
+const client = new ChromaClient(chromaSettings);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> ChromaDB library</li>
+</ul>
+<h2 id="prefixvariable">### 🧮 prefix - VARIABLE</h2>
+<p><strong>Description:</strong> Constant string representing the prefix for the ChromaDB collection name.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const prefix = "FOFO-RAG-";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 73</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-16">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>prefix</code> variable is a constant string that defines the prefix for the ChromaDB collection name. This prefix is used to ensure that the collection name is unique and avoids potential conflicts with other collections.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const collectionName = prefix + makeWebSafe(projectName);
+</code></pre>
+<h2 id="clientvariable">### 🧮 client - VARIABLE</h2>
+<p><strong>Description:</strong> Instance of the ChromaClient class, used to interact with the ChromaDB database.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">const client = new ChromaClient(chromaSettings);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 75</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-17">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>client</code> variable is an instance of the <code>ChromaClient</code> class, which is used to interact with the ChromaDB database. It provides methods for creating, loading, and querying collections within the database.</li>
+<li><strong>Dependencies:</strong> The <code>client</code> variable depends on the <code>ChromaClient</code> class from the <code>chromadb</code> library.</li>
+</ul>
+<h2 id="namevariable">### 🧮 name - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the name of the project, used within the load<em>create</em>collection function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">  const name = projectName;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 85</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-18">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the name of the project, which is used to identify and access the corresponding collection in the vector database.</li>
+</ul>
+<h2 id="hbvariable">### 🧮 hb - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the heartbeat response from the ChromaDB database, used within the load<em>create</em>collection function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    const hb = await client.heartbeat().catch((err: any) =&gt; {
+      console.log("Error connecting to database");
+      console.error(err);
+    });
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 93</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-19">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>hb</code> variable is used to store the result of the <code>client.heartbeat()</code> function call, which checks the connection to the ChromaDB database.</li>
+<li><strong>Edge Cases:</strong> If there is an error connecting to the database, the <code>catch</code> block will log an error message.</li>
+<li><strong>Dependencies:</strong> The <code>hb</code> variable depends on the <code>client</code> object, which is an instance of the <code>ChromaClient</code> class.</li>
+</ul>
+<h2 id="bokvariable">### 🧮 bOK - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the success status of saving to the vector database, used within the saveToVectorDatabase function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">  let bOK = false;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 130</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-20">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>bOK</code> variable is a boolean flag used to track the success status of saving code snippets to the vector database within the <code>saveToVectorDatabase</code> function.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">  if (embedderMode === "OFF") {
+    console.log("Embedder is off");
+    return bOK;
+  }
+</code></pre>
+<h2 id="metavariable">### 🧮 meta - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the metadata object, used within the saveToVectorDatabase function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    const meta = ragData.metadata as any;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 146</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-21">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>meta</code> variable is used to store the metadata object associated with a code snippet being saved to the vector database. It's declared within the <code>saveToVectorDatabase</code> function and is used to provide context and information about the code snippet.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const meta = ragData.metadata as any;
+</code></pre>
+<h2 id="filenamevariable">### 🧮 filename - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the filename, used within the saveToVectorDatabase function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    const filename = meta.filename;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 148</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-22">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>filename</code> variable stores the name of the file being processed within the <code>saveToVectorDatabase</code> function. It is extracted from the <code>meta</code> object, which likely contains metadata about the file.</li>
+</ul>
+<h2 id="embeddingsvariable">### 🧮 embeddings - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the embeddings generated from the code, used within the saveToVectorDatabase function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">      const embeddings = await embedder?.generate([code]);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 160</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-23">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>embeddings</code> variable stores the results of generating embeddings for the provided code using the <code>embedder</code> function. This is a crucial step in the process of saving code snippets to the vector database.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const embeddings = await embedder?.generate([code]);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the <code>embedder</code> is not initialized or if there is an error during embedding generation, the <code>embeddings</code> variable will be undefined.</li>
+<li><strong>Dependencies:</strong> The <code>embeddings</code> variable depends on the <code>embedder</code> function, which is responsible for generating embeddings.</li>
+</ul>
+<h2 id="resvariable">### 🧮 res - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the response from adding data to the ChromaDB collection, used within the saveToVectorDatabase function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">      const res = await collection.add({
+        ids: [`${projectName}-${filename}-${ragData.metadata.codeChunkId}`],
+        documents: [code],
+        embeddings: embeddings,
+        metadatas: [meta],
+      });
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 163</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-24">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>res</code> variable stores the result of adding data to the ChromaDB collection using the <code>collection.add()</code> method. This method adds a new document to the collection, along with its associated metadata and embeddings.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const res = await collection.add({
+  ids: ["myProject-myFile-123"],
+  documents: ["const myVariable = 'hello world';"],
+  embeddings: [0.1, 0.2, 0.3], // Example embeddings
+  metadatas: [{ filename: "myFile.ts", codeChunkId: 123 }],
+});
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> ChromaDB library</li>
+</ul>
+<h2 id="evariable">### 🧮 e - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the error caught during the saveToVectorDatabase function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    } catch(e:any){
+      console.log(e)
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 173</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-25">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable captures any error that occurs within the <code>catch</code> block of the <code>saveToVectorDatabase</code> function.</li>
+</ul>
+<h2 id="ragdatavariable">### 🧮 ragData - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the RagData object, used within the searchRAG function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">  let ragData: RagData = {} as RagData;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 189</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-26">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ragData</code> variable is declared within the <code>searchRAG</code> function to store the results of a search query against a vector database. It is initialized as an empty <code>RagData</code> object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">  let ragData: RagData = {} as RagData;
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>RagData</code> interface defines the structure of the data stored in the <code>ragData</code> variable.</li>
+</ul>
+<h2 id="searchembeddingsvariable">### 🧮 searchEmbeddings - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the embeddings generated from the search string, used within the searchRAG function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">      const searchEmbeddings = await embedder.generate([searchString]);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 210</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-27">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>searchEmbeddings</code> variable stores the embeddings generated from the search string using the <code>embedder</code> function. These embeddings are used to perform similarity searches within the vector database.</li>
+<li><strong>Dependencies:</strong> The <code>searchEmbeddings</code> variable depends on the <code>embedder</code> function, which is responsible for generating embeddings from text.</li>
+</ul>
+<h2 id="searchresultsvariable">### 🧮 searchResults - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the results of the query to the ChromaDB collection, used within the searchRAG function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">      const searchResults = await collection.query({
+        queryEmbeddings: searchEmbeddings,
+      });
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 211</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-28">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>searchResults</code> variable stores the results of a query to the ChromaDB collection, which is a vector database used for storing and retrieving code snippets.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const searchResults = await collection.query({
+  queryEmbeddings: searchEmbeddings,
+});
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> ChromaDB library</li>
+</ul>
+<h2 id="errvariable">### 🧮 err - VARIABLE</h2>
+<p><strong>Description:</strong> Variable representing the error caught during the searchRAG function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">} catch (err) {
+  console.error("Error searching collection");
+  console.error(err);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 246</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-29">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable captures any errors that occur during the <code>searchRAG</code> function.</li>
+</ul>
+<h2 id="types">types</h2>
+<h2 id="googlegenerativeaiembeddingfunctiontype">### 🏷️ GoogleGenerativeAiEmbeddingFunction - TYPE</h2>
+<p><strong>Description:</strong> Type representing the Google Generative AI embedding function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">GoogleGenerativeAiEmbeddingFunction
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 5</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-30">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type represents the Google Generative AI embedding function, which is used to generate embeddings for text data.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const embedder = new GoogleGenerativeAiEmbeddingFunction({
+  googleApiKey: geminiKey,
+});
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> This type depends on the <code>@google-cloud/vertexai</code> library.</li>
+</ul>
+<h2 id="openaiembeddingfunctiontype">### 🏷️ OpenAIEmbeddingFunction - TYPE</h2>
+<p><strong>Description:</strong> Type representing the OpenAI embedding function.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">OpenAIEmbeddingFunction
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 6</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-31">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>OpenAIEmbeddingFunction</code> type represents a function that generates embeddings for text using the OpenAI API.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const embeddingFunction = new OpenAIEmbeddingFunction({
+  openai_api_key: 'YOUR_OPENAI_API_KEY',
+  openai_organization_id: 'YOUR_OPENAI_ORG_ID',
+  openai_model: 'text-embedding-ada-002',
+});
+
+const embeddings = await embeddingFunction.generate(['This is a test sentence.']);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> This type depends on the <code>openai</code> library, which provides access to the OpenAI API.</li>
+</ul>
+<h2 id="collectiontype">### 🏷️ Collection - TYPE</h2>
+<p><strong>Description:</strong> Type representing a ChromaDB collection.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">Collection
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 7</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-32">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>Collection</code> type represents a ChromaDB collection, which is a data structure used for storing and retrieving data in a vector database.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Create a new collection
+const collection = await client.createCollection({ name: 'myCollection', embeddingFunction: embedder });
+
+// Add data to the collection
+await collection.add({ ids: ['id1'], documents: ['document1'], embeddings: [embeddings1] });
+
+// Query the collection
+const results = await collection.query({ queryEmbeddings: [embeddings2] });
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> ChromaDB library</li>
+</ul>
+<h2 id="llmruntimedatatype">### 🏷️ llmRuntimeData - TYPE</h2>
+<p><strong>Description:</strong> Type representing runtime data for the LLM.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">llmRuntimeData
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-33">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type defines the structure for runtime data related to the LLM (Large Language Model) used in the application.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const runtimeData: llmRuntimeData = {
+  appVersion: '1.0.0',
+  projectName: 'MyProject',
+  projectPath: '/path/to/project',
+  outputPath: '/path/to/output',
+  selectedLLModel: 'gpt-3.5-turbo',
+  selectedRAGService: 'ChromaDB'
+};
+</code></pre>
+<h2 id="imports">imports</h2>
+<h2 id="projectsummaryimport">### 📥 ProjectSummary - IMPORT</h2>
+<p><strong>Description:</strong> Imports the ProjectSummary interface from the objectSchemas module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { ProjectSummary, RagData, llmRuntimeData } from "./objectSchemas";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-34">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object imports the <code>ProjectSummary</code> interface from the <code>objectSchemas</code> module. This interface is likely used to represent a summary of a code project, potentially containing information about the project's name, description, dependencies, files, and other relevant data.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of the ProjectSummary interface
+const projectSummary: ProjectSummary = {
+  projectName: "MyProject",
+  projectDescription: {
+    goal: "This project aims to...",
+    features_functions: "The project includes features such as..."
+  },
+  projectDependencies: [],
+  projectLocation: "/path/to/project",
+  projectTechStackDescription: "This project uses...",
+  codeFiles: [],
+  ragData: [],
+  teamContext: "This project is for..."
+};
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> objectSchemas</li>
+</ul>
+<h2 id="ragdataimport">### 📥 RagData - IMPORT</h2>
+<p><strong>Description:</strong> Imports the RagData interface from the objectSchemas module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { ProjectSummary, RagData, llmRuntimeData } from "./objectSchemas";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-35">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object imports the <code>RagData</code> interface from the <code>objectSchemas</code> module, which is likely used to represent data related to a Retrieval Augmented Generation (RAG) system.</li>
+<li><strong>Dependencies:</strong> objectSchemas module</li>
+</ul>
+<h2 id="dotenvconfigimport">### 📥 dotenv/config - IMPORT</h2>
+<p><strong>Description:</strong> Imports the config function from the dotenv module to load environment variables.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import "dotenv/config";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 2</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-36">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This import statement loads the <code>config</code> function from the <code>dotenv</code> module, which is used to load environment variables from a <code>.env</code> file.</li>
+<li><strong>Dependencies:</strong> dotenv</li>
+</ul>
+<h2 id="chromaclientimport">### 📥 ChromaClient - IMPORT</h2>
+<p><strong>Description:</strong> Imports the ChromaClient class from the chromadb module for interacting with ChromaDB.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import {
+  ChromaClient,
+  GoogleGenerativeAiEmbeddingFunction,
+  OpenAIEmbeddingFunction,
+  Collection,
+} from "chromadb";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 3</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-37">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>ChromaClient</code> class from the <code>chromadb</code> module, which is used for interacting with ChromaDB, a vector database.</li>
+<li><strong>Dependencies:</strong> chromadb</li>
+</ul>
+<h2 id="makewebsafeimport">### 📥 makeWebSafe - IMPORT</h2>
+<p><strong>Description:</strong> Imports the makeWebSafe function from the shared module, likely used to sanitize strings for use in URLs or file names.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import { makeWebSafe } from "./shared";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 9</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-38">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>makeWebSafe</code> function from the <code>shared</code> module. This function is likely used to sanitize strings by removing any characters that are not alphanumeric, replacing them with underscores. This is often done to create safe and valid file names, URLs, or other identifiers.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const safeName = makeWebSafe("My File Name with Spaces"); // safeName will be "My_File_Name_with_Spaces"
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>makeWebSafe</code> function is likely defined in the <code>shared</code> module, which is a dependency of this code.</li>
+</ul>
+<h2 id="loggerimport">### 📥 ./logger - IMPORT</h2>
+<p><strong>Description:</strong> Imports the logger module, likely for logging purposes.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">import "./logger";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 10</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-39">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This line imports the <code>logger</code> module, which is likely used for logging messages and events within the application.</li>
+<li><strong>Dependencies:</strong> The <code>logger</code> module is likely a custom module defined within the project.</li>
+</ul>
+<h2 id="interfaces">interfaces</h2>
+<h2 id="globresultinterface">### 🌉 globResult - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface globResult {
+
+        "glob": string[],
+        "ignore": string[]
+
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-40">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for a result object returned by the <code>glob</code> function, which is used to find files matching a pattern.</li>
+</ul>
+<h2 id="runtimedatainterface">### 🌉 runtimeData - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface runtimeData {
+
+        appVersion: string;
+        projectName: string;
+        projectPath: string;
+        outputPath: string;
+        selectedLLModel: string | undefined;
+        selectedRAGService: string;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-41">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>runtimeData</code> interface defines the structure for storing runtime data related to the application, including version information, project details, output paths, and selected language model and RAG service.</li>
+</ul>
+<h2 id="moduleobjectinterface">### 🌉 moduleObject - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface moduleObject {
+        name: string;
+        version: string;
+        description: string;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-42">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for a module object, which represents a package or module with its name, version, and description.</li>
+</ul>
+<h2 id="projectsummaryinterface">### 🌉 ProjectSummary - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface ProjectSummary {
+        projectName: string;
+        projectDescription: codeSummary
+        projectLocation: string;
+        projectTechStackDescription: string,
+        projectDependencies: moduleObject[];
+        codeFiles: CodeFileSummary[];
+        ragData: RagData[];
+        teamContext: string;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-43">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ProjectSummary</code> interface defines the structure for storing information about a code project. It includes details like the project name, description, location, technology stack, dependencies, code files, RAG data, and team context.</li>
+</ul>
+<h2 id="modelsinterface">### 🌉 models - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface models {
+        name: string,
+        model: any,
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-44">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for a model object, which likely represents a language model or a machine learning model.</li>
+<li><strong>Parameters:</strong> name: string - The name of the model.
+model: any - The model itself, which can be of any type depending on the specific implementation.</li>
+<li><strong>Returns:</strong> N/A</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myModel: models = {
+  name: "myModel",
+  model: // Model object
+};
+</code></pre>
+<h2 id="modelserviceconfiginterface">### 🌉 modelServiceConfig - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface modelServiceConfig {
+        models: models[],
+        endpoint?:string 
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-45">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the configuration for a model service, including the models and optional endpoint.</li>
+<li><strong>Parameters:</strong> models: models[],
+endpoint?:string</li>
+<li><strong>Returns:</strong> N/A</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const modelServiceConfig: modelServiceConfig = {
+  models: [
+    { name: 'gpt-3.5-turbo', model: 'gpt-3.5-turbo' },
+    { name: 'gpt-4', model: 'gpt-4' }
+  ],
+  endpoint: 'https://api.openai.com/v1'
+};
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> N/A</li>
+<li><strong>Dependencies:</strong> N/A</li>
+</ul>
+<h2 id="ragdatainterface">### 🌉 RagData - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface RagData {
+        metadata: {
+            filename: string;
+            codeChunkId: string|number;
+            codeChunkLineStart: number;
+            codeChunkLineEnd: number;
+            codeObjects: CodeObject;
+            codeChunkSummary: string;
+        };
+        embeddings?: number[][]; // Example: Embeddings could be an array of numbers
+        documentData: any
+        allSearchResults: QueryResponse,
+        allResults: {
+            documents: any,
+            embeddings: Embeddings[] | null,
+            metadatas: (Metadata | null)[][],
+
+        }
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-46">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>RagData</code> interface represents data retrieved from a Retrieval Augmented Generation (RAG) system, which combines a vector database with a language model.</li>
+<li><strong>Dependencies:</strong> This interface depends on the following types:</li>
+<li><code>CodeObject</code></li>
+<li><code>QueryResponse</code></li>
+<li><code>Embeddings</code></li>
+<li><code>Metadata</code></li>
+</ul>
+<h2 id="codesummaryinterface">### 🌉 codeSummary - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface codeSummary {
+        goal: string,
+        features_functions: string,
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-47">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for summarizing code, including its goal and relevant features or functions.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeSummary: codeSummary = {
+    goal: "This code calculates the sum of two numbers.",
+    features_functions: "The code uses the `add` function to perform the calculation."
+};
+</code></pre>
+<h2 id="codefilesummaryinterface">### 🌉 CodeFileSummary - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface CodeFileSummary {
+        fileName: string;
+        fileLocation: string;
+        codeSummary: codeSummary;
+        language: string;
+        executionFlow: ExecutionFlow[];
+        codeObjects: CodeObject;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-48">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>CodeFileSummary</code> interface represents a summary of a code file, containing information about its name, location, code summary, language, execution flow, and code objects.</li>
+</ul>
+<h2 id="executionflowinterface">### 🌉 ExecutionFlow - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface ExecutionFlow {
+        step: number;
+        stepDescription: string;
+        bImportant: boolean;
+        codeSnippet: string;
+        codeLine: number;
+        codeIndent: number;
+        fileName: string;
+        fileLocation: string;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-49">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ExecutionFlow</code> interface defines the structure for representing a step in the execution flow of a codebase. It includes information about the step number, description, importance, code snippet, line number, indentation level, and file location.</li>
+<li><strong>Parameters:</strong> N/A</li>
+<li><strong>Returns:</strong> N/A</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const executionFlow: ExecutionFlow = {
+    step: 1,
+    stepDescription: "This is the first step in the execution flow",
+    bImportant: true,
+    codeSnippet: "// Code snippet for the first step",
+    codeLine: 10,
+    codeIndent: 2,
+    fileName: "myFile.ts",
+    fileLocation: "./myFile.ts"
+};
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> N/A</li>
+<li><strong>Dependencies:</strong> N/A</li>
+</ul>
+<h2 id="functionparameterinterface">### 🌉 FunctionParameter - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface FunctionParameter {
+        name: string;
+        type: string;
+        description: string;
+        example: string;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-50">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure of a function parameter object.</li>
+<li><strong>Parameters:</strong>  - <strong>name</strong>: The name of the parameter.</li>
+<li><strong>type</strong>: The data type of the parameter.</li>
+<li><strong>description</strong>: A description of the parameter.</li>
+<li><strong>example</strong>: An example value for the parameter.</li>
+<li><strong>Returns:</strong> N/A</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const functionParameter: FunctionParameter = {
+    name: "myParam",
+    type: "string",
+    description: "This is a parameter",
+    example: "Hello World"
+};
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> N/A</li>
+<li><strong>Dependencies:</strong> N/A</li>
+</ul>
+<h2 id="functionreturninterface">### 🌉 FunctionReturn - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface FunctionReturn {
+        type: string;
+        description: string;
+        example: string;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-51">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for representing the return value of a function.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">interface FunctionReturn {
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<h2 id="codeobjectinterface">### 🌉 CodeObject - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface CodeObject {
+        name: string;
+        type: CodeObjectType;
+        description: string;
+        codeSnippet: string;
+        annotation?: Annotation;
+        codeLine?: number;
+        codeIndent?: number;
+        content?:string;
+        fileName: string;
+        fileLocation: string;
+        subObjects?: CodeObject[];
+        parentObject?: CodeObject;
+        functionParameters?: FunctionParameter[];
+        functionReturns?: FunctionReturn;
+        isExported: boolean;
+        isFunction: boolean;
+        isClass: boolean;
+        isPrivate: boolean;
+        isAsync: boolean;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-52">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>CodeObject</code> interface defines the structure for representing code objects within a project. It includes properties like name, type, description, code snippet, annotation, line number, indentation level, file name, file location, sub-objects, parent object, function parameters, function returns, and flags indicating whether the object is exported, a function, a class, private, or asynchronous.</li>
+<li><strong>Parameters:</strong> N/A</li>
+<li><strong>Returns:</strong> N/A</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObject: CodeObject = {
+    name: "myFunction",
+    type: "function",
+    description: "This function does something",
+    codeSnippet: "// Code snippet here",
+    codeLine: 10,
+    fileName: "myFile.ts",
+    fileLocation: "./myFile.ts"
+};
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> N/A</li>
+<li><strong>Dependencies:</strong> N/A</li>
+</ul>
+<h2 id="annotationinterface">### 🌉 Annotation - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface Annotation {
+        purpose: string;
+        parameters?: string;
+        returns?: string;
+        usageExample?: string;
+        edgeCases?: string;
+        dependencies?: string;
+        errorHandling?: string;
+        performance?: string;
+        bestPractices?: string;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-53">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>Annotation</code> interface defines the structure for annotations that can be applied to code objects. It includes properties for describing the purpose, parameters, return values, usage examples, edge cases, dependencies, error handling, performance considerations, and best practices for using the code object.</li>
+<li><strong>Parameters:</strong> N/A</li>
+<li><strong>Returns:</strong> N/A</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotation: Annotation = {
+    purpose: "This function calculates the sum of two numbers",
+    parameters: "num1: number, num2: number",
+    returns: "number",
+    usageExample: "
+</code></pre>
+<p>typescript\nconst sum = add(1, 2);\n</p>
+<pre><code class="", language-",">    edgeCases: "Negative numbers are not supported",
+    dependencies: "someDependency, anotherDependency",
+    errorHandling: "Throws an error if the input is not a number",
+    performance: "Optimized for speed",
+    bestPractices: "Use this function for adding numbers to"
+};
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> N/A</li>
+<li><strong>Dependencies:</strong> N/A</li>
+</ul>
+<h2 id="llmruntimedatainterface">### 🌉 llmRuntimeData - INTERFACE</h2>
+<p><strong>Description:</strong> N/A</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code class="typescript language-typescript">    export interface llmRuntimeData {
+        totalAPIcalls: number;
+        totalCharactersEmbed: number;
+        totalCost: number;
+    }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> vectorDB.ts (./src/vectorDB.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-54">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for storing runtime data related to the LLM, including the total number of API calls made, the total number of characters embedded, and the total cost incurred.</li>
+</ul>
