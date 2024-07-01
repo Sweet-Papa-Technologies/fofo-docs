@@ -89,3 +89,35 @@ With this information, please generate a TypeScript function that:
 - Applies MD formatting such as code blocks etc, (can ignore more complex formatting for now)
 - Outputs the MD files to a time-stamped folder (projectname-timestamp) in the output folder
 ```
+
+```
+## TODO: MOVE THESE NOTES TO THE README
+## All Supported Models:
+# OPENAI
+# - gpt-4o
+
+# Google Vertex AI
+# - gemini-1.5-flash-preview-0514
+# - gemini-1.5-pro-preview-0514
+# - codechat-bison
+# - codechat-bison-32k
+
+# OLLAMA - TESTED
+# - codestral:22b-v0.1-q5_0
+# - codestral:22b-v0.1-q5_1
+# - granite-code:34b
+# - phi3:14b-medium-128k-instruct-q5_1 - OKAY, BUT NOT GREAT
+# - phi3:14b-medium-4k-instruct-q6_K - NO GOOD
+# - qwen:32b-chat-v1.5-q4_0
+# - dolphin-llama3:8b-v2.9-fp16
+
+# OLLAMA - UNTESTED, but available
+# - qwen:32b-chat-v1.5-q4_K_M
+# - mixtral:8x7b-instruct-v0.1-q3_K_L
+# - llama3-chatqa:8b-v1.5-fp16
+# - qwen:32b-text-v1.5-q4_0
+# - llama3-gradient:8b-instruct-1048k-q6_K
+# - codeqwen:7b-code-v1.5-q8_0
+# - phi3:latest
+# - phi3:3.8b-mini-instruct-4k-fp16
+```

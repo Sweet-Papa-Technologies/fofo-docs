@@ -1,2 +1,4 @@
 .env
 fofoChromaDB
+fofoDB
+chroma.log

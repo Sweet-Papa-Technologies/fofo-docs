@@ -1,0 +1,57 @@
+<p><a href="./README.md">Back to Readme</a></p>
+<h1 id="projectfofodocs">Project | fofo-docs</h1>
+<h2 id="projectdescription">Project Description</h2>
+<p>The code implements a documentation generation tool called "fofodocs" that analyzes codebases, extracts information, and uses a large language model (LLM) to generate documentation in Markdown format. It aims to provide a comprehensive and user-friendly way to document code projects, including code objects, project structure, and dependencies.</p>
+<h2 id="techstackdescription">Tech Stack Description</h2>
+<p>This project appears to be a Python application using the FastAPI framework, with potential integration of TypeScript for frontend development. It utilizes various libraries including <code>chromadb</code> for vector database functionality, <code>huggingface_hub</code> for interacting with Hugging Face models, and <code>opentelemetry</code> for observability. </p>
+<h2 id="featuresandfunctions">Features and Functions</h2>
+<p>The tool utilizes various features and functions, including:</p>
+<ul>
+<li><strong>Code Parsing:</strong> Parses code files, extracts code objects (classes, functions, variables, etc.), and determines the project's technology stack and dependencies.</li>
+<li><strong>LLM Integration:</strong> Leverages a large language model (LLM) to summarize code, generate descriptions, and annotate code objects.</li>
+<li><strong>Vector Database (RAG):</strong> Uses a vector database to store and retrieve code snippets for context and search.</li>
+<li><strong>Documentation Generation:</strong> Creates Markdown files for each code file and a README.md for the project overview, and converts them to HTML.</li>
+<li><strong>Annotation:</strong> Annotates code objects with detailed information about their purpose, parameters, returns, usage examples, edge cases, dependencies, error handling, performance, and best practices.</li>
+<li><strong>CLI Interface:</strong> Provides a command-line interface for users to interact with the tool and customize its behavior.</li>
+<li><strong>Error Handling:</strong> Includes error handling for invalid file paths, LLM errors, and other potential issues.</li>
+<li><strong>Large File Handling:</strong> Breaks large files into chunks to avoid exceeding LLM token limits.</li>
+<li><strong>Project Summary:</strong> Generates a structured summary of the project, including project metadata, code files, code objects, and runtime data.</li>
+<li><strong>Custom Logging:</strong> Provides a custom logging system with color-coded output, timestamps, and file logging.</li>
+</ul>
+<h2 id="projectdependenciesmodules">Project Dependencies / Modules:</h2>
+<ul>
+<li>@google-cloud/aiplatform - ^3.20.0</li>
+<li>@google-cloud/vertexai - ^1.1.0</li>
+<li>@google/generative-ai - ^0.1.3</li>
+<li>chalk - ^5.3.0</li>
+<li>chromadb - ^1.8.1</li>
+<li>commander - ^12.0.0</li>
+<li>dotenv - ^16.4.5</li>
+<li>glob - ^10.3.15</li>
+<li>js-yaml - ^4.1.0</li>
+<li>jsonrepair - ^3.8.0</li>
+<li>ollama - ^0.5.1</li>
+<li>openai - ^4.47.1</li>
+<li>showdown - ^2.1.0</li>
+<li>@types/js-yaml - ^4.0.9</li>
+<li>@types/showdown - ^2.0.6</li>
+<li>typescript - ^5.4.5</li>
+</ul>
+<h2 id="tableofcontentsprojectfiles">Table of Contents - Project Files</h2>
+<ul>
+<li><p><a href="./package.json.md">package.json</a></p></li>
+<li><p><a href="./src/vectorDB.ts.md">src/vectorDB.ts</a></p></li>
+<li><p><a href="./src/shared.ts.md">src/shared.ts</a></p></li>
+<li><p><a href="./src/prompt.ts.md">src/prompt.ts</a></p></li>
+<li><p><a href="./src/objectSchemas.ts.md">src/objectSchemas.ts</a></p></li>
+<li><p><a href="./src/models.ts.md">src/models.ts</a></p></li>
+<li><p><a href="./src/logger.ts.md">src/logger.ts</a></p></li>
+<li><p><a href="./src/llmInterface.ts.md">src/llmInterface.ts</a></p></li>
+<li><p><a href="./src/index.ts.md">src/index.ts</a></p></li>
+<li><p><a href="./src/documentationGenerator.ts.md">src/documentationGenerator.ts</a></p></li>
+<li><p><a href="./src/codeParser.ts.md">src/codeParser.ts</a></p></li>
+<li><p><a href="./src/appData.ts.md">src/appData.ts</a></p></li>
+<li><p><a href="./src/annotations.ts.md">src/annotations.ts</a></p></li>
+</ul>
+<h2 id="projectteamcontext">Project/Team Context</h2>
+<p>N/A</p>

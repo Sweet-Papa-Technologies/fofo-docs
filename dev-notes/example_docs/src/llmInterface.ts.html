@@ -1,0 +1,3798 @@
+<h1 id="srcllminterfacetsfofodocs">src/llmInterface.ts - fofo-docs</h1>
+<p><strong>Summary:</strong> The code defines a function <code>getCodeSummaryFromLLM</code> that takes a code block as input and returns a JSON object summarizing the code. The summary includes the goal of the code and any relevant features or functions.</p>
+<ul>
+<li><strong>File Location:</strong> ./src/llmInterface.ts</li>
+<li><strong>Language:</strong> language: TypeScript </li>
+</ul>
+<h2 id="tableofcontents">Table of Contents</h2>
+<ul>
+<li><a href="#classes">classes</a></li>
+<li><a href="#functions">functions</a></li>
+<li><a href="#variables">variables</a></li>
+<li><a href="#types">types</a></li>
+<li><a href="#imports">imports</a></li>
+<li><a href="#exports">exports</a></li>
+<li><a href="#interfaces">interfaces</a></li>
+</ul>
+<h2 id="classes">classes</h2>
+<h2 id="ollamaclass">### 📘 Ollama - CLASS</h2>
+<p><strong>Description:</strong> The Ollama class is used to interact with the Ollama LLM API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { Ollama } from "ollama";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 15</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>Ollama</code> class is a constructor function that creates an instance of the <code>Ollama</code> class, which is used to interact with the Ollama LLM API.</li>
+<li><strong>Parameters:</strong> None. The <code>Ollama</code> class is instantiated with no parameters.</li>
+<li><strong>Returns:</strong> An instance of the <code>Ollama</code> class.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const ollama = new Ollama({ host: 'http://infinity.local:11434' });
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>Ollama</code> class depends on the <code>ollama</code> library.</li>
+</ul>
+<h2 id="openaiclass">### 📘 OpenAI - CLASS</h2>
+<p><strong>Description:</strong> The OpenAI class is used to interact with the OpenAI API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import OpenAI from "openai";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 16</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-1">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>OpenAI</code> class is used to interact with the OpenAI API. It provides methods for making requests to the OpenAI API, such as generating text, translating languages, writing different kinds of creative content, and answering your questions in an informative way.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const openai = new OpenAI({
+  organization: process.env.OPENAI_ORG_ID,
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Make a request to the OpenAI API
+const response = await openai.chat.completions.create({
+  ...secretSauce,
+  messages: [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: promptNew },
+  ],
+  model: model,
+});
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>OpenAI</code> class depends on the <code>openai</code> library, which is a Node.js library for interacting with the OpenAI API.</li>
+</ul>
+<h2 id="vertexaiclass">### 📘 VertexAI - CLASS</h2>
+<p><strong>Description:</strong> The VertexAI class is used to interact with the Google Vertex AI API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { VertexAI } from "@google-cloud/vertexai";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-2">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>VertexAI</code> class is a constructor function from the <code>@google-cloud/vertexai</code> library. It is used to create a client object that can be used to interact with the Google Vertex AI API.</li>
+<li><strong>Parameters:</strong> The constructor function takes two optional parameters: <code>project</code> and <code>location</code>. The <code>project</code> parameter specifies the Google Cloud project ID to use. The <code>location</code> parameter specifies the region to use for Vertex AI operations. If these parameters are not provided, the default values from the environment variables <code>GCP_PROJECT_ID</code> and <code>GCP_REGION</code> will be used.</li>
+<li><strong>Returns:</strong> The constructor function returns a new <code>VertexAI</code> client object that can be used to interact with the Google Vertex AI API.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const vertexAI = new VertexAI({ project: 'my-project-id', location: 'us-central1' });
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>VertexAI</code> class depends on the <code>@google-cloud/vertexai</code> library.</li>
+</ul>
+<h2 id="functions">functions</h2>
+<h2 id="getmodelbackendfunction">### 🔧 getModelBackend - FUNCTION</h2>
+<p><strong>Description:</strong> This function retrieves the backend for a given model from the MODEL_MODES array.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const getModelBackend = (selectedModel: string) =&gt; {
+  const model = MODEL_MODES.find((m) =&gt; m.model === selectedModel);
+  if (model) {
+    return model.backend as llm_modes;
+  }
+  throw new Error("Model not found");
+};
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 47</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters">Function Parameters:</h6>
+<ul>
+<li><strong>selectedModel</strong> (string): The name of the model to retrieve the backend for. 
+Example: "gemini-1.5-flash-preview-0514"</li>
+</ul>
+<h6 id="functionreturns">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> llm_modes</li>
+<li><strong>Description:</strong> The backend for the given model.</li>
+<li><strong>Example:</strong> "VERTEX"</li>
+</ul>
+<h6 id="annotationscomments-3">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>getModelBackend</code> function is responsible for retrieving the backend type associated with a given LLM model from the <code>MODEL_MODES</code> array. This function is crucial for determining which LLM service (Ollama, OpenAI, or Vertex AI) should be used to execute the model.</li>
+<li><strong>Parameters:</strong> - <code>selectedModel</code>: This parameter represents the name of the LLM model for which the backend needs to be identified. It is expected to be a string value.</li>
+<li><strong>Returns:</strong> - <code>llm_modes</code>: The function returns a string representing the backend type associated with the provided model. The possible return values are 'OLLAMA', 'VERTEX', or 'OPENAI'.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const backend = getModelBackend('gemini-1.5-flash-preview-0514');
+console.log(backend); // Output: 'VERTEX'
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the provided <code>selectedModel</code> is not found within the <code>MODEL_MODES</code> array, the function throws an error indicating that the model was not found.</li>
+<li><strong>Dependencies:</strong> - <code>MODEL_MODES</code>: This array contains the definitions of all supported LLM models, including their names, model identifiers, backend platforms, and optional context sizes.</li>
+</ul>
+<h2 id="validatejsonfunction">### 🔧 validateJSON - FUNCTION</h2>
+<p><strong>Description:</strong> This function validates if a given string is a valid JSON string.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>function validateJSON(jsonString: string): boolean {
+  try {
+    JSON.parse(jsonString);
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 125</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-1">Function Parameters:</h6>
+<ul>
+<li><strong>jsonString</strong> (string): The string to validate. 
+Example: "{"key": "value"}"</li>
+</ul>
+<h6 id="functionreturns-1">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> boolean</li>
+<li><strong>Description:</strong> True if the string is a valid JSON string, false otherwise.</li>
+<li><strong>Example:</strong> true</li>
+</ul>
+<h6 id="annotationscomments-4">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>validateJSON</code> function checks if a given string is a valid JSON string. It attempts to parse the string using <code>JSON.parse</code>. If the parsing is successful, it returns <code>true</code>, indicating a valid JSON string. If an error occurs during parsing, it logs the error and returns <code>false</code>, indicating an invalid JSON string.</li>
+<li><strong>Parameters:</strong> The function takes one parameter: <code>jsonString</code>, which is a string representing the JSON string to be validated.</li>
+<li><strong>Returns:</strong> The function returns a boolean value. It returns <code>true</code> if the input string is a valid JSON string and <code>false</code> otherwise.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const jsonString = '{\"key\": \"value\"}';
+const isValid = validateJSON(jsonString);
+console.log(isValid); // Output: true
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function handles cases where the input string is not a valid JSON string by catching the <code>JSON.parse</code> error and returning <code>false</code>. It also logs the error to the console for debugging purposes.</li>
+<li><strong>Dependencies:</strong> The function relies on the built-in <code>JSON.parse</code> function to validate the JSON string.</li>
+</ul>
+<h2 id="fixjsonfunction">### 🔧 fixJSON - FUNCTION</h2>
+<p><strong>Description:</strong> This function attempts to fix a malformed JSON string.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>function fixJSON(jsonString: string): string {
+  try {
+    return jsonrepair(jsonString);
+  } catch (e) {
+    throw new Error("Unable to fix JSON");
+  }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 135</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-2">Function Parameters:</h6>
+<ul>
+<li><strong>jsonString</strong> (string): The malformed JSON string to fix. 
+Example: "{"key": "value", "key2": "value2"</li>
+</ul>
+<h6 id="functionreturns-2">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> string</li>
+<li><strong>Description:</strong> The fixed JSON string.</li>
+<li><strong>Example:</strong> "{"key": "value", "key2": "value2"}"</li>
+</ul>
+<h6 id="annotationscomments-5">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>fixJSON</code> function attempts to repair a malformed JSON string using the <code>jsonrepair</code> library.</li>
+<li><strong>Parameters:</strong> The function takes a single parameter, <code>jsonString</code>, which is a string representing the malformed JSON.</li>
+<li><strong>Returns:</strong> The function returns a string representing the fixed JSON string, if successful. If the JSON cannot be fixed, it throws an error.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const malformedJSON = "{\"key\": \"value\", \"key2\": \"value2\"";
+const fixedJSON = fixJSON(malformedJSON);
+console.log(fixedJSON); // Output: {\"key\": \"value\", \"key2\": \"value2\"}
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the JSON string is too malformed to be repaired, the function will throw an error.</li>
+<li><strong>Dependencies:</strong> The function depends on the <code>jsonrepair</code> library.</li>
+</ul>
+<h2 id="parseyamlfunction">### 🔧 parseYaml - FUNCTION</h2>
+<p><strong>Description:</strong> This function parses a YAML string into a JSON object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export function parseYaml(yamlString: string): any {
+  // Convert YAML file into a proper JSON object
+  try {
+    const obj = yaml.load(yamlString) as any;
+    return obj as any;
+  } catch (e: any) {
+    console.log(e);
+    throw new Error("Invalid YAML object");
+  }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-3">Function Parameters:</h6>
+<ul>
+<li><strong>yamlString</strong> (string): The YAML string to parse. 
+Example: name: John
+age: 30</li>
+</ul>
+<h6 id="functionreturns-3">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> any</li>
+<li><strong>Description:</strong> The parsed JSON object.</li>
+<li><strong>Example:</strong> {name: "John", age: 30}</li>
+</ul>
+<h6 id="annotationscomments-6">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>parseYaml</code> function takes a YAML string as input and attempts to convert it into a JSON object using the <code>js-yaml</code> library.</li>
+<li><strong>Parameters:</strong> - <code>yamlString</code>: A string containing the YAML data to be parsed.</li>
+<li><strong>Returns:</strong> - <code>any</code>: Returns the parsed JSON object if successful. If the input is invalid YAML, it throws an error.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const yamlData = 'name: John\nage: 30';
+const jsonData = parseYaml(yamlData);
+console.log(jsonData); // Output: { name: 'John', age: 30 }
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the input string is not valid YAML, the function throws an error.</li>
+<li><strong>Dependencies:</strong> - <code>js-yaml</code> library for parsing YAML.</li>
+</ul>
+<h2 id="parsetextfunction">### 🔧 parseText - FUNCTION</h2>
+<p><strong>Description:</strong> This function converts a text string into a JSON object with a specified key.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export function parseText(text: string, resKey = "response"): any {
+  // Convert text into a proper JSON object
+  const obj = {} as any;
+  obj[resKey] = text;
+  return obj;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 154</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> false</li>
+</ul>
+<h6 id="functionparameters-4">Function Parameters:</h6>
+<ul>
+<li><strong>text</strong> (string): The text string to convert. 
+Example: This is a text string.</li>
+<li><strong>resKey</strong> (string): The key to use for the JSON object. 
+Example: "response"</li>
+</ul>
+<h6 id="functionreturns-4">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> any</li>
+<li><strong>Description:</strong> The JSON object with the specified key and the text string as the value.</li>
+<li><strong>Example:</strong> {response: "This is a text string."}</li>
+</ul>
+<h6 id="annotationscomments-7">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>parseText</code> function takes a text string as input and converts it into a JSON object. It allows you to specify a key for the JSON object, which will hold the provided text string as its value.</li>
+<li><strong>Parameters:</strong> - <code>text</code>: A string representing the text to be converted into a JSON object.</li>
+<li><code>resKey</code>: An optional string representing the key to be used for the JSON object. Defaults to "response" if not provided.</li>
+<li><strong>Returns:</strong> The function returns a JSON object with the specified key (<code>resKey</code>) and the provided text string (<code>text</code>) as its value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const text = "This is a text string.";
+const jsonObject = parseText(text, "myText");
+console.log(jsonObject); // Output: {myText: "This is a text string."}
+</code></pre>
+<h2 id="waitfunction">### 🔧 wait - FUNCTION</h2>
+<p><strong>Description:</strong> This function creates a promise that resolves after a specified delay.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>async function wait(ms: number) {
+  return new Promise((resolve) =&gt; setTimeout(resolve, ms));
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 161</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-5">Function Parameters:</h6>
+<ul>
+<li><strong>ms</strong> (number): The delay in milliseconds. 
+Example: 1000</li>
+</ul>
+<h6 id="functionreturns-5">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Promise<void></li>
+<li><strong>Description:</strong> A promise that resolves after the specified delay.</li>
+<li><strong>Example:</strong> undefined</li>
+</ul>
+<h6 id="annotationscomments-8">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>wait</code> function creates a promise that resolves after a specified delay in milliseconds.</li>
+<li><strong>Parameters:</strong> The <code>ms</code> parameter represents the delay in milliseconds.</li>
+<li><strong>Returns:</strong> The function returns a promise that resolves after the specified delay. The promise resolves with <code>undefined</code>.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Wait for 1 second (1000 milliseconds)
+const promise = wait(1000);
+
+// The promise will resolve after 1 second
+promise.then(() =&gt; {
+  console.log('The promise has resolved!');
+});
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>ms</code> parameter should be a positive integer. If a negative or non-integer value is provided, the behavior is undefined.</li>
+<li><strong>Dependencies:</strong> The function relies on the built-in <code>setTimeout</code> function.</li>
+</ul>
+<h2 id="inferfunction">### 🔧 infer - FUNCTION</h2>
+<p><strong>Description:</strong> This function sends a prompt to a specified LLM backend and returns the response.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>export async function infer(
+  prompt: string,
+  responseMode: "JSON object" | "YAML object" | "TEXT STRING" = "JSON object",
+  responseKey?: string,
+  bPro = false,
+  bRetry = true,
+  supplementalData?: any,
+  model: string = textModel
+): Promise<any> {
+  const modelBackend: llm_modes = getModelBackend(model);</p>
+<p>console.log("====&gt; Model Backend:", modelBackend);</p>
+<p>if (isNaN(RATE<em>LIMIT) == false) {
+    if (RATE</em>LIMIT &gt; 0) {
+      console.log(<code>Rate Limit Set: ${RATE_LIMIT}</code>);
+      await wait(RATE_LIMIT);
+    }
+  }</p>
+<p>const promptResponseInstructions = <code>Please respond with a ${responseMode} containing your answer. ${responseMode !== "TEXT STRING" ?</code>Please properly format and escape your output, as I will need to parse your response.<code>: ""} ${responseKey ?</code>The key for the response should be ${responseKey}.` : ""}</p>
+<p>`;</p>
+<p>if (responseMode !== "TEXT STRING" &amp;&amp; responseKey) {
+    console.warn(
+      "responseKey is only applicable for TEXT STRING responseMode. Ignoring responseKey."
+    );
+  }</p>
+<p>prompt = prompt.trim();
+  prompt = promptResponseInstructions + prompt;</p>
+<p>const promptCharLen = prompt.length;
+  const promptLen = getTokens(prompt);</p>
+<p>console.log(<code>Prompt: ${promptCharLen} Characters</code>);
+  console.log(<code>Prompt: ${promptLen} Tokens</code>);</p>
+<p>let promptNew = prompt;</p>
+<p>if (responseMode === "JSON object") {
+    promptNew = `
+    In your response, PLEASE BE SURE TO FORMAT YOUR RESPONSE AS A PARSE-ABLE JSON OBJECT.
+    This means that your response keys and values should be properly formatted and escaped.</p>
+<pre><code>${prompt}
+`;
+</code></pre>
+<p>}</p>
+<p>let response = "";</p>
+<p>const startTime = Date.now();</p>
+<p>// BASED on the model passed, we will call the appropriate endpoints, etc:</p>
+<p>if (modelBackend === "OLLAMA") {
+    //</p>
+<pre><code>// const contextLength = promptLen &gt; 1000 ? 32000 : 4096;
+
+const ollamaResponse = await ollama.generate({
+  model: model,
+  prompt: promptNew,
+  stream: false,
+  system: systemPrompt,
+  keep_alive: 30000,
+  options: {
+    ...secretSauce,
+    num_ctx: contextLength,
+  },
+});
+console.log(ollamaResponse.response.length);
+response = ollamaResponse.response;
+</code></pre>
+<p>} else if (modelBackend === "VERTEX") {
+    //
+    const request = {
+      contents: [{ role: "user", parts: [{ text: promptNew }] }]
+    };</p>
+<pre><code>let genFunction = generativeModel;
+if (bPro === true) {
+  if (model.includes("gemini-1.5-pro") == true) {
+    genFunction = generateModelAdv;
+  } else {
+    console.warn(
+      "Specified model was FLASH, using provided model: ",
+      model
+    );
+  }
+}
+
+const result = await genFunction.generateContent(request).catch((err:any)=&gt;{
+  console.error(err)
+  return "Invalid Response from the LLM"
+})
+
+try {
+
+  if (typeof result !== 'string'){
+    response = result.response.candidates?.[0].content?.parts[0].text || "";
+  } else {
+    throw "Invalid Response from the LLM"
+  }
+
+} catch (error: any) {
+  console.error("Error parsing response from Gemini:", error);
+  console.debug("Prompt to Gemini:", promptNew);
+
+  if (typeof result === "string") {
+    console.log(
+      "Response from Gemini:",
+      "Response is a string, but not a valid JSON object"
+    );
+    console.log(result);
+  } else {
+    console.log(
+      "Response from Gemini - String-y-fied:",
+      JSON.stringify(result)
+    );
+  }
+
+  if (bRetry == true || retries &lt; 3) {
+    retries += 1;
+    console.log("Retrying since there was an error -- retying in 10 seconds");
+    await wait(10000);
+    return await infer(
+      promptNew,
+      responseMode,
+      responseKey,
+      bPro,
+      false,
+      supplementalData,
+      model
+    );
+  }
+}
+</code></pre>
+<p>} else if (modelBackend === "OPENAI") {
+    const completion = await openai.chat.completions.create({
+      …secretSauce,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: promptNew },
+      ],
+      model: model,
+    });</p>
+<pre><code>console.debug(completion.choices[0]);
+response = completion.choices[0].message.content || "";
+
+if (response === "") {
+  console.error("Empty response from OpenAI");
+  console.error(completion);
+}
+</code></pre>
+<p>} else {
+    console.error("Unknown Model Backend");
+  }</p>
+<p>const endTime = Date.now();
+  const totalTime = endTime - startTime;</p>
+<p>// PRint the total time in seconds, truncated to 2 decimal places
+  console.log(<code>Total Time: ${totalTime / 1000}s</code>);</p>
+<p>if (typeof response !== "string") {
+    throw new Error("Invalid response from LLM");
+  }</p>
+<p>if (responseMode === "JSON object") {
+    response = response.replace("json", "").replace("
+```", "").trim();</p>
+<pre><code>let bFixed = false;
+if (validateJSON(response) === true) {
+  console.log("Valid JSON:");
+} else {
+  console.error("Invalid JSON, attempting to fix:");
+  try {
+    const fixedJson = fixJSON(response);
+    console.debug("Fixed JSON:", fixedJson);
+    response = fixedJson;
+    bFixed = true;
+  } catch (error: any) {
+    console.error("Error fixing JSON:", error.message);
+
+    if (bRetry == true || retries &lt; 3) {
+      retries += 1;
+      console.log(
+        "Retrying since JSON output was not correct, here is what we got:"
+      );
+
+      console.log(`
+</code></pre>
+<p>BAD JSON
+${response}</p>
+<p>`);</p>
+<pre><code>      return await infer(
+        promptNew,
+        responseMode,
+        responseKey,
+        bPro,
+        false,
+        supplementalData,
+        model
+      );
+    }
+
+    console.warn("Returning error message as JSON -- Please Try Again");
+    return { error: error, original: response } as any;
+  }
+}
+
+try {
+  const res = JSON.parse(response);
+
+  if (bFixed == true) {
+    console.debug(
+      "JSON was fixed! Checking that everything else is OK now."
+    );
+
+    // Check if Object malformed into an Array some how...
+    if (Array.isArray(res) === true &amp;&amp; res.length &gt;= 1) {
+      console.log("This looks like a fixed JSON object!");
+      // if ("classes" in res[0] === false) {
+      //   console.warn("This object does not look correct!");
+      //   console.warn(res);
+      // }
+
+      const newData = res[0];
+
+      // We should check that the fixed JSON object has the same amount of keys as our interface for the object:
+      const keys = Object.keys(newData);
+
+      const expectedKeys: CodeObjects[] = [
+        "classes",
+        "functions",
+        "variables",
+        "types",
+        "interfaces",
+        // "comments",
+        "imports",
+        "exports",
+      ];
+
+      if (keys.length &lt; expectedKeys.length) {
+        console.warn(
+          "This object does not look correct! Attempting to fix:"
+        );
+
+        const fixedData = {} as any;
+        for (const key of expectedKeys) {
+          if (key in newData) {
+            fixedData[key] = newData[key];
+          } else {
+            if (key === "fileName") {
+              fixedData[key] = supplementalData.fileName || "unknown";
+            }
+            if (key === "fileLocation") {
+              fixedData[key] = supplementalData.fileLocation || "unknown";
+            }
+            if (key !== "fileName" &amp;&amp; key !== "fileLocation") {
+              fixedData[key] = [];
+            }
+          }
+        }
+      }
+
+      console.log("JSON should be fixed now...");
+
+      return res[0];
+    } else if (Array.isArray(res) === true) {
+      console.log("This looks like a fixed JSON object, but it is empty!");
+      console.warn(res);
+    }
+  }
+
+  return res;
+} catch (e: any) {
+  console.error("Error parsing JSON:", e);
+  console.warn("Returning error message as JSON -- Please Try Again");
+  return { error: e, original: response } as any;
+}
+</code></pre>
+<p>} else if (responseMode === "YAML object") {
+    response = response.replace("
+<code>yaml", "").replace("
+</code>", "").trim();
+    const res = parseYaml(response);
+    return res;
+  } else {
+    return parseText(response, responseKey);
+  }
+}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-6">Function Parameters:</h6>
+<ul>
+<li><strong>prompt</strong> (string): The prompt to send to the LLM. 
+Example: What is the capital of France?</li>
+<li><strong>responseMode</strong> ("JSON object" | "YAML object" | "TEXT STRING"): The desired format of the response. 
+Example: "JSON object"</li>
+<li><strong>responseKey</strong> (string): The key to use for the response in the JSON object. 
+Example: "response"</li>
+<li><strong>bPro</strong> (boolean): Whether to use the advanced model. 
+Example: true</li>
+<li><strong>bRetry</strong> (boolean): Whether to retry the request if an error occurs. 
+Example: true</li>
+<li><strong>supplementalData</strong> (any): Additional data to pass to the LLM. 
+Example: {fileName: "llmInterface.ts", fileLocation: "./src/llmInterface.ts"}</li>
+<li><strong>model</strong> (string): The name of the LLM model to use. 
+Example: textModel</li>
+</ul>
+<h6 id="functionreturns-6">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Promise<any></li>
+<li><strong>Description:</strong> A promise that resolves with the LLM response.</li>
+<li><strong>Example:</strong> {response: "Paris"}</li>
+</ul>
+<h6 id="annotationscomments-9">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>infer</code> function acts as a central interface for interacting with different Large Language Models (LLMs) like Ollama, Vertex AI, and OpenAI. It takes a prompt, desired response format, and optional parameters, then sends the prompt to the selected LLM backend and returns the response.</li>
+<li><strong>Parameters:</strong> - <code>prompt</code>: A string representing the prompt to be sent to the LLM.</li>
+<li><code>responseMode</code>: Specifies the desired format of the response. Options include "JSON object", "YAML object", and "TEXT STRING".</li>
+<li><code>responseKey</code>: (Optional) The key to use for the response in the JSON object. Ignored if <code>responseMode</code> is not "TEXT STRING".</li>
+<li><code>bPro</code>: (Optional) A boolean indicating whether to use the advanced model (if available). Defaults to <code>false</code>.</li>
+<li><code>bRetry</code>: (Optional) A boolean indicating whether to retry the request if an error occurs. Defaults to <code>true</code>.</li>
+<li><code>supplementalData</code>: (Optional) Additional data to pass to the LLM.</li>
+<li><code>model</code>: (Optional) The name of the LLM model to use. Defaults to <code>textModel</code>.</li>
+<li><strong>Returns:</strong> A promise that resolves with the LLM response. The response format depends on the <code>responseMode</code> parameter. For example, if <code>responseMode</code> is "JSON object", the response will be a JSON object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const response = await infer("What is the capital of France?", "TEXT STRING", "response");
+console.log(response.response); // Output: Paris
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - The function handles rate limiting by waiting for a specified duration before retrying the request.</li>
+<li>It attempts to fix invalid JSON responses by using the <code>jsonrepair</code> library. If the fix fails, it retries the request or returns an error message.</li>
+<li>It handles empty responses from OpenAI by logging an error message.</li>
+<li><strong>Dependencies:</strong> - <code>ollama</code> library for interacting with Ollama.</li>
+<li><code>openai</code> library for interacting with OpenAI.</li>
+<li><code>@google-cloud/vertexai</code> library for interacting with Vertex AI.</li>
+<li><code>jsonrepair</code> library for fixing invalid JSON responses.</li>
+<li><code>js-yaml</code> library for parsing YAML responses.</li>
+</ul>
+<h2 id="getcodesummaryfromllmfunction">### 🔧 getCodeSummaryFromLLM - FUNCTION</h2>
+<p><strong>Description:</strong> This function sends a code block to the LLM to generate a summary.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>export async function getCodeSummaryFromLLM(
+  codeToSummarize: string,
+  model: string = textModel
+): Promise<codeSummary> {
+  const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: 
+  Please respond with a JSON object as follows:
+  {
+    "goal": "String summarizing what the code is about, and the goal",
+    "features_functions": "String describing any relevant features",
+  }</p>
+<p>### Code To Sumnarize:
+  ${codeToSummarize}
+  `;
+  const codeSummary = await infer(
+    question,
+    "JSON object",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    model
+  );
+  return codeSummary;
+}</p>
+<ul>
+<li><strong>Line:</strong> 456</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-7">Function Parameters:</h6>
+<ul>
+<li><strong>codeToSummarize</strong> (string): The code block to summarize. 
+Example: const myVar = "Hello World";</li>
+<li><strong>model</strong> (string): The name of the LLM model to use. 
+Example: textModel</li>
+</ul>
+<h6 id="functionreturns-7">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Promise<codeSummary></li>
+<li><strong>Description:</strong> A promise that resolves with the code summary.</li>
+<li><strong>Example:</strong> {goal: "This code defines a variable called myVar and assigns it the value "Hello World".", features_functions: "The code uses a string literal to define the value of the variable."}</li>
+</ul>
+<h6 id="annotationscomments-10">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>getCodeSummaryFromLLM</code> function takes a code block as input and uses the <code>infer</code> function to send it to a large language model (LLM) for summarization. The LLM is instructed to provide a JSON object containing the goal of the code and any relevant features or functions.</li>
+<li><strong>Parameters:</strong> - <code>codeToSummarize</code>: A string representing the code block to be summarized.</li>
+<li><code>model</code>: An optional string specifying the name of the LLM model to use. Defaults to <code>textModel</code>.</li>
+<li><strong>Returns:</strong> A promise that resolves with a <code>codeSummary</code> object. The <code>codeSummary</code> object contains two properties: <code>goal</code> and <code>features_functions</code>. The <code>goal</code> property describes the overall purpose of the code, while the <code>features_functions</code> property highlights any relevant features or functions within the code.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeBlock = `
+  // This is a simple function that adds two numbers.
+  function add(a: number, b: number): number {
+    return a + b;
+  }
+`;
+
+const codeSummary = await getCodeSummaryFromLLM(codeBlock);
+
+console.log(codeSummary); // Output: { goal: "This code defines a function called add that takes two numbers as input and returns their sum.", features_functions: "The function uses the + operator to add the two numbers together." }
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the LLM fails to generate a valid JSON response, the function will throw an error.</li>
+<li><strong>Dependencies:</strong> - <code>infer</code>: A function that sends a prompt to an LLM and returns the response.</li>
+</ul>
+<h2 id="callllmfunction">### 🔧 callLLM - FUNCTION</h2>
+<p><strong>Description:</strong> This function sends a prompt to the LLM with context and code, and returns the parsed response.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export async function callLLM(
+  promptTemplate: string,
+  projectContext: ProjectSummary,
+  code: string,
+  filePath: string,
+  bRAG = false,
+  model: string = textModel
+): Promise&lt;any&gt; {
+  if (bRAG === true) {
+    // Take subset of characters of relevant code
+    const maxChars = 3000;
+    const relevantCode = await searchRAG(projectContext.projectName, code, undefined, AIusageData);
+    if (relevantCode.documentData) {
+      const r =
+        relevantCode.documentData.length &gt; maxChars
+          ? relevantCode.documentData.substring(0, maxChars)
+          : relevantCode.documentData;
+      promptTemplate = promptTemplate.replace("&lt;relevant code&gt;", r);
+    } else {
+      console.log("No relevant code found in RAG")
+      promptTemplate = promptTemplate.replace("&lt;relevant code&gt;", "");
+    }
+  } else {
+    promptTemplate = promptTemplate.replace("&lt;relevant code&gt;", "");
+  }
+
+  // 1. Prepare Prompt
+  const prompt = promptTemplate
+    .replace("&lt;supplemental context&gt;", projectContext.teamContext)
+    .replace("&lt;code snippet&gt;", code)
+    .replace("&lt;file path&gt;", filePath);
+
+  const getFileNameFromPath = (path: string) =&gt; path.split("/").pop() || "";
+  const fileName = getFileNameFromPath(filePath);
+
+  // 1.5 Update our STATS
+  const tokens = getTokens(prompt);
+  AIusageData.totalTokens += tokens;
+  AIusageData.totalCharacters += prompt.length;
+  AIusageData.totalAPIcalls += 1;
+  AIusageData.totalCost += getCostOfAPICall(prompt.length);
+
+  console.log("Total Tokens:", AIusageData.totalTokens);
+  console.log("Total Characters:", AIusageData.totalCharacters);
+  console.log("Total API Calls:", AIusageData.totalAPIcalls);
+
+  console.log(colorize("Total Cost:", "magenta"), AIusageData.totalCost);
+
+  console.info("Cost for Current Call:", "$" + getCostOfAPICall(prompt.length) + " USD");
+
+
+  // 2. Call AI API
+  const response = await infer(
+    prompt,
+    "JSON object",
+    undefined,
+    true,
+    true,
+    {
+      fileLocation: filePath,
+      fileName: fileName,
+    },
+    model
+  ).catch((error) =&gt; {
+    console.error("Error calling API:", error);
+    return { error: error };
+  });
+
+  // IF too many request or rate limit has been hit, we wait 30 seconds and try again
+  if (response.error &amp;&amp; response.error.code === 429) {
+    console.log("Rate Limit Hit, waiting 30 seconds...");
+    await wait(30000);
+    return await callLLM(
+      promptTemplate,
+      projectContext,
+      code,
+      filePath,
+      bRAG,
+      model
+    );
+  }
+
+  AIusageData.totalTokens += getTokens(JSON.stringify(response));
+  AIusageData.totalCharactersOut += JSON.stringify(response).length;
+  AIusageData.totalCost += getCostOfAPICallTextOut(AIusageData.totalCharactersOut);
+
+  // 3. Parse and Validate Response
+  let codeObjects: any = response;
+
+  // 4. Enhance with filePath
+  if (!codeObjects.fileName) codeObjects.fileName = fileName;
+
+    // Update the filePath to be the relative path to the project directory:
+    const projectDir = projectContext.projectLocation
+    const relativePath = filePath.replace(projectDir, "")
+
+
+  if (!codeObjects.fileLocation) codeObjects.fileLocation = relativePath;
+
+  return codeObjects;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 482</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> false</li>
+<li><strong>Async:</strong> true</li>
+</ul>
+<h6 id="functionparameters-8">Function Parameters:</h6>
+<ul>
+<li><strong>promptTemplate</strong> (string): The template for the prompt to send to the LLM. 
+Example: This is a template for the prompt: <supplemental context> <code snippet></li>
+<li><strong>projectContext</strong> (ProjectSummary): The context of the project. 
+Example: {projectName: "MyProject", projectDescription: {goal: "This project is about…", features_functions: "This project has the following features…"}, projectLocation: "./src", projectTechStackDescription: "This project uses…", codeFiles: [], ragData: [], teamContext: "This project is for…" }</li>
+<li><strong>code</strong> (string): The code snippet to send to the LLM. 
+Example: const myVar = "Hello World";</li>
+<li><strong>filePath</strong> (string): The path to the file containing the code snippet. 
+Example: ./src/llmInterface.ts</li>
+<li><strong>bRAG</strong> (boolean): Whether to use RAG (Relevant Code Retrieval) to provide additional context. 
+Example: true</li>
+<li><strong>model</strong> (string): The name of the LLM model to use. 
+Example: textModel</li>
+</ul>
+<h6 id="functionreturns-8">Function Returns:</h6>
+<ul>
+<li><strong>Type:</strong> Promise<any></li>
+<li><strong>Description:</strong> A promise that resolves with the parsed response from the LLM.</li>
+<li><strong>Example:</strong> {classes: [], functions: [], variables: [], types: [], interfaces: [], imports: [], exports: [], fileName: "llmInterface.ts", fileLocation: "./src/llmInterface.ts"}</li>
+</ul>
+<h6 id="annotationscomments-11">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>callLLM</code> function is responsible for sending a prompt to the LLM (Large Language Model) with context and code, and then parsing and returning the response.</li>
+<li><strong>Parameters:</strong> - <code>promptTemplate</code>: A string representing the template for the prompt to be sent to the LLM. It includes placeholders for context, code snippets, and file paths.</li>
+<li><code>projectContext</code>: An object of type <code>ProjectSummary</code> containing information about the project, such as its name, description, location, technology stack, and team context.</li>
+<li><code>code</code>: A string representing the code snippet to be sent to the LLM.</li>
+<li><code>filePath</code>: A string representing the path to the file containing the code snippet.</li>
+<li><code>bRAG</code>: A boolean indicating whether to use RAG (Relevant Code Retrieval) to provide additional context to the LLM. If <code>true</code>, the function will search for relevant code snippets from the vector database and include them in the prompt.</li>
+<li><code>model</code>: A string representing the name of the LLM model to use. Defaults to <code>textModel</code>.</li>
+<li><strong>Returns:</strong> A promise that resolves with the parsed response from the LLM. The response is an object containing the identified code objects (classes, functions, variables, etc.) and their descriptions.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObjects = await callLLM(
+  `This is a prompt template: &lt;supplemental context&gt; &lt;code snippet&gt; &lt;file path&gt;`,
+  {projectName: "MyProject", projectDescription: {goal: "This project is about...", features_functions: "This project has the following features..."}, projectLocation: "./src", projectTechStackDescription: "This project uses...", codeFiles: [], ragData: [], teamContext: "This project is for..." },
+  `const myVar = "Hello World";`,
+  "src/llmInterface.ts",
+  true,
+  "textModel"
+);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the LLM returns an error, the function will catch the error and return an object containing the error information.</li>
+<li>If the LLM returns an empty response, the function will log an error message and return an empty object.</li>
+<li>If the LLM returns a response that is not a valid JSON object, the function will attempt to fix the JSON and return the fixed object. If the JSON cannot be fixed, the function will log an error message and return the original response.</li>
+<li><strong>Dependencies:</strong> - <code>searchRAG</code>: A function that searches the vector database for relevant code snippets.</li>
+<li><code>infer</code>: A function that sends a prompt to the LLM and returns the response.</li>
+<li><code>getTokens</code>: A function that counts the number of tokens in a string.</li>
+<li><code>getCostOfAPICall</code>: A function that calculates the cost of an API call based on the number of characters in the prompt.</li>
+<li><code>wait</code>: A function that pauses execution for a specified amount of time.</li>
+</ul>
+<h2 id="variables">variables</h2>
+<h2 id="retriesvariable">### 🧮 retries - VARIABLE</h2>
+<p><strong>Description:</strong> A variable that keeps track of the number of retries for LLM calls.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>let retries = 0;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 28</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-12">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>retries</code> variable is a counter that keeps track of the number of times an LLM call has been retried. It is used to limit the number of retries in case of errors.</li>
+</ul>
+<h2 id="endpointsvariable">### 🧮 endpoints - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the endpoints for different LLM services.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const endpoints = {
+  OLLAMA: process.env.OLLAMA_SERVER_URL || "http://infinity.local:11434",
+};
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 41</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-13">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>endpoints</code> variable is a constant object that stores the URLs for different LLM services. This allows the application to easily switch between different LLM backends without hardcoding the URLs directly into the code.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const ollamaEndpoint = endpoints.OLLAMA;
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the environment variable <code>OLLAMA_SERVER_URL</code> is not set, the default value <code>http://infinity.local:11434</code> will be used.</li>
+<li><strong>Dependencies:</strong> The code depends on the <code>process.env</code> object to access environment variables.</li>
+</ul>
+<h2 id="systempromptvariable">### 🧮 systemPrompt - VARIABLE</h2>
+<p><strong>Description:</strong> A string that defines the system prompt for LLM interactions.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const systemPrompt =
+  "You are a developer A.I. that summarizes and analyzes code. Please answer all questions asked of you exactly as presented.";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 44</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-14">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable defines the system prompt used for interactions with the Large Language Model (LLM). It instructs the LLM to act as a developer AI that summarizes and analyzes code, ensuring it responds to questions precisely as presented.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const response = await ollama.generate({
+  model: model,
+  prompt: promptNew,
+  stream: false,
+  system: systemPrompt,
+  keep_alive: 9000,
+  options: {
+    ...secretSauce,
+    num_ctx: contextLength,
+  },
+});
+</code></pre>
+<h2 id="rate_limitvariable">### 🧮 RATE_LIMIT - VARIABLE</h2>
+<p><strong>Description:</strong> A number that represents the rate limit for LLM calls.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const RATE_LIMIT = Number(process.env.RATE_LIMIT || "0") || 0;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 56</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-15">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>RATE_LIMIT</code> variable defines a rate limit for calls to the Large Language Model (LLM). It is set to the value of the environment variable <code>RATE_LIMIT</code> if it exists, otherwise it defaults to 0.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const rateLimit = RATE_LIMIT;
+// If RATE_LIMIT is set to 1000 in the environment, rateLimit will be 1000.
+// If RATE_LIMIT is not set, rateLimit will be 0.
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>RATE_LIMIT</code> variable depends on the environment variable <code>RATE_LIMIT</code>.</li>
+</ul>
+<h2 id="secretsaucevariable">### 🧮 secretSauce - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores settings for LLM generation, such as temperature and top_p.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const secretSauce = {
+  temperature: 0.3, // 0.2 works well for big LLM
+  top_p: 0.2, // 0.9 works well for big LLM
+};
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 60</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-16">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>secretSauce</code> variable is an object that stores settings for LLM generation, such as temperature and top_p.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const completion = await openai.chat.completions.create({
+  ...secretSauce,
+  messages: [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: promptNew },
+  ],
+  model: model,
+});
+</code></pre>
+<h2 id="openaivariable">### 🧮 openai - VARIABLE</h2>
+<p><strong>Description:</strong> An instance of the OpenAI client, used for interacting with the OpenAI API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const openai = new OpenAI({
+  organization: process.env.OPENAI_ORG_ID,
+  apiKey: process.env.OPENAI_API_KEY,
+});
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 65</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-17">Annotations / Comments:</h6>
+<ul>
+<li><p><strong>Purpose:</strong> This variable initializes an instance of the OpenAI client, which is used for interacting with the OpenAI API.</p></li>
+<li><p><strong>Parameters:</strong> The OpenAI client is initialized with the following parameters:</p></li>
+<li><p><code>organization</code>: The OpenAI organization ID.</p></li>
+<li><p><code>apiKey</code>: The OpenAI API key.</p></li>
+<li><p><strong>Returns:</strong> An instance of the OpenAI client.</p></li>
+<li><p><strong>Usage Example:</strong> </p></li>
+</ul>
+<pre><code class="typescript language-typescript">const response = await openai.chat.completions.create({
+  ...secretSauce,
+  messages: [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: promptNew },
+  ],
+  model: model,
+});
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the OpenAI API key or organization ID is invalid, the client will not be able to connect to the OpenAI API.</li>
+<li><strong>Dependencies:</strong> The OpenAI client depends on the <code>openai</code> library, which is installed as a dependency in the project.</li>
+</ul>
+<h2 id="ollamavariable">### 🧮 ollama - VARIABLE</h2>
+<p><strong>Description:</strong> An instance of the Ollama client, used for interacting with the Ollama API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const ollama = new Ollama({ host: endpoints.OLLAMA });
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 70</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-18">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object initializes an instance of the Ollama client, which is used for interacting with the Ollama API. It sets the host property to the value of the <code>endpoints.OLLAMA</code> variable, which is likely a URL pointing to the Ollama server.</li>
+<li><strong>Dependencies:</strong> Ollama library</li>
+</ul>
+<h2 id="contextlengthvariable">### 🧮 contextLength - VARIABLE</h2>
+<p><strong>Description:</strong> A number that represents the maximum context length for LLM interactions.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const contextLength = Number(process.env.MODEL_CONTEXT || 4096); // 8000 Works Really Well with 24GB GPU - RTX 4090
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 71</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-19">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable defines the maximum context length for LLM interactions, which is set to 8000 tokens. This value is a trade-off between memory usage and the amount of context the LLM can process.</li>
+<li><strong>Dependencies:</strong> process.env.MODEL_CONTEXT</li>
+</ul>
+<h2 id="projectvariable">### 🧮 project - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the GCP project ID.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const project = process.env.GCP_PROJECT_ID || "Not Set";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 75</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-20">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the GCP project ID, which is retrieved from the environment variable <code>GCP_PROJECT_ID</code>. If the environment variable is not set, it defaults to the string "Not Set".</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Access the project ID
+console.log(project);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> process.env</li>
+</ul>
+<h2 id="locationvariable">### 🧮 location - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the GCP region.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const location = process.env.GCP_REGION || "us-central1";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 76</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-21">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the GCP region, which is used to specify the location for Vertex AI services. It uses the environment variable <code>GCP_REGION</code> if it is set, otherwise it defaults to <code>us-central1</code>.</li>
+<li><strong>Dependencies:</strong> The variable depends on the environment variable <code>GCP_REGION</code>.</li>
+</ul>
+<h2 id="textmodelvariable">### 🧮 textModel - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the name of the Gemini text model.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const textModel = "gemini-1.5-flash-preview-0514";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 77</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-22">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the name of the Gemini text model, which is used for generating text and code.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const response = await infer(prompt, "JSON object", undefined, false, true, undefined, textModel);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> Vertex AI</li>
+</ul>
+<h2 id="textmodeladvancedvariable">### 🧮 textModelAdvanced - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the name of the Gemini text model (advanced version).</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const textModelAdvanced = "gemini-1.5-pro-preview-0514    ";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 78</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-23">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the name of the Gemini text model (advanced version) for use in the Vertex AI service.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const generativeModelAdv = vertexAI.getGenerativeModel({
+  model: textModelAdvanced,
+  safetySettings: safetySettings,
+  generationConfig: {
+    temperature: secretSauce.temperature,
+    topP: secretSauce.top_p,
+  },
+});
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> Vertex AI service, <code>@google-cloud/vertexai</code> library</li>
+</ul>
+<h2 id="vertexaivariable">### 🧮 vertexAI - VARIABLE</h2>
+<p><strong>Description:</strong> An instance of the VertexAI client, used for interacting with the VertexAI API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const vertexAI = new VertexAI({ project: project, location: location });
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 80</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-24">Annotations / Comments:</h6>
+<ul>
+<li><p><strong>Purpose:</strong> This code snippet initializes a VertexAI client object, which is used for interacting with the VertexAI API.</p></li>
+<li><p><strong>Parameters:</strong> The constructor of the VertexAI client takes two parameters:</p></li>
+<li><p><code>project</code>: The Google Cloud Project ID where the VertexAI service is deployed.</p></li>
+<li><p><code>location</code>: The region where the VertexAI service is deployed.</p></li>
+<li><p><strong>Returns:</strong> The <code>vertexAI</code> variable is assigned an instance of the VertexAI client, which can be used to interact with the VertexAI API.</p></li>
+<li><p><strong>Usage Example:</strong> </p></li>
+</ul>
+<pre><code class="typescript language-typescript">// Create a VertexAI client
+const vertexAI = new VertexAI({ project: 'your-project-id', location: 'us-central1' });
+
+// Use the client to interact with the VertexAI API
+// ...
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the <code>project</code> or <code>location</code> parameters are not provided, the client will use the default values from the environment variables.</li>
+<li><strong>Dependencies:</strong> This code snippet depends on the <code>@google-cloud/vertexai</code> library, which provides the VertexAI client.</li>
+</ul>
+<h2 id="safetysettingsvariable">### 🧮 safetySettings - VARIABLE</h2>
+<p><strong>Description:</strong> An array of objects that define safety settings for LLM interactions.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const safetySettings = [
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_UNSPECIFIED,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+];
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 83</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-25">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable defines an array of objects that configure safety settings for the LLM interactions.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const generativeModel = vertexAI.getGenerativeModel({
+  model: textModel,
+  safetySettings: safetySettings,
+  generationConfig: {
+    temperature: secretSauce.temperature,
+    topP: secretSauce.top_p,
+  },
+});
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>safetySettings</code> variable depends on the <code>HarmCategory</code> and <code>HarmBlockThreshold</code> enums from the <code>@google-cloud/vertexai</code> library.</li>
+</ul>
+<h2 id="generativemodelvariable">### 🧮 generativeModel - VARIABLE</h2>
+<p><strong>Description:</strong> An instance of the VertexAI GenerativeModel, representing the Gemini text model.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const generativeModel = vertexAI.getGenerativeModel({
+  model: textModel,
+  safetySettings: safetySettings,
+  generationConfig: {
+    temperature: secretSauce.temperature,
+    topP: secretSauce.top_p,
+  },
+});
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 106</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-26">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code snippet initializes a <code>generativeModel</code> variable, which represents an instance of the VertexAI <code>GenerativeModel</code> class. This model is specifically configured to use the Gemini text model for generating text content.</li>
+<li><strong>Parameters:</strong> The <code>getGenerativeModel</code> function takes the following parameters:</li>
+<li><code>model</code>: The name of the Gemini text model to use. In this case, it's set to <code>textModel</code>, which is defined as <code>gemini-1.5-flash-preview-0514</code>.</li>
+<li><code>safetySettings</code>: An array of safety settings to apply to the model's output. This ensures that the generated text adheres to certain safety guidelines.</li>
+<li><code>generationConfig</code>: An object containing configuration options for text generation, such as <code>temperature</code> and <code>topP</code>, which control the randomness and creativity of the generated text.</li>
+<li><strong>Returns:</strong> The <code>getGenerativeModel</code> function returns an instance of the <code>GenerativeModel</code> class, which represents the configured Gemini text model.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const generatedText = await generativeModel.generateContent({ contents: [{ role: 'user', parts: [{ text: 'Write a short story about a cat.' }] }] });
+console.log(generatedText.response.candidates[0].content.parts[0].text);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>GenerativeModel</code> might encounter errors if the specified model is not available or if the safety settings are too restrictive. Additionally, the generation process might fail if the input prompt is too long or complex.</li>
+<li><strong>Dependencies:</strong> This code snippet depends on the <code>@google-cloud/vertexai</code> library, which provides access to VertexAI services, including the <code>GenerativeModel</code> class.</li>
+</ul>
+<h2 id="generatemodeladvvariable">### 🧮 generateModelAdv - VARIABLE</h2>
+<p><strong>Description:</strong> An instance of the VertexAI GenerativeModel, representing the Gemini text model (advanced version).</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const generateModelAdv = vertexAI.getGenerativeModel({
+  model: textModelAdvanced,
+  safetySettings: safetySettings,
+  generationConfig: {
+    temperature: secretSauce.temperature,
+    topP: secretSauce.top_p,
+  },
+});
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 115</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-27">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>generateModelAdv</code> variable initializes an instance of the VertexAI GenerativeModel, specifically using the Gemini text model (advanced version). This model is configured with safety settings to mitigate potential risks and generation parameters like temperature and top_p to control the creativity and randomness of the generated text.</li>
+<li><strong>Dependencies:</strong> - <code>vertexAI</code>: An instance of the VertexAI client, responsible for interacting with the Vertex AI service.</li>
+<li><code>textModelAdvanced</code>: A string representing the name of the Gemini text model (advanced version) to be used.</li>
+<li><code>safetySettings</code>: An array of safety settings to be applied to the model, ensuring responsible and ethical text generation.</li>
+<li><code>secretSauce</code>: An object containing generation parameters like temperature and top_p, which influence the creativity and randomness of the generated text.</li>
+</ul>
+<h2 id="starttimevariable">### 🧮 startTime - VARIABLE</h2>
+<p><strong>Description:</strong> A number that stores the start time of an LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const startTime = Date.now();
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 220</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-28">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>startTime</code> variable is used to store the current time in milliseconds using the <code>Date.now()</code> function. This is typically done at the beginning of a process or operation to track the duration of the process.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const startTime = Date.now();
+// Perform some operation
+const endTime = Date.now();
+const duration = endTime - startTime;
+console.log(`Operation took ${duration} milliseconds`);
+</code></pre>
+<h2 id="endtimevariable">### 🧮 endTime - VARIABLE</h2>
+<p><strong>Description:</strong> A number that stores the end time of an LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const endTime = Date.now();
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 326</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-29">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>endTime</code> variable stores the current timestamp using the <code>Date.now()</code> function, which returns the number of milliseconds that have elapsed since the Unix epoch (January 1, 1970, 00:00:00 UTC).</li>
+</ul>
+<h2 id="totaltimevariable">### 🧮 totalTime - VARIABLE</h2>
+<p><strong>Description:</strong> A number that represents the total time taken for an LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const totalTime = endTime - startTime;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 327</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-30">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>totalTime</code> variable stores the difference between the <code>endTime</code> and <code>startTime</code> variables, representing the total time taken for an LLM call.</li>
+</ul>
+<h2 id="promptnewvariable">### 🧮 promptNew - VARIABLE</h2>
+<p><strong>Description:</strong> A string that stores the modified prompt for an LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>let promptNew = prompt;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 207</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-31">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the modified prompt for an LLM call. It is used to ensure that the prompt is formatted correctly for the specific LLM backend being used.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const prompt = "This is a prompt.";
+let promptNew = prompt;
+</code></pre>
+<h2 id="promptcharlenvariable">### 🧮 promptCharLen - VARIABLE</h2>
+<p><strong>Description:</strong> A number that represents the character length of the prompt for an LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const promptCharLen = prompt.length;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 201</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-32">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>promptCharLen</code> variable stores the character length of the <code>prompt</code> string, which is used as input for a large language model (LLM). This variable is used for logging purposes to track the size of the prompt being sent to the LLM.</li>
+</ul>
+<h2 id="promptlenvariable">### 🧮 promptLen - VARIABLE</h2>
+<p><strong>Description:</strong> A number that represents the token count of the prompt for an LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const promptLen = getTokens(prompt);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 202</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-33">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>promptLen</code> variable stores the token count of the prompt used for an LLM (Large Language Model) call. This is likely used for various purposes, such as determining the cost of the API call, checking if the prompt exceeds a certain token limit, or for other LLM-related calculations.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const prompt = "This is a prompt for the LLM.";
+const promptLen = getTokens(prompt); // Calculate the token count of the prompt
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>promptLen</code> variable depends on the <code>getTokens</code> function, which is likely a utility function for calculating the token count of a given string.</li>
+</ul>
+<h2 id="promptresponseinstructionsvariable">### 🧮 promptResponseInstructions - VARIABLE</h2>
+<p><strong>Description:</strong> A string that defines instructions for the LLM on how to format its response.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>const promptResponseInstructions = <code>Please respond with a ${responseMode} containing your answer. ${responseMode !== "TEXT STRING" ?</code>Please properly format and escape your output, as I will need to parse your response.<code>: ""} ${responseKey ?</code>The key for the response should be ${responseKey}.` : ""}</p>
+<p>`;</p>
+<ul>
+<li><strong>Line:</strong> 190</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-34">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable defines a string that contains instructions for the LLM on how to format its response. It specifies the desired response mode (JSON object, YAML object, or TEXT STRING), whether the response should be properly formatted and escaped, and the key for the response if applicable.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const promptResponseInstructions = `Please respond with a JSON object containing your answer. Please properly format and escape your output, as I will need to parse your response. The key for the response should be response. 
+
+`;
+</code></pre>
+<h2 id="modelbackendvariable">### 🧮 modelBackend - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the backend used for the LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const modelBackend: llm_modes = getModelBackend(model);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 173</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-35">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>modelBackend</code> variable stores the backend used for the LLM call, which can be either "OLLAMA", "VERTEX", or "OPENAI".</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const modelBackend: llm_modes = getModelBackend(model);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the model is not found in the <code>MODEL_MODES</code> array, an error is thrown.</li>
+<li><strong>Dependencies:</strong> The <code>modelBackend</code> variable depends on the <code>getModelBackend</code> function, which retrieves the backend from the <code>MODEL_MODES</code> array.</li>
+</ul>
+<h2 id="supplementaldatavariable">### 🧮 supplementalData - VARIABLE</h2>
+<p><strong>Description:</strong> An object that contains supplemental data to be passed to the LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>supplementalData?: any,
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 170</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-36">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>supplementalData</code> variable is an optional parameter that allows for passing additional data to the LLM call. This data can be used to provide context or additional information to the LLM, which can help it generate more accurate and relevant responses.</li>
+<li><strong>Parameters:</strong> The <code>supplementalData</code> parameter is of type <code>any</code>, which means it can accept any type of data. This allows for flexibility in passing different types of information to the LLM.</li>
+<li><strong>Returns:</strong> The <code>supplementalData</code> variable does not return any value. It is simply a parameter that is passed to the LLM call.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const response = await infer(prompt, "JSON object", undefined, false, true, { fileName: "myFile.ts", fileLocation: "./src/myFile.ts" });
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> There are no specific edge cases for the <code>supplementalData</code> variable. However, it is important to ensure that the data passed to the LLM is properly formatted and escaped to avoid errors.</li>
+<li><strong>Dependencies:</strong> The <code>supplementalData</code> variable does not have any dependencies.</li>
+</ul>
+<h2 id="bretryvariable">### 🧮 bRetry - VARIABLE</h2>
+<p><strong>Description:</strong> A boolean that indicates whether to retry the LLM call if an error occurs.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>bRetry = true,
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 169</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-37">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>bRetry</code> variable is a boolean flag that controls whether the LLM call should be retried if an error occurs during the inference process.</li>
+</ul>
+<h2 id="bprovariable">### 🧮 bPro - VARIABLE</h2>
+<p><strong>Description:</strong> A boolean that indicates whether to use the advanced version of the Gemini model.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>bPro = false,
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 168</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-38">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>bPro</code> variable is a boolean flag that determines whether to use the advanced version of the Gemini model for text generation. It is set to <code>false</code> by default, indicating that the standard Gemini model will be used.</li>
+</ul>
+<h2 id="responsekeyvariable">### 🧮 responseKey - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the key for the response in the LLM output.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>responseKey?: string,
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 167</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-39">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>responseKey</code> variable is an optional string that specifies the key to use for the response in the LLM output. It is used when the <code>responseMode</code> is set to "TEXT STRING" to ensure the response is returned with the correct key.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const response = await infer(prompt, "TEXT STRING", "myResponse");
+// The response object will have the following structure:
+{
+  "myResponse": "The LLM response"
+}
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the <code>responseMode</code> is not "TEXT STRING", the <code>responseKey</code> is ignored.</li>
+</ul>
+<h2 id="responsemodevariable">### 🧮 responseMode - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the desired format for the LLM response.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>responseMode: "JSON object" | "YAML object" | "TEXT STRING" = "JSON object",
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 166</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-40">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>responseMode</code> variable defines the desired format for the response from the Large Language Model (LLM). It can be one of three values: "JSON object", "YAML object", or "TEXT STRING".</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const response = await infer(prompt, "JSON object");
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If an invalid <code>responseMode</code> is provided, the function will likely throw an error or return an unexpected result.</li>
+</ul>
+<h2 id="promptvariable">### 🧮 prompt - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the prompt for the LLM call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>prompt: string,
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 165</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-41">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the prompt that will be used to call the LLM (Large Language Model).</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const prompt = "This is a prompt for the LLM.";
+</code></pre>
+<h2 id="msvariable">### 🧮 ms - VARIABLE</h2>
+<p><strong>Description:</strong> A number that represents the duration in milliseconds for a delay.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>ms: number
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 160</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-42">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable represents the duration in milliseconds for a delay.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">setTimeout(() =&gt; {
+  // Code to be executed after the delay
+}, ms);
+</code></pre>
+<h2 id="yamlstringvariable">### 🧮 yamlString - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents a YAML string.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>yamlString: string
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 142</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-43">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable represents a string that holds a YAML string.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const yamlString: string = '---
+key: value
+...';
+</code></pre>
+<h2 id="jsonstringvariable">### 🧮 jsonString - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents a JSON string.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>jsonString: string
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 124</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-44">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable represents a string that holds a JSON string.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const jsonString: string = '{"name": "John Doe", "age": 30}';
+</code></pre>
+<h2 id="textvariable">### 🧮 text - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents a text string.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>text: string
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 153</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-45">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable represents a string that holds text data.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myText = "Hello, world!";
+console.log(myText); // Output: Hello, world!
+</code></pre>
+<h2 id="reskeyvariable">### 🧮 resKey - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the key for the response in the LLM output.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>resKey = "response"
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 153</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-46">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>resKey</code> variable is used to specify the key for the response in the LLM output. It is used in the <code>parseText</code> function to create a JSON object with the response text.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const responseText = "This is the response text.";
+const responseObject = parseText(responseText, "myResponseKey");
+console.log(responseObject); // { myResponseKey: "This is the response text." }
+</code></pre>
+<h2 id="fixedjsonvariable">### 🧮 fixedJson - VARIABLE</h2>
+<p><strong>Description:</strong> A string that stores the fixed JSON string.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const fixedJson = fixJSON(response);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 345</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-47">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>fixedJson</code> variable is declared and assigned the result of calling the <code>fixJSON</code> function with the <code>response</code> string as an argument. This function attempts to repair the <code>response</code> string if it is not a valid JSON object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const fixedJson = fixJSON(response);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>fixJSON</code> function is a dependency of this code object.</li>
+</ul>
+<h2 id="errorvariable">### 🧮 error - VARIABLE</h2>
+<p><strong>Description:</strong> A variable that captures any error that occurs during JSON fixing.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>catch (error: any) {
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 273</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-48">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable captures any error that occurs during JSON fixing.</li>
+</ul>
+<h2 id="newdatavariable">### 🧮 newData - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the data from the fixed JSON object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const newData = res[0];
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 392</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-49">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>newData</code> variable is declared to store the first element of the <code>res</code> array, which is assumed to be a JSON object. This is done after the JSON response from the LLM is parsed and potentially fixed.</li>
+<li><strong>Edge Cases:</strong> If the <code>res</code> array is empty or does not contain a valid JSON object at index 0, the <code>newData</code> variable will be undefined.</li>
+</ul>
+<h2 id="keysvariable">### 🧮 keys - VARIABLE</h2>
+<p><strong>Description:</strong> An array of strings that represents the keys of the fixed JSON object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const keys = Object.keys(newData);
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 395</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-50">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code snippet defines a variable named <code>keys</code> that stores an array of strings representing the keys of the <code>newData</code> object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const keys = Object.keys(newData);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> Object.keys</li>
+</ul>
+<h2 id="expectedkeysvariable">### 🧮 expectedKeys - VARIABLE</h2>
+<p><strong>Description:</strong> An array of strings that represents the expected keys for the CodeObjects interface.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const expectedKeys: CodeObjects[] = [
+            "classes",
+            "functions",
+            "variables",
+            "types",
+            "interfaces",
+            // "comments",
+            "imports",
+            "exports",
+          ];
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 398</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-51">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object defines an array of strings called <code>expectedKeys</code> which represents the expected keys for the <code>CodeObjects</code> interface. This array is used to ensure that the JSON object returned by the LLM contains all the necessary keys for the <code>CodeObjects</code> interface.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObjects: CodeObjects = {
+  classes: [],
+  functions: [],
+  variables: [],
+  types: [],
+  interfaces: [],
+  imports: [],
+  exports: [],
+};
+
+// Check if all expected keys are present in the codeObjects object
+const missingKeys = expectedKeys.filter(key =&gt; !(key in codeObjects));
+
+if (missingKeys.length &gt; 0) {
+  console.warn(`Missing keys in codeObjects: ${missingKeys.join(', ')}`);
+}
+</code></pre>
+<h2 id="fixeddatavariable">### 🧮 fixedData - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the fixed JSON data.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const fixedData = {} as any;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 413</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-52">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable is used to store the fixed JSON data. It is declared as an empty object of type <code>any</code> to allow for dynamic properties.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const fixedData = {} as any;
+// Add properties to fixedData as needed
+</code></pre>
+<h2 id="keyvariable">### 🧮 key - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents a key in the fixed JSON object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>for (const key of expectedKeys) {
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 414</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-53">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object is a variable named 'key' that iterates through the 'expectedKeys' array, which contains a list of expected keys for a JSON object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">for (const key of expectedKeys) {
+  // Code to process each key
+}
+</code></pre>
+<h2 id="ollamaresponsevariable">### 🧮 ollamaResponse - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the response from the Ollama API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const ollamaResponse = await ollama.generate({
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 229</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-54">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ollamaResponse</code> variable stores the response received from the Ollama API after calling the <code>generate</code> function.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const ollamaResponse = await ollama.generate({
+  model: 'yi:34b',
+  prompt: 'What is the capital of France?',
+  stream: false,
+  system: 'You are a helpful assistant.',
+  keep_alive: 9000,
+  options: {
+    temperature: 0.3,
+    top_p: 0.2,
+    num_ctx: 32000,
+  },
+});
+console.log(ollamaResponse.response);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>ollamaResponse</code> variable depends on the <code>ollama</code> object, which is an instance of the <code>Ollama</code> class from the <code>ollama</code> library.</li>
+</ul>
+<h2 id="resultvariable">### 🧮 result - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the response from the VertexAI API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const result = await genFunction.generateContent(request).catch((err:any)=&gt;{
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 260</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-55">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>result</code> variable is declared to store the response from the <code>generateContent</code> method of the <code>genFunction</code> object, which is a VertexAI generative model. The <code>catch</code> block handles any errors that might occur during the API call.</li>
+<li><strong>Dependencies:</strong> VertexAI, @google-cloud/vertexai</li>
+</ul>
+<h2 id="errvariable">### 🧮 err - VARIABLE</h2>
+<p><strong>Description:</strong> A variable that captures any error that occurs during the VertexAI API call.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>catch((err:any)=&gt;{
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 260</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-56">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>err</code> variable is used to capture any errors that occur during the <code>generateContent</code> call to the VertexAI API.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of the `err` variable
+const result = await genFunction.generateContent(request).catch((err:any)=&gt;{ 
+  console.error(err)
+  return "Invalid Response from the LLM"
+})
+
+// Check if an error occurred
+if (result.error) {
+  console.error("Error generating content:", result.error);
+}
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> VertexAI API</li>
+</ul>
+<h2 id="genfunctionvariable">### 🧮 genFunction - VARIABLE</h2>
+<p><strong>Description:</strong> A variable that stores the function to use for generating content from the VertexAI API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>let genFunction = generativeModel;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 248</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-57">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the function to use for generating content from the VertexAI API. It is assigned the value of <code>generativeModel</code>, which is a VertexAI generative model object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const response = await genFunction.generateContent(request);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> VertexAI, @google-cloud/vertexai</li>
+</ul>
+<h2 id="completionvariable">### 🧮 completion - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the response from the OpenAI API.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const completion = await openai.chat.completions.create({
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 306</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-58">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>completion</code> variable stores the response from the OpenAI API's <code>chat.completions.create</code> function.</li>
+<li><strong>Parameters:</strong> The <code>chat.completions.create</code> function takes an object as an argument, which includes parameters like <code>messages</code>, <code>model</code>, <code>temperature</code>, <code>top_p</code>, etc. These parameters control the behavior of the LLM and the generated response.</li>
+<li><strong>Returns:</strong> The <code>chat.completions.create</code> function returns an object containing the generated response from the LLM, including the generated text, the chosen model, and other metadata.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const completion = await openai.chat.completions.create({
+  messages: [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: promptNew },
+  ],
+  model: model,
+});
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The OpenAI API can return errors if the request is invalid or if the API key is incorrect. The code handles these errors by using a <code>try...catch</code> block.</li>
+<li><strong>Dependencies:</strong> This code depends on the <code>openai</code> library, which provides an interface to the OpenAI API.</li>
+</ul>
+<h2 id="codesummaryvariable">### 🧮 codeSummary - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the code summary generated by the LLM.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const codeSummary = await infer(
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 469</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-59">Annotations / Comments:</h6>
+<ul>
+<li><p><strong>Purpose:</strong> The <code>codeSummary</code> variable is declared and assigned the result of calling the <code>infer</code> function, which is used to interact with a large language model (LLM). The <code>infer</code> function takes a prompt, response mode, response key, boolean values for professional mode and retrying, optional supplemental data, and the model to use as arguments.</p></li>
+<li><p><strong>Parameters:</strong> The <code>infer</code> function takes the following parameters:</p></li>
+<li><p><code>prompt</code>: A string containing the prompt to be sent to the LLM.</p></li>
+<li><p><code>responseMode</code>: A string indicating the expected response format from the LLM. It can be "JSON object", "YAML object", or "TEXT STRING".</p></li>
+<li><p><code>responseKey</code>: An optional string specifying the key for the response in the JSON object. This is only applicable for the "TEXT STRING" response mode.</p></li>
+<li><p><code>bPro</code>: A boolean value indicating whether to use the professional mode of the LLM. This is only applicable for certain models.</p></li>
+<li><p><code>bRetry</code>: A boolean value indicating whether to retry the request if an error occurs.</p></li>
+<li><p><code>supplementalData</code>: An optional object containing additional data to be passed to the LLM.</p></li>
+<li><p><code>model</code>: A string specifying the name of the LLM model to use.</p></li>
+<li><p><strong>Returns:</strong> The <code>infer</code> function returns a promise that resolves to an object containing the response from the LLM. The format of the response object depends on the <code>responseMode</code> parameter.</p></li>
+<li><p><strong>Usage Example:</strong> </p></li>
+</ul>
+<pre><code class="typescript language-typescript">const codeSummary = await infer(
+  "Summarize the code block below. Mention the goal of the code and any relevant features / functions: 
+  Please respond with a JSON object as follows:
+  {
+    "goal": "String summarizing what the code is about, and the goal",
+    "features_functions": "String describing any relevant features",
+  }
+
+  ### Code To Sumnarize:
+  ${codeToSummarize}",
+  "JSON object",
+  undefined,
+  false,
+  undefined,
+  model
+);
+</code></pre>
+<ul>
+<li><p><strong>Edge Cases:</strong> The <code>infer</code> function may encounter errors such as rate limiting, invalid JSON responses, or network issues. The <code>bRetry</code> parameter can be used to handle these errors by retrying the request.</p></li>
+<li><p><strong>Dependencies:</strong> The <code>infer</code> function depends on the following external libraries:</p></li>
+<li><p><code>ollama</code></p></li>
+<li><p><code>openai</code></p></li>
+<li><p><code>@google-cloud/vertexai</code></p></li>
+<li><p><code>jsonrepair</code></p></li>
+<li><p><code>js-yaml</code></p></li>
+</ul>
+<h2 id="questionvariable">### 🧮 question - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the question to ask the LLM for code summarization.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: 
+  Please respond with a JSON object as follows:
+  {
+    "goal": "String summarizing what the code is about, and the goal",
+    "features_functions": "String describing any relevant features",
+  }</p>
+<p>### Code To Sumnarize:
+  ${codeToSummarize}
+  `;</p>
+<ul>
+<li><strong>Line:</strong> 460</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-60">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This variable stores the prompt for the LLM to summarize a code block. It includes instructions for the LLM to respond with a JSON object containing the goal and relevant features/functions of the code.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: 
+  Please respond with a JSON object as follows:
+  {
+    "goal": "String summarizing what the code is about, and the goal",
+    "features_functions": "String describing any relevant features",
+  }
+
+  ### Code To Sumnarize:
+  ${codeToSummarize}
+  `;
+</code></pre>
+<h2 id="codetosummarizevariable">### 🧮 codeToSummarize - VARIABLE</h2>
+<p><strong>Description:</strong> A string that represents the code to be summarized by the LLM.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>codeToSummarize: string,
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 456</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-61">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>codeToSummarize</code> variable represents the code snippet that will be passed to the LLM for summarization.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeSnippet = "// This is a code snippet to be summarized.";
+const codeToSummarize = codeSnippet;
+</code></pre>
+<h2 id="codeobjectsvariable">### 🧮 codeObjects - VARIABLE</h2>
+<p><strong>Description:</strong> An object that stores the code objects extracted from the LLM response.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>let codeObjects: any = response;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 568</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> false</li>
+<li><strong>Private:</strong> false</li>
+</ul>
+<h6 id="annotationscomments-62">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object is a variable that stores the code objects extracted from the LLM response. It is used to store the results of the LLM call and then process them further.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const codeObjects = await callLLM(promptTemplate, projectContext, code, filePath, bRAG, model);
+// Process the code objects
+</code></pre>
+<h2 id="types">types</h2>
+<h2 id="llmruntimedatatype">### 🏷️ llmRuntimeData - TYPE</h2>
+<p><strong>Description:</strong> Interface for storing runtime data related to LLM usage.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export const AIusageData:llmRuntimeData = {
+  totalTokens: 0,
+  totalCharacters: 0,
+  totalCharactersOut: 0,
+  totalCharactersEmbed: 0,
+  totalCost: 0,
+  totalAPIcalls: 0
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 31</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-63">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type defines the structure for storing runtime data related to LLM usage, including token counts, character counts, costs, and API call counts.</li>
+</ul>
+<h2 id="llm_modestype">### 🏷️ llm_modes - TYPE</h2>
+<p><strong>Description:</strong> Type alias for LLM backend modes.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 54</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-64">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines the possible backend modes for the LLM (Large Language Model) used in the application.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const modelBackend: llm_modes = getModelBackend(model);
+</code></pre>
+<h2 id="harmblockthresholdtype">### 🏷️ HarmBlockThreshold - TYPE</h2>
+<p><strong>Description:</strong> Type alias for harm block threshold.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import {
+  HarmBlockThreshold,
+  HarmCategory,
+  VertexAI,
+} from "@google-cloud/vertexai";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 21</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-65">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines the harm block threshold for content moderation in Vertex AI.</li>
+<li><strong>Dependencies:</strong> This type alias is imported from the <code>@google-cloud/vertexai</code> package.</li>
+</ul>
+<h2 id="llmbackendmodetype">### 🏷️ llmBackendMode - TYPE</h2>
+<p><strong>Description:</strong> Type alias for LLM backend mode.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export type llmBackendMode = 'OLLAMA' | 'OPENAI' | 'VERTEX';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> models.ts (./src/models.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-66">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines the possible backend modes for Large Language Models (LLMs) used in the application.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const backendMode: llmBackendMode = 'OLLAMA';
+</code></pre>
+<h2 id="llmmodeltype">### 🏷️ llmModel - TYPE</h2>
+<p><strong>Description:</strong> Interface for defining LLM models.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export type llmModel = {
+    name: string;
+    model: string;
+    backend: llmBackendMode;
+    context?: number
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> models.ts (./src/models.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-67">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the structure for an LLM model, specifying its name, model identifier, backend platform (Ollama, OpenAI, Vertex), and optional context size.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example of an LLM model definition
+const myModel: llmModel = {
+  name: "phi3",
+  model: "phi3",
+  backend: "OLLAMA"
+};
+</code></pre>
+<h2 id="colortype">### 🏷️ Color - TYPE</h2>
+<p><strong>Description:</strong> Type alias for color.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> shared.ts (./src/shared.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-68">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines a set of possible color values for use in the <code>colorize</code> function.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const color: Color = 'red';
+</code></pre>
+<h2 id="codeobjecttypetype">### 🏷️ CodeObjectType - TYPE</h2>
+<p><strong>Description:</strong> Type alias for code object type.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export type CodeObjectType = 'class' | 'function' | 'variable' | 'type' | 'import' | 'export' | 'interface' | 'constructor';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-69">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines the possible types for code objects, which are used to represent different elements within a codebase, such as classes, functions, variables, types, imports, exports, interfaces, and constructors.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of CodeObjectType
+const codeObject: CodeObject = {
+  type: 'function', // Code object type is 'function'
+  // ... other properties
+};
+</code></pre>
+<h2 id="modelstype">### 🏷️ models - TYPE</h2>
+<p><strong>Description:</strong> Interface for representing models.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface models {
+    name: string,
+    model: any,
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-70">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for representing models, which likely includes information about the model's name and its underlying implementation.</li>
+</ul>
+<h2 id="modelserviceconfigtype">### 🏷️ modelServiceConfig - TYPE</h2>
+<p><strong>Description:</strong> Interface for representing model service configuration.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface modelServiceConfig {
+    models: models[],
+    endpoint?:string 
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-71">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>modelServiceConfig</code> interface defines the configuration for a model service. It specifies the models available in the service and an optional endpoint for accessing the service.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const config: modelServiceConfig = {
+  models: [
+    {
+      name: 'gpt-3.5-turbo',
+      model: 'gpt-3.5-turbo',
+      backend: 'OPENAI',
+    },
+  ],
+  endpoint: 'https://api.openai.com/v1',
+};
+</code></pre>
+<h2 id="executionflowtype">### 🏷️ ExecutionFlow - TYPE</h2>
+<p><strong>Description:</strong> Interface for representing execution flow.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface ExecutionFlow {
+    step: number;
+    stepDescription: string;
+    bImportant: boolean;
+    codeSnippet: string;
+    codeLine: number;
+    codeIndent: number;
+    fileName: string;
+    fileLocation: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-72">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for representing a step in the execution flow of a codebase. It includes information about the step number, description, importance, code snippet, line number, indentation level, and file location.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const executionFlow: ExecutionFlow[] = [
+    {
+        step: 1,
+        stepDescription: "Initialize the application",
+        bImportant: true,
+        codeSnippet: "const app = express();",
+        codeLine: 10,
+        codeIndent: 2,
+        fileName: "index.ts",
+        fileLocation: "./src/index.ts"
+    },
+    {
+        step: 2,
+        stepDescription: "Define routes",
+        bImportant: true,
+        codeSnippet: "app.get('/api/users', (req, res) =&gt; { ... });",
+        codeLine: 15,
+        codeIndent: 2,
+        fileName: "routes.ts",
+        fileLocation: "./src/routes.ts"
+    }
+];
+</code></pre>
+<h2 id="functionparametertype">### 🏷️ FunctionParameter - TYPE</h2>
+<p><strong>Description:</strong> Interface for representing function parameters.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface FunctionParameter {
+    name: string;
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-73">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>FunctionParameter</code> interface defines the structure for representing function parameters. It includes properties for the parameter's name, type, description, and an example value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const param: FunctionParameter = {
+  name: 'myParam',
+  type: 'string',
+  description: 'This is a parameter',
+  example: 'hello world'
+};
+</code></pre>
+<h2 id="functionreturntype">### 🏷️ FunctionReturn - TYPE</h2>
+<p><strong>Description:</strong> Interface for representing function return values.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface FunctionReturn {
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-74">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for representing function return values, including the type, description, and an example.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage:
+const functionReturn: FunctionReturn = {
+  type: 'string',
+  description: 'This function returns a string',
+  example: 'Hello, world!'
+};
+</code></pre>
+<h2 id="codeobjecttypestype">### 🏷️ CodeObjectTypes - TYPE</h2>
+<p><strong>Description:</strong> Type alias for code object types.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export type CodeObjectTypes = 'name' | 'type' | 'description' | 'codeSnippet' | 'codeLine' | 'codeIndent' | 'fileName' | 'fileLocation' | 'subObjects' | 'parentObject' | 'functionParameters' | 'functionReturns' | 'isExported' | 'isFunction' | 'isClass' | 'isPrivate' | 'isAsync'
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-75">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines the possible keys for a CodeObject, which represents a code element like a class, function, variable, or type.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObject: CodeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something',
+  codeSnippet: 'function myFunction() { ... }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  isExported: true,
+  isFunction: true,
+  isClass: false,
+  isPrivate: false,
+  isAsync: false
+};
+
+// Accessing a property using CodeObjectTypes
+console.log(codeObject.name); // 'myFunction'
+console.log(codeObject[CodeObjectTypes.description]); // 'This function does something'
+</code></pre>
+<h2 id="imports">imports</h2>
+<h2 id="codeobjectsimport">### 📥 CodeObjects - IMPORT</h2>
+<p><strong>Description:</strong> Imports the CodeObjects interface from the objectSchemas module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import {  CodeObjects,  ProjectSummary,  codeSummary,  llmRuntimeData, } from "./objectSchemas"; // Adjust path as needed
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-76">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code snippet imports the <code>CodeObjects</code> interface from the <code>objectSchemas</code> module. This interface is likely used to define the structure of code objects that are extracted from the codebase.</li>
+<li><strong>Dependencies:</strong> objectSchemas module</li>
+</ul>
+<h2 id="loggerimport">### 📥 logger - IMPORT</h2>
+<p><strong>Description:</strong> Imports the logger module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import "./logger";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 7</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-77">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>logger</code> module, which is likely responsible for logging events and messages within the application.</li>
+<li><strong>Dependencies:</strong> The <code>logger</code> module is a dependency of this code.</li>
+</ul>
+<h2 id="model_modes_baseimport">### 📥 MODEL<em>MODES</em>BASE - IMPORT</h2>
+<p><strong>Description:</strong> Imports the MODEL<em>MODES</em>BASE constant from the models module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { MODEL_MODES_BASE, MODELS } from "./models";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 9</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-78">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object imports the <code>MODEL_MODES_BASE</code> constant from the <code>models</code> module. This constant likely defines a list of recommended language models for the application.</li>
+<li><strong>Dependencies:</strong> models module</li>
+</ul>
+<h2 id="searchragimport">### 📥 searchRAG - IMPORT</h2>
+<p><strong>Description:</strong> Imports the searchRAG function from the vectorDB module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { searchRAG } from "./vectorDB";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 12</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-79">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object imports the <code>searchRAG</code> function from the <code>vectorDB</code> module, which is likely used for searching a vector database.</li>
+<li><strong>Dependencies:</strong> vectorDB module</li>
+</ul>
+<h2 id="yamlimport">### 📥 yaml - IMPORT</h2>
+<p><strong>Description:</strong> Imports the yaml module from js-yaml.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import yaml from "js-yaml";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 13</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-80">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This line imports the <code>yaml</code> module from the <code>js-yaml</code> library, which is used for parsing YAML data.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const yamlData = yaml.load(yamlString);
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> js-yaml</li>
+</ul>
+<h2 id="jsonrepairimport">### 📥 jsonrepair - IMPORT</h2>
+<p><strong>Description:</strong> Imports the jsonrepair function from jsonrepair.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { jsonrepair } from "jsonrepair";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 14</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-81">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This import statement brings in the <code>jsonrepair</code> function from the <code>jsonrepair</code> library.</li>
+<li><strong>Dependencies:</strong> jsonrepair library</li>
+</ul>
+<h2 id="ollamaimport">### 📥 Ollama - IMPORT</h2>
+<p><strong>Description:</strong> Imports the Ollama class from ollama.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { Ollama } from "ollama";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 15</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-82">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This line of code imports the <code>Ollama</code> class from the <code>ollama</code> library, which is likely used for interacting with an Ollama language model.</li>
+<li><strong>Dependencies:</strong> ollama library</li>
+</ul>
+<h2 id="openaiimport">### 📥 OpenAI - IMPORT</h2>
+<p><strong>Description:</strong> Imports the OpenAI class from openai.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import OpenAI from "openai";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 16</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-83">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code object imports the <code>OpenAI</code> class from the <code>openai</code> library.</li>
+<li><strong>Dependencies:</strong> openai library</li>
+</ul>
+<h2 id="dotenvconfigimport">### 📥 dotenv/config - IMPORT</h2>
+<p><strong>Description:</strong> Imports the config function from dotenv.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import "dotenv/config";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 18</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-84">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This line imports the \"config\" function from the \"dotenv\" package, which is used to load environment variables from a \".env\" file.</li>
+<li><strong>Dependencies:</strong> dotenv</li>
+</ul>
+<h2 id="harmblockthresholdimport">### 📥 HarmBlockThreshold - IMPORT</h2>
+<p><strong>Description:</strong> Imports the HarmBlockThreshold enum from @google-cloud/vertexai.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import {  HarmBlockThreshold,  HarmCategory,  VertexAI, } from "@google-cloud/vertexai";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-85">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This import statement brings in the <code>HarmBlockThreshold</code> enum from the <code>@google-cloud/vertexai</code> library.</li>
+<li><strong>Dependencies:</strong> @google-cloud/vertexai</li>
+</ul>
+<h2 id="gettokensimport">### 📥 getTokens - IMPORT</h2>
+<p><strong>Description:</strong> Imports the getTokens function from the shared module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { getTokens } from "./shared";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-86">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This code imports the <code>getTokens</code> function from the <code>shared</code> module.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const tokenCount = getTokens("This is a string with 5 tokens.");
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>shared</code> module.</li>
+</ul>
+<h2 id="exports">exports</h2>
+<h2 id="aiusagedataexport">### 📤 AIusageData - EXPORT</h2>
+<p><strong>Description:</strong> Object that tracks the usage of the LLM, including the total number of tokens, characters, API calls, and cost.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export const AIusageData:llmRuntimeData = {
+  totalTokens: 0,
+  totalCharacters: 0,
+  totalCharactersOut: 0,
+  totalCharactersEmbed: 0,
+  totalCost: 0,
+  totalAPIcalls: 0
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 31</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-87">Annotations / Comments:</h6>
+<ul>
+<li><p><strong>Purpose:</strong> This code object defines an exported constant named <code>AIusageData</code> which is an object that tracks the usage of the LLM. It stores information about the total number of tokens, characters, API calls, and cost.</p></li>
+<li><p><strong>Returns:</strong> An object of type <code>llmRuntimeData</code> which contains the following properties:</p></li>
+<li><p><code>totalTokens</code>: The total number of tokens used by the LLM.</p></li>
+<li><p><code>totalCharacters</code>: The total number of characters used by the LLM.</p></li>
+<li><p><code>totalCharactersOut</code>: The total number of characters output by the LLM.</p></li>
+<li><p><code>totalCharactersEmbed</code>: The total number of characters used for embedding.</p></li>
+<li><p><code>totalCost</code>: The total cost of using the LLM.</p></li>
+<li><p><code>totalAPIcalls</code>: The total number of API calls made to the LLM.</p></li>
+<li><p><strong>Usage Example:</strong> </p></li>
+</ul>
+<pre><code class="typescript language-typescript">// Access the total number of tokens used
+console.log(AIusageData.totalTokens);
+
+// Increment the total number of API calls
+AIusageData.totalAPIcalls++;
+</code></pre>
+<h2 id="parseyamlexport">### 📤 parseYaml - EXPORT</h2>
+<p><strong>Description:</strong> Function that parses a YAML string and returns a JSON object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export function parseYaml(yamlString: string): any {
+  // Convert YAML file into a proper JSON object
+  try {
+    const obj = yaml.load(yamlString) as any;
+    return obj as any;
+  } catch (e: any) {
+    console.error(e);
+    throw new Error("Invalid YAML object");
+  }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 143</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-88">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>parseYaml</code> function takes a YAML string as input and attempts to convert it into a JSON object using the <code>js-yaml</code> library.</li>
+<li><strong>Parameters:</strong> yamlString: string - The YAML string to be parsed.</li>
+<li><strong>Returns:</strong> any - Returns a JSON object representing the parsed YAML string. If the parsing fails, it throws an error.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const yamlString = `
+name: John Doe
+age: 30
+`;
+const jsonObject = parseYaml(yamlString);
+console.log(jsonObject); // Output: { name: 'John Doe', age: 30 }
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the input YAML string is invalid, the function throws an error.</li>
+<li><strong>Dependencies:</strong> js-yaml library</li>
+</ul>
+<h2 id="parsetextexport">### 📤 parseText - EXPORT</h2>
+<p><strong>Description:</strong> Function that converts a text string into a JSON object with a specified key.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export function parseText(text: string, resKey = "response"): any {
+  // Convert text into a proper JSON object
+  const obj = {} as any;
+  obj[resKey] = text;
+  return obj;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 154</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-89">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>parseText</code> function takes a text string as input and converts it into a JSON object. It allows for specifying a custom key for the response object.</li>
+<li><strong>Parameters:</strong> - <code>text</code>: A string representing the text to be converted into a JSON object.</li>
+<li><code>resKey</code>: An optional string representing the key to be used for the response object. Defaults to "response".</li>
+<li><strong>Returns:</strong> A JSON object with the specified key containing the input text string.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const text = "This is a text string.";
+const jsonObject = parseText(text, "myText");
+console.log(jsonObject); // Output: { myText: "This is a text string." }
+</code></pre>
+<h2 id="inferexport">### 📤 infer - EXPORT</h2>
+<p><strong>Description:</strong> Asynchronous function that sends a prompt to an LLM and returns the response in the specified format.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>export async function infer(
+  prompt: string,
+  responseMode: "JSON object" | "YAML object" | "TEXT STRING" = "JSON object",
+  responseKey?: string,
+  bPro = false,
+  bRetry = true,
+  supplementalData?: any,
+  model: string = textModel
+): Promise<any> {
+  const modelBackend: llm_modes = getModelBackend(model);</p>
+<p>console.log("====&gt; Model Backend:", modelBackend);</p>
+<p>if (isNaN(RATE<em>LIMIT) == false) {
+    if (RATE</em>LIMIT &gt; 0) {
+      console.log(<code>Rate Limit Set: ${RATE_LIMIT}</code>);
+      await wait(RATE_LIMIT);
+    }
+  }</p>
+<p>const promptResponseInstructions = <code>Please respond with a ${responseMode} containing your answer. ${responseMode !== "TEXT STRING" ?</code>Please properly format and escape your output, as I will need to parse your response.<code>: ""} ${responseKey ?</code>The key for the response should be ${responseKey}.` : ""}</p>
+<p>`;</p>
+<p>if (responseMode !== "TEXT STRING" &amp;&amp; responseKey) {
+    console.warn(
+      "responseKey is only applicable for TEXT STRING responseMode. Ignoring responseKey."
+    );
+  }</p>
+<p>prompt = prompt.trim();
+  prompt = promptResponseInstructions + prompt;</p>
+<p>const promptCharLen = prompt.length;
+  const promptLen = getTokens(prompt);</p>
+<p>console.log(<code>Prompt: ${promptCharLen} Characters</code>);
+  console.log(<code>Prompt: ${promptLen} Tokens</code>);</p>
+<p>let promptNew = prompt;</p>
+<p>if (responseMode === "JSON object") {
+    promptNew = `
+    In your response, PLEASE BE SURE TO FORMAT YOUR RESPONSE AS A PARSE-ABLE JSON OBJECT.
+    This means that your response keys and values should be properly formatted and escaped.</p>
+<pre><code>${prompt}
+`;
+</code></pre>
+<p>}</p>
+<p>let response = "";</p>
+<p>const startTime = Date.now();</p>
+<p>// BASED on the model passed, we will call the appropriate endpoints, etc:</p>
+<p>if (modelBackend === "OLLAMA") {
+    //</p>
+<pre><code>// const contextLength = promptLen &gt; 1000 ? 32000 : 4096;
+
+const ollamaResponse = await ollama.generate({
+  model: model,
+  prompt: promptNew,
+  stream: false,
+  system: systemPrompt,
+  keep_alive: 30000,
+  options: {
+    ...secretSauce,
+    num_ctx: contextLength,
+  },
+});
+console.log(ollamaResponse.response.length);
+response = ollamaResponse.response;
+</code></pre>
+<p>} else if (modelBackend === "VERTEX") {
+    //
+    const request = {
+      contents: [{ role: "user", parts: [{ text: promptNew }] }]
+    };</p>
+<pre><code>let genFunction = generativeModel;
+if (bPro === true) {
+  if (model.includes("gemini-1.5-pro") == true) {
+    genFunction = generateModelAdv;
+  } else {
+    console.warn(
+      "Specified model was FLASH, using provided model: ",
+      model
+    );
+  }
+}
+
+const result = await genFunction.generateContent(request).catch((err:any)=&gt;{
+  console.error(err)
+  return "Invalid Response from the LLM"
+})
+
+try {
+
+  if (typeof result !== 'string'){
+    response = result.response.candidates?.[0].content?.parts[0].text || "";
+  } else {
+    throw "Invalid Response from the LLM"
+  }
+
+} catch (error: any) {
+  console.error("Error parsing response from Gemini:", error);
+  console.debug("Prompt to Gemini:", promptNew);
+
+  if (typeof result === "string") {
+    console.log(
+      "Response from Gemini:",
+      "Response is a string, but not a valid JSON object"
+    );
+    console.log(result);
+  } else {
+    console.log(
+      "Response from Gemini - String-y-fied:",
+      JSON.stringify(result)
+    );
+  }
+
+  if (bRetry == true || retries &lt; 3) {
+    retries += 1;
+    console.log("Retrying since there was an error -- retying in 10 seconds");
+    await wait(10000);
+    return await infer(
+      promptNew,
+      responseMode,
+      responseKey,
+      bPro,
+      false,
+      supplementalData,
+      model
+    );
+  }
+}
+</code></pre>
+<p>} else if (modelBackend === "OPENAI") {
+    const completion = await openai.chat.completions.create({
+      …secretSauce,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: promptNew },
+      ],
+      model: model,
+    });</p>
+<pre><code>console.debug(completion.choices[0]);
+response = completion.choices[0].message.content || "";
+
+if (response === "") {
+  console.error("Empty response from OpenAI");
+  console.error(completion);
+}
+</code></pre>
+<p>} else {
+    console.error("Unknown Model Backend");
+  }</p>
+<p>const endTime = Date.now();
+  const totalTime = endTime - startTime;</p>
+<p>// PRint the total time in seconds, truncated to 2 decimal places
+  console.log(<code>Total Time: ${totalTime / 1000}s</code>);</p>
+<p>if (typeof response !== "string") {
+    throw new Error("Invalid response from LLM");
+  }</p>
+<p>if (responseMode === "JSON object") {
+    response = response.replace("json", "").replace("
+```", "").trim();</p>
+<pre><code>let bFixed = false;
+if (validateJSON(response) === true) {
+  console.log("Valid JSON:");
+} else {
+  console.error("Invalid JSON, attempting to fix:");
+  try {
+    const fixedJson = fixJSON(response);
+    console.debug("Fixed JSON:", fixedJson);
+    response = fixedJson;
+    bFixed = true;
+  } catch (error: any) {
+    console.error("Error fixing JSON:", error.message);
+
+    if (bRetry == true || retries &lt; 3) {
+      retries += 1;
+      console.log(
+        "Retrying since JSON output was not correct, here is what we got:"
+      );
+
+      console.log(`\n\nBAD JSON\n${response}\n\n`);
+
+      return await infer(
+        promptNew,
+        responseMode,
+        responseKey,
+        bPro,
+        false,
+        supplementalData,
+        model
+      );
+    }
+
+    console.warn("Returning error message as JSON -- Please Try Again");
+    return { error: error, original: response } as any;
+  }
+}
+
+try {
+  const res = JSON.parse(response);
+
+  if (bFixed == true) {
+    console.debug(
+      "JSON was fixed! Checking that everything else is OK now."
+    );
+
+    // Check if Object malformed into an Array some how...
+    if (Array.isArray(res) === true &amp;&amp; res.length &gt;= 1) {
+      console.log("This looks like a fixed JSON object!");
+      // if ("classes" in res[0] === false) {
+      //   console.warn("This object does not look correct!");
+      //   console.warn(res);
+      // }
+
+      const newData = res[0];
+
+      // We should check that the fixed JSON object has the same amount of keys as our interface for the object:
+      const keys = Object.keys(newData);
+
+      const expectedKeys: CodeObjects[] = [
+        "classes",
+        "functions",
+        "variables",
+        "types",
+        "interfaces",
+        // "comments",
+        "imports",
+        "exports",
+      ];
+
+      if (keys.length &lt; expectedKeys.length) {
+        console.warn(
+          "This object does not look correct! Attempting to fix:"
+        );
+
+        const fixedData = {} as any;
+        for (const key of expectedKeys) {
+          if (key in newData) {
+            fixedData[key] = newData[key];
+          } else {
+            if (key === "fileName") {
+              fixedData[key] = supplementalData.fileName || "unknown";
+            }
+            if (key === "fileLocation") {
+              fixedData[key] = supplementalData.fileLocation || "unknown";
+            }
+            if (key !== "fileName" &amp;&amp; key !== "fileLocation") {
+              fixedData[key] = [];
+            }
+          }
+        }
+      }
+
+      console.log("JSON should be fixed now...");
+
+      return res[0];
+    } else if (Array.isArray(res) === true) {
+      console.log("This looks like a fixed JSON object, but it is empty!");
+      console.warn(res);
+    }
+  }
+
+  return res;
+} catch (e: any) {
+  console.error("Error parsing JSON:", e);
+  console.warn("Returning error message as JSON -- Please Try Again");
+  return { error: e, original: response } as any;
+}
+</code></pre>
+<p>} else if (responseMode === "YAML object") {
+    response = response.replace("
+<code>yaml", "").replace("
+</code>", "").trim();
+    const res = parseYaml(response);
+    return res;
+  } else {
+    return parseText(response, responseKey);
+  }
+}</p>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-90">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>infer</code> function is an asynchronous function that sends a prompt to a large language model (LLM) and returns the response in the specified format. It handles different LLM backends (Ollama, Vertex AI, OpenAI), manages rate limits, and parses the response into the desired format (JSON, YAML, or plain text).</li>
+<li><strong>Parameters:</strong> - <code>prompt</code>: The prompt to be sent to the LLM.</li>
+<li><code>responseMode</code>: The desired format of the response (JSON object, YAML object, or TEXT STRING). Defaults to "JSON object".</li>
+<li><code>responseKey</code>: The key for the response in the returned object. Only applicable for TEXT STRING responseMode.</li>
+<li><code>bPro</code>: Boolean flag indicating whether to use the professional version of the LLM (if available). Defaults to false.</li>
+<li><code>bRetry</code>: Boolean flag indicating whether to retry the request if an error occurs. Defaults to true.</li>
+<li><code>supplementalData</code>: Optional data to be passed to the LLM. Can be used to provide additional context or information.</li>
+<li><code>model</code>: The name of the LLM model to use. Defaults to <code>textModel</code> (which is set to <code>gemini-1.5-flash-preview-0514</code> in the code).</li>
+<li><strong>Returns:</strong> A Promise that resolves to an object containing the LLM's response in the specified format. The format of the returned object depends on the <code>responseMode</code> parameter.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const response = await infer("What is the capital of France?", "TEXT STRING");
+console.log(response.response); // Output: Paris
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the LLM returns an invalid JSON response, the function attempts to fix it. If the fix fails, it returns an error object with the original response.</li>
+<li>If the rate limit is exceeded, the function waits for a specified duration before retrying the request.</li>
+<li><strong>Dependencies:</strong> - <code>ollama</code> library for interacting with Ollama.</li>
+<li><code>openai</code> library for interacting with OpenAI.</li>
+<li><code>@google-cloud/vertexai</code> library for interacting with Vertex AI.</li>
+<li><code>jsonrepair</code> library for fixing invalid JSON responses.</li>
+<li><code>js-yaml</code> library for parsing YAML responses.</li>
+<li><code>getTokens</code> function from the <code>shared</code> module for calculating the number of tokens in a string.</li>
+</ul>
+<h2 id="getcodesummaryfromllmexport">### 📤 getCodeSummaryFromLLM - EXPORT</h2>
+<p><strong>Description:</strong> Asynchronous function that calls the LLM to summarize a code block and returns a codeSummary object.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>export async function getCodeSummaryFromLLM(
+  codeToSummarize: string,
+  model: string = textModel
+): Promise<codeSummary> {
+  const question = `Summarize the code block below. Mention the goal of the code and any relevant features / functions: 
+  Please respond with a JSON object as follows:
+  {
+    "goal": "String summarizing what the code is about, and the goal",
+    "features_functions": "String describing any relevant features",
+  }</p>
+<p>### Code To Sumnarize:
+  ${codeToSummarize}
+  `;
+  const codeSummary = await infer(
+    question,
+    "JSON object",
+    undefined,
+    false,
+    undefined,
+    undefined,
+    model
+  );
+  return codeSummary;
+}</p>
+<ul>
+<li><strong>Line:</strong> 456</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-91">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>getCodeSummaryFromLLM</code> function is an asynchronous function that utilizes a large language model (LLM) to generate a summary of a given code block. It returns a <code>codeSummary</code> object containing the goal of the code and any relevant features or functions.</li>
+<li><strong>Parameters:</strong> - <code>codeToSummarize</code>: A string representing the code block to be summarized.</li>
+<li><code>model</code>: An optional string specifying the LLM model to use. Defaults to <code>textModel</code> (likely a specific model like <code>gemini-1.5-flash-preview-0514</code>).</li>
+<li><strong>Returns:</strong> A <code>codeSummary</code> object, which is an interface defined in the <code>objectSchemas</code> module. It contains two properties:</li>
+<li><code>goal</code>: A string summarizing the purpose and goal of the code block.</li>
+<li><code>features_functions</code>: A string describing any relevant features or functions within the code block.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeBlock = `
+// This is a simple function to add two numbers
+function add(a: number, b: number): number {
+  return a + b;
+}
+`;
+
+const codeSummary = await getCodeSummaryFromLLM(codeBlock);
+
+console.log(codeSummary); // Output: { goal: 'This code defines a simple function called add that takes two numbers as input and returns their sum.', features_functions: 'The add function is a simple addition function.' }
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The function relies on the LLM's ability to understand and summarize code. If the LLM encounters difficulties in understanding the code, the summary might be inaccurate or incomplete.</li>
+<li><strong>Dependencies:</strong> - <code>infer</code>: An asynchronous function that calls the LLM and returns the response.</li>
+<li><code>codeSummary</code>: An interface defined in the <code>objectSchemas</code> module.</li>
+</ul>
+<h2 id="callllmexport">### 📤 callLLM - EXPORT</h2>
+<p><strong>Description:</strong> Asynchronous function that calls the LLM with a prepared prompt and returns a CodeObject.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export async function callLLM(
+  promptTemplate: string,
+  projectContext: ProjectSummary,
+  code: string,
+  filePath: string,
+  bRAG = false,
+  model: string = textModel
+): Promise&lt;any&gt; {
+  if (bRAG === true) {
+    // Take subset of characters of relevant code
+    const maxChars = 3000;
+    const relevantCode = await searchRAG(projectContext.projectName, code, undefined, AIusageData);
+    if (relevantCode.documentData) {
+      const r =
+        relevantCode.documentData.length &gt; maxChars
+          ? relevantCode.documentData.substring(0, maxChars)
+          : relevantCode.documentData;
+      promptTemplate = promptTemplate.replace("&lt;relevant code&gt;", r);
+    } else {
+      console.log("No relevant code found in RAG")
+      promptTemplate = promptTemplate.replace("&lt;relevant code&gt;", "");
+    }
+  } else {
+    promptTemplate = promptTemplate.replace("&lt;relevant code&gt;", "");
+  }
+
+  // 1. Prepare Prompt
+  const prompt = promptTemplate
+    .replace("&lt;supplemental context&gt;", projectContext.teamContext)
+    .replace("&lt;code snippet&gt;", code)
+    .replace("&lt;file path&gt;", filePath);
+
+  const getFileNameFromPath = (path: string) =&gt; path.split("/").pop() || "";
+  const fileName = getFileNameFromPath(filePath);
+
+  // 1.5 Update our STATS
+  const tokens = getTokens(prompt);
+  AIusageData.totalTokens += tokens;
+  AIusageData.totalCharacters += prompt.length;
+  AIusageData.totalAPIcalls += 1;
+  AIusageData.totalCost += getCostOfAPICall(prompt.length);
+
+  console.log("Total Tokens:", AIusageData.totalTokens);
+  console.log("Total Characters:", AIusageData.totalCharacters);
+  console.log("Total API Calls:", AIusageData.totalAPIcalls);
+
+  console.log(colorize("Total Cost:", "magenta"), AIusageData.totalCost);
+
+  console.info("Cost for Current Call:", "$" + getCostOfAPICall(prompt.length) + " USD");
+
+
+  // 2. Call AI API
+  const response = await infer(
+    prompt,
+    "JSON object",
+    undefined,
+    true,
+    true,
+    {
+      fileLocation: filePath,
+      fileName: fileName,
+    },
+    model
+  ).catch((error) =&gt; {
+    console.error("Error calling API:", error);
+    return { error: error };
+  });
+
+  // IF too many request or rate limit has been hit, we wait 30 seconds and try again
+  if (response.error &amp;&amp; response.error.code === 429) {
+    console.log("Rate Limit Hit, waiting 30 seconds...");
+    await wait(30000);
+    return await callLLM(
+      promptTemplate,
+      projectContext,
+      code,
+      filePath,
+      bRAG,
+      model
+    );
+  }
+
+  AIusageData.totalTokens += getTokens(JSON.stringify(response));
+  AIusageData.totalCharactersOut += JSON.stringify(response).length;
+  AIusageData.totalCost += getCostOfAPICallTextOut(AIusageData.totalCharactersOut);
+
+  // 3. Parse and Validate Response
+  let codeObjects: any = response;
+
+  // 4. Enhance with filePath
+  if (!codeObjects.fileName) codeObjects.fileName = fileName;
+
+    // Update the filePath to be the relative path to the project directory:
+    const projectDir = projectContext.projectLocation
+    const relativePath = filePath.replace(projectDir, "")
+
+
+  if (!codeObjects.fileLocation) codeObjects.fileLocation = relativePath;
+
+  return codeObjects;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 482</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-92">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>callLLM</code> function is responsible for preparing a prompt, calling the LLM (Large Language Model) with the prompt, and parsing the response. It handles various aspects of the interaction with the LLM, including error handling, rate limiting, and tracking usage statistics.</li>
+<li><strong>Parameters:</strong> - <code>promptTemplate</code>: A string containing the prompt template to be used for the LLM call. This template can include placeholders for context, code snippets, and file paths.</li>
+<li><code>projectContext</code>: A <code>ProjectSummary</code> object containing information about the project being analyzed, including its name, location, dependencies, and code files.</li>
+<li><code>code</code>: A string representing the code snippet to be analyzed by the LLM.</li>
+<li><code>filePath</code>: A string representing the path to the file containing the code snippet.</li>
+<li><code>bRAG</code>: A boolean flag indicating whether to use the RAG (Retrieval Augmented Generation) system to provide relevant code snippets from the vector database. Defaults to <code>false</code>.</li>
+<li><code>model</code>: A string representing the name of the LLM model to be used. Defaults to <code>textModel</code>.</li>
+<li><strong>Returns:</strong> The function returns a <code>CodeObject</code> containing the results of the LLM call. This object includes information about the identified code objects, such as classes, functions, variables, and their descriptions.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObjects = await callLLM(promptTemplate, projectContext, code, filePath, true, "gemini-1.5-flash-preview-0514");
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> - If the LLM call fails, the function returns an error object.</li>
+<li>If the rate limit is exceeded, the function waits for 30 seconds and retries the call.</li>
+<li><strong>Dependencies:</strong> - <code>searchRAG</code>: Function to search the vector database for relevant code snippets.</li>
+<li><code>infer</code>: Function to call the LLM with a prompt and parse the response.</li>
+<li><code>getTokens</code>: Function to calculate the number of tokens in a string.</li>
+<li><code>getCostOfAPICall</code>: Function to calculate the cost of an API call based on the character count.</li>
+<li><code>wait</code>: Function to pause execution for a specified duration.</li>
+</ul>
+<h2 id="interfaces">interfaces</h2>
+<h2 id="llmruntimedatainterface">### 🌉 llmRuntimeData - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for storing runtime data related to LLM usage.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export const AIusageData:llmRuntimeData = {
+  totalTokens: 0,
+  totalCharacters: 0,
+  totalCharactersOut: 0,
+  totalCharactersEmbed: 0,
+  totalCost: 0,
+  totalAPIcalls: 0
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 31</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-93">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>llmRuntimeData</code> interface defines the structure for storing runtime data related to LLM usage. This data includes metrics like total tokens, characters, API calls, and costs associated with LLM interactions.</li>
+</ul>
+<h2 id="llm_modesinterface">### 🌉 llm_modes - INTERFACE</h2>
+<p><strong>Description:</strong> Type alias for LLM backend modes.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>type llm_modes = "OLLAMA" | "VERTEX" | "OPENAI";
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 54</li>
+<li><strong>Location:</strong> llmInterface.ts (./src/llmInterface.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-94">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This type alias defines the possible backend modes for the LLM (Large Language Model) used in the application.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const modelBackend: llm_modes = getModelBackend(model);
+</code></pre>
+<h2 id="functionparameterinterface">### 🌉 FunctionParameter - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a function parameter.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface FunctionParameter {
+    name: string;
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-95">Annotations / Comments:</h6>
+<ul>
+<li><p><strong>Purpose:</strong> The <code>FunctionParameter</code> interface defines the structure for representing a function parameter. It includes properties for the parameter's name, type, description, and an example value.</p></li>
+<li><p><strong>Parameters:</strong> The interface has four properties:</p></li>
+<li><p><code>name</code>: A string representing the name of the parameter.</p></li>
+<li><p><code>type</code>: A string representing the data type of the parameter.</p></li>
+<li><p><code>description</code>: A string providing a description of the parameter's purpose.</p></li>
+<li><p><code>example</code>: A string providing an example value for the parameter.</p></li>
+<li><p><strong>Returns:</strong> This interface does not return any value. It is used to define the structure of a function parameter.</p></li>
+<li><p><strong>Usage Example:</strong> </p></li>
+</ul>
+<pre><code class="typescript language-typescript">const functionParameter: FunctionParameter = {
+  name: 'param1',
+  type: 'string',
+  description: 'This is the first parameter',
+  example: 'Hello World'
+};
+</code></pre>
+<h2 id="functionreturninterface">### 🌉 FunctionReturn - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a function return value.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface FunctionReturn {
+    type: string;
+    description: string;
+    example: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-96">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>FunctionReturn</code> interface defines the structure for representing a function's return value. It includes the type, description, and an example of the return value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// Example usage of FunctionReturn interface
+const functionReturn: FunctionReturn = {
+  type: 'string',
+  description: 'This function returns a string',
+  example: 'Hello, world!'
+};
+</code></pre>
+<h2 id="codeobjectinterface">### 🌉 CodeObject - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a code object (class, function, variable, etc.).</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface CodeObject {
+    name: string;
+    type: CodeObjectType;
+    description: string;
+    codeSnippet: string;
+    annotation?: Annotation;
+    codeLine?: number;
+    codeIndent?: number;
+    content?:string;
+    fileName: string;
+    fileLocation: string;
+    subObjects?: CodeObject[];
+    parentObject?: CodeObject;
+    functionParameters?: FunctionParameter[];
+    functionReturns?: FunctionReturn;
+    isExported: boolean;
+    isFunction: boolean;
+    isClass: boolean;
+    isPrivate: boolean;
+    isAsync: boolean;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-97">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>CodeObject</code> interface defines the structure for representing code objects within a project. It includes properties for the object's name, type, description, code snippet, annotation, line number, indentation level, file name, file location, sub-objects, parent object, function parameters, function return values, and various flags indicating its characteristics (exported, function, class, private, async).</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeObject: CodeObject = {
+  name: 'myFunction',
+  type: 'function',
+  description: 'This function does something cool',
+  codeSnippet: 'function myFunction() { ... }',
+  codeLine: 10,
+  codeIndent: 2,
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  isExported: true,
+  isFunction: true,
+  isClass: false,
+  isPrivate: false,
+  isAsync: false
+};
+</code></pre>
+<h2 id="annotationinterface">### 🌉 Annotation - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing annotations for a code object.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface Annotation {
+    purpose: string;
+    parameters?: string;
+    returns?: string;
+    usageExample?: string;
+    edgeCases?: string;
+    dependencies?: string;
+    errorHandling?: string;
+    performance?: string;
+    bestPractices?: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-98">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>Annotation</code> interface defines the structure for storing annotations related to a code object. It provides fields to capture various aspects of the code object, including its purpose, parameters, return values, usage examples, edge cases, dependencies, error handling, performance considerations, and best practices.</li>
+<li><strong>Parameters:</strong> None. The <code>Annotation</code> interface is a data structure and does not have any parameters.</li>
+<li><strong>Returns:</strong> None. The <code>Annotation</code> interface is a data structure and does not return any value.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const annotation: Annotation = {
+  purpose: "This function calculates the sum of two numbers.",
+  parameters: "num1: number, num2: number",
+  returns: "number",
+  usageExample: "const sum = add(1, 2);",
+  edgeCases: "Negative numbers are not supported.",
+  dependencies: "someDependency, anotherDependency",
+  errorHandling: "Throws an error if the input is not a number.",
+  performance: "Optimized for speed.",
+  bestPractices: "Use this function for adding numbers to..."
+};
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> None. The <code>Annotation</code> interface is a data structure and does not have any edge cases.</li>
+<li><strong>Dependencies:</strong> None. The <code>Annotation</code> interface is a data structure and does not have any dependencies.</li>
+</ul>
+<h2 id="globresultinterface">### 🌉 globResult - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing glob results.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface globResult {
+
+        "glob": string[],
+        "ignore": string[]
+
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-99">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>globResult</code> interface defines the structure for storing results from glob operations, which are used to find files matching specific patterns.</li>
+</ul>
+<h2 id="runtimedatainterface">### 🌉 runtimeData - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for storing runtime data.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface runtimeData {
+
+    appVersion: string;
+    projectName: string;
+    projectPath: string;
+    outputPath: string;
+    selectedLLModel: string | undefined;
+    selectedRAGService: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-100">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>runtimeData</code> interface defines the structure for storing runtime data related to the documentation generation process.</li>
+</ul>
+<h2 id="moduleobjectinterface">### 🌉 moduleObject - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a module or package.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface moduleObject {
+    name: string;
+    version: string;
+    description: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-101">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>moduleObject</code> interface defines the structure for representing a module or package. It includes properties for the module's name, version, and description.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myModule: moduleObject = {
+  name: 'my-module',
+  version: '1.0.0',
+  description: 'A useful module',
+};
+</code></pre>
+<h2 id="projectsummaryinterface">### 🌉 ProjectSummary - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a project summary.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface ProjectSummary {
+    projectName: string;
+    projectDescription: codeSummary
+    projectLocation: string;
+    projectTechStackDescription: string,
+    projectDependencies: moduleObject[];
+    codeFiles: CodeFileSummary[];
+    ragData: RagData[];
+    teamContext: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-102">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ProjectSummary</code> interface defines the structure for storing information about a code project. It includes details like the project name, description, location, technology stack, dependencies, code files, RAG data, and team context.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const projectSummary: ProjectSummary = {
+  projectName: 'MyProject',
+  projectDescription: {
+    goal: 'This project aims to...',
+    features_functions: 'It includes features like...'
+  },
+  projectLocation: '/path/to/project',
+  projectTechStackDescription: 'TypeScript, React, Node.js',
+  projectDependencies: [
+    { name: 'react', version: '18.2.0', description: 'A JavaScript library for building user interfaces' },
+    { name: 'express', version: '4.18.2', description: 'A Node.js web application framework' }
+  ],
+  codeFiles: [
+    // ... code file summaries
+  ],
+  ragData: [
+    // ... RAG data
+  ],
+  teamContext: 'This project is developed by...'
+};
+</code></pre>
+<h2 id="modelsinterface">### 🌉 models - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a model.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface models {
+    name: string,
+    model: any,
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-103">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This interface defines the structure for representing a model, which likely includes its name and an associated model object.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const myModel: models = {
+  name: "myModelName",
+  model: // Model object
+};
+</code></pre>
+<h2 id="modelserviceconfiginterface">### 🌉 modelServiceConfig - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a model service configuration.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface modelServiceConfig {
+    models: models[],
+    endpoint?:string 
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-104">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>modelServiceConfig</code> interface defines the configuration for a model service. It specifies the models available in the service and an optional endpoint URL.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const config: modelServiceConfig = {
+  models: [
+    { name: 'gpt-3.5-turbo', model: 'gpt-3.5-turbo' },
+    { name: 'gpt-4', model: 'gpt-4' }
+  ],
+  endpoint: 'https://api.example.com/models'
+};
+</code></pre>
+<h2 id="ragdatainterface">### 🌉 RagData - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing RAG data.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface RagData {
+    metadata: {
+        filename: string;
+        codeChunkId: string|number;
+        codeChunkLineStart: number;
+        codeChunkLineEnd: number;
+        codeObjects: CodeObject;
+        codeChunkSummary: string;
+    };
+    embeddings?: number[][]; // Example: Embeddings could be an array of numbers
+    documentData: any
+    allSearchResults: QueryResponse,
+    allResults: {
+        documents: any,
+        embeddings: Embeddings[] | null,
+        metadatas: (Metadata | null)[][],
+
+    }
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-105">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>RagData</code> interface represents data retrieved from a Retrieval Augmented Generation (RAG) system. It stores metadata about the retrieved document, embeddings (numerical representations of the document), the actual document data, and search results.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const ragData: RagData = {
+  metadata: {
+    filename: 'myFile.ts',
+    codeChunkId: 1,
+    codeChunkLineStart: 10,
+    codeChunkLineEnd: 20,
+    codeObjects: {},
+    codeChunkSummary: 'This code chunk defines a function...'
+  },
+  embeddings: [],
+  documentData: '// This is the code chunk...',
+  allSearchResults: {},
+  allResults: {
+    documents: [],
+    embeddings: [],
+    metadatas: []
+  }
+};
+</code></pre>
+<ul>
+<li><strong>Dependencies:</strong> The <code>RagData</code> interface depends on the <code>CodeObject</code> interface and the <code>QueryResponse</code> type from the <code>chromadb</code> library.</li>
+</ul>
+<h2 id="codesummaryinterface">### 🌉 codeSummary - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a code summary.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface codeSummary {
+    goal: string,
+    features_functions: string,
+  }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-106">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>codeSummary</code> interface defines the structure for storing information about a code snippet's purpose and features.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeSummary: codeSummary = {
+  goal: "This code snippet calculates the sum of two numbers.",
+  features_functions: "The code uses the `add` function to perform the calculation."
+};
+</code></pre>
+<h2 id="codefilesummaryinterface">### 🌉 CodeFileSummary - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a code file summary.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface CodeFileSummary {
+    fileName: string;
+    fileLocation: string;
+    codeSummary: codeSummary;
+    language: string;
+    executionFlow: ExecutionFlow[];
+    codeObjects: CodeObject;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-107">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>CodeFileSummary</code> interface represents a summary of a code file, containing information about its name, location, code summary, language, execution flow, and code objects.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const codeFileSummary: CodeFileSummary = {
+  fileName: 'myFile.ts',
+  fileLocation: './src/myFile.ts',
+  codeSummary: {
+    goal: 'This file implements a function to calculate the sum of two numbers.',
+    features_functions: 'The function takes two numbers as input and returns their sum.'
+  },
+  language: 'TypeScript',
+  executionFlow: [],
+  codeObjects: {
+    functions: [
+      {
+        name: 'add',
+        type: 'function',
+        description: 'Calculates the sum of two numbers.',
+        codeSnippet: 'function add(num1: number, num2: number): number { return num1 + num2; }',
+        codeLine: 10,
+        codeIndent: 2,
+        fileName: 'myFile.ts',
+        fileLocation: './src/myFile.ts',
+        isExported: true,
+        isPrivate: false,
+        isAsync: false,
+        functionParameters: [
+          { name: 'num1', type: 'number', description: 'The first number to add.', example: '1' },
+          { name: 'num2', type: 'number', description: 'The second number to add.', example: '2' }
+        ],
+        functionReturns: { type: 'number', description: 'The sum of the two numbers.', example: '3' }
+      }
+    ]
+  }
+};
+</code></pre>
+<h2 id="executionflowinterface">### 🌉 ExecutionFlow - INTERFACE</h2>
+<p><strong>Description:</strong> Interface for representing a step in the execution flow.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface ExecutionFlow {
+    step: number;
+    stepDescription: string;
+    bImportant: boolean;
+    codeSnippet: string;
+    codeLine: number;
+    codeIndent: number;
+    fileName: string;
+    fileLocation: string;
+}
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> objectSchemas.ts (./src/objectSchemas.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-108">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> The <code>ExecutionFlow</code> interface represents a single step in the execution flow of a code file. It is used to store information about each step, such as its description, importance, code snippet, line number, indentation, and file location.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const executionFlow: ExecutionFlow[] = [
+  {
+    step: 1,
+    stepDescription: 'Initialize variables',
+    bImportant: true,
+    codeSnippet: 'let myVariable = 0;
+let anotherVariable = 'hello';',
+    codeLine: 10,
+    codeIndent: 2,
+    fileName: 'myFile.ts',
+    fileLocation: './src/myFile.ts'
+  },
+  {
+    step: 2,
+    stepDescription: 'Perform calculation',
+    bImportant: false,
+    codeSnippet: 'const result = myVariable + anotherVariable;
+console.log(result);',
+    codeLine: 15,
+    codeIndent: 2,
+    fileName: 'myFile.ts',
+    fileLocation: './src/myFile.ts'
+  }
+];
+</code></pre>

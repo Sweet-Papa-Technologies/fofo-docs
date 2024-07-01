@@ -1,0 +1,14 @@
+{
+  "name": "file-search-module",
+  "version": "0.1.0",
+  "description": "Returns list of files within a directory with abilty to exclude globs",
+  "main": "lib/index.js",
+  "author": "Forrester Terry <fterry@sweetpapatechnologies.com>",
+  "license": "MIT",
+  "dependencies": {
+    "neon-cli": "^0.10.1"
+  },
+  "scripts": {
+    "install": "neon build"
+  }
+}

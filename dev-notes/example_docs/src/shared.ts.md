@@ -1,0 +1,2350 @@
+# src/shared.ts - fofo-docs
+
+**Summary:** This code defines various utility functions for handling text, code, and file operations. It includes functions for calculating API call costs based on character count, breaking code into chunks, getting token counts, colorizing text, making file paths OS-friendly, checking if a value is an array, escaping strings for Markdown, getting context from a file, making strings web-safe, cleaning backticks in code blocks, and removing code blocks from text.
+
+- **File Location:** ./src/shared.ts
+- **Language:** language: TypeScript 
+
+## Table of Contents
+- [functions](#functions)
+- [variables](#variables)
+- [types](#types)
+- [imports](#imports)
+- [exports](#exports)
+- [interfaces](#interfaces)
+## functions
+
+
+### 🔧 getFileContentLen - FUNCTION
+------------------------------------------------------------
+**Description:** This function reads the content of a file at the specified path and returns the length of the content.
+
+**Code Snippet:**
+
+
+```typescript
+export async function getFileContentLen(filePath: string): Promise<number> {
+    return await readFile(filePath, 'utf-8').then(content => content.length);
+}
+```
+
+- **Line:** 10
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** true
+
+
+###### Function Parameters:
+- **filePath** (string): The path to the file to read. 
+ Example: 'path/to/file.txt'
+###### Function Returns:
+- **Type:** number
+- **Description:** The length of the file content.
+- **Example:** 1024
+###### Annotations / Comments:
+- **Purpose:** The `getFileContentLen` function asynchronously reads the content of a file at the specified path and returns the length of the content in characters.
+- **Parameters:** - `filePath`: A string representing the path to the file to read. For example, `'path/to/file.txt'`.
+- **Returns:** - `contentLength`: A number representing the length of the file content in characters. For example, `1024`.
+- **Usage Example:** 
+
+
+```typescript
+const filePath = 'path/to/file.txt';
+const contentLength = await getFileContentLen(filePath);
+console.log(`File content length: ${contentLength}`);
+```
+
+- **Edge Cases:** - If the file does not exist, the function will throw an error.
+- **Dependencies:** - `fs/promises`: Node.js module for asynchronous file system operations.
+
+### 🔧 getCostOfAPICall - FUNCTION
+------------------------------------------------------------
+**Description:** This function calculates the cost of an API call based on the number of characters in the request.
+
+**Code Snippet:**
+
+
+```typescript
+export const getCostOfAPICall = (characters: number): number => {
+    characters = characters / 1000;
+    const cost: number =  typeof API_COST_PER_CHARACTER === 'string' ? parseFloat(API_COST_PER_CHARACTER) : API_COST_PER_CHARACTER;
+    console.debug("Cost of API Call:", cost)
+    return characters * cost;
+}
+```
+
+- **Line:** 14
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **characters** (number): The number of characters in the API request. 
+ Example: 1000
+###### Function Returns:
+- **Type:** number
+- **Description:** The cost of the API call.
+- **Example:** 0.25
+###### Annotations / Comments:
+- **Purpose:** This function calculates the cost of an API call based on the number of characters in the request.
+- **Parameters:** - `characters`: The number of characters in the API request. This is a number representing the character count of the API request.
+- **Returns:** The cost of the API call, which is a number calculated by multiplying the number of characters in the request by the cost per character.
+- **Usage Example:** 
+
+
+```typescript
+const cost = getCostOfAPICall(1000);
+```
+
+- **Dependencies:** - `API_COST_PER_CHARACTER`: This is a constant that defines the cost per character for API calls. It is assumed to be defined elsewhere in the code.
+
+### 🔧 getCostOfAPICallTextOut - FUNCTION
+------------------------------------------------------------
+**Description:** This function calculates the cost of an API call based on the number of characters in the response.
+
+**Code Snippet:**
+
+
+```typescript
+export const getCostOfAPICallTextOut = (characters: number): number => {
+    characters = characters / 1000;
+    const cost: number =  typeof API_COST_PER_CHARACTER_OUT === 'string' ? parseFloat(API_COST_PER_CHARACTER_OUT) : API_COST_PER_CHARACTER_OUT;
+    console.debug("Cost of API Call Text Out:", cost)
+    return characters * cost;
+}
+```
+
+- **Line:** 21
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **characters** (number): The number of characters in the API response. 
+ Example: 1000
+###### Function Returns:
+- **Type:** number
+- **Description:** The cost of the API call.
+- **Example:** 0.75
+###### Annotations / Comments:
+- **Purpose:** This function calculates the cost of an API call based on the number of characters in the response. It divides the character count by 1000 to get the number of thousands of characters, then multiplies that by the cost per thousand characters, which is stored in the `API_COST_PER_CHARACTER_OUT` environment variable.
+- **Parameters:** **characters**: `number` - The number of characters in the API response.
+- **Returns:** **cost**: `number` - The cost of the API call in the same currency as the `API_COST_PER_CHARACTER_OUT` environment variable.
+- **Usage Example:** 
+
+
+```typescript
+const cost = getCostOfAPICallTextOut(1500); // Calculates the cost for 1500 characters
+```
+
+- **Edge Cases:** If the `API_COST_PER_CHARACTER_OUT` environment variable is not set or is invalid, the function will default to using the value `0`.
+- **Dependencies:** The function depends on the `API_COST_PER_CHARACTER_OUT` environment variable to determine the cost per thousand characters.
+
+### 🔧 getCostOfAPICallEmbedding - FUNCTION
+------------------------------------------------------------
+**Description:** This function calculates the cost of an API call based on the number of characters in the embedding request.
+
+**Code Snippet:**
+
+
+```typescript
+export const getCostOfAPICallEmbedding = (characters: number): number => {
+    characters = characters / 1000;
+    const cost: number =  typeof API_COST_PER_EMBEDDING === 'string' ? parseFloat(API_COST_PER_EMBEDDING) : API_COST_PER_EMBEDDING;
+    console.debug("Cost of API Call Embedding:", cost)
+    return characters * cost;
+}
+```
+
+- **Line:** 28
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **characters** (number): The number of characters in the embedding request. 
+ Example: 1000
+###### Function Returns:
+- **Type:** number
+- **Description:** The cost of the API call.
+- **Example:** 0.025
+###### Annotations / Comments:
+- **Purpose:** This function calculates the cost of an API call for embedding text based on the number of characters in the request.
+- **Parameters:** - `characters`: A number representing the number of characters in the embedding request.
+- **Returns:** - `cost`: A number representing the estimated cost of the API call.
+- **Usage Example:** 
+
+
+```typescript
+const cost = getCostOfAPICallEmbedding(1000);
+```
+
+- **Dependencies:** - `API_COST_PER_EMBEDDING`: An environment variable that defines the cost per 1000 characters for embedding.
+
+### 🔧 getTotalLines - FUNCTION
+------------------------------------------------------------
+**Description:** This function counts the number of lines in a given string of code.
+
+**Code Snippet:**
+
+
+```typescript
+export const getTotalLines = (code: string) => code.split('
+').length;
+```
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **code** (string): The string of code to count the lines in. 
+ Example: 'const myVar = 10;
+console.log(myVar);'
+###### Function Returns:
+- **Type:** number
+- **Description:** The number of lines in the code string.
+- **Example:** 2
+###### Annotations / Comments:
+- **Purpose:** The `getTotalLines` function takes a string of code as input and returns the number of lines in the code.
+- **Parameters:** The function accepts one parameter: `code`, which is a string representing the code to be analyzed.
+- **Returns:** The function returns a number representing the total number of lines in the code string.
+- **Usage Example:** 
+
+
+```typescript
+const code = 'const myVar = 10;
+console.log(myVar);';
+const lineCount = getTotalLines(code);
+console.log(lineCount); // Output: 2
+```
+
+- **Edge Cases:** The function assumes that the code string is properly formatted with newline characters (`\n`) separating each line. If the code string does not contain newline characters, the function will return 1, as the entire string will be considered a single line.
+
+### 🔧 breakCodeIntoChunks - FUNCTION
+------------------------------------------------------------
+**Description:** This function breaks a string of code into chunks of a specified size, approximating the token count by splitting on whitespace.
+
+**Code Snippet:**
+
+
+```typescript
+export function breakCodeIntoChunks(code: string, chunkSize: number): string[] {
+    const codeByLine = code.split('
+');
+    const chunks = [];
+    let currentChunk = '';
+    let currentChunkTokenCount = 0;
+
+    for (const line of codeByLine) {
+        const lineTokenCount = line.split(/s+/).length; // Approximate token count by splitting on whitespace
+
+        if (currentChunkTokenCount + lineTokenCount <= chunkSize) {
+            currentChunk += line + '
+';
+            currentChunkTokenCount += lineTokenCount;
+        } else {
+            chunks.push(currentChunk);
+            currentChunk = line + '
+';
+            currentChunkTokenCount = lineTokenCount;
+        }
+    }
+
+    if (currentChunk) {
+        chunks.push(currentChunk);
+    }
+
+    return chunks;
+}
+```
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **code** (string): The string of code to break into chunks. 
+ Example: 'const myVar = 10;
+console.log(myVar);'
+- **chunkSize** (number): The desired size of each chunk, in terms of approximate token count. 
+ Example: 1000
+###### Function Returns:
+- **Type:** string[]
+- **Description:** An array of code chunks.
+- **Example:** ['const myVar = 10;
+', 'console.log(myVar);']
+###### Annotations / Comments:
+- **Purpose:** The `breakCodeIntoChunks` function divides a code string into smaller chunks of a specified size, aiming to manage the token count for processing by a language model. It achieves this by splitting the code into lines and then iterating through each line, adding it to a current chunk until the approximate token count of the chunk exceeds the specified `chunkSize`. Once the limit is reached, the current chunk is pushed into an array, and a new chunk is started. This process continues until all lines of code have been processed.
+- **Parameters:** - `code`: A string representing the code to be chunked.
+- `chunkSize`: An integer representing the desired size of each chunk, in terms of approximate token count. This is determined by splitting the code on whitespace.
+- **Returns:** The function returns an array of strings, where each string represents a code chunk.
+- **Usage Example:** 
+
+
+```typescript
+const code = `
+const myVar = 10;
+console.log(myVar);
+`;
+const chunks = breakCodeIntoChunks(code, 1000);
+console.log(chunks);
+```
+
+- **Edge Cases:** The function uses a simple whitespace-based token count approximation, which might not be entirely accurate for all languages and code styles. It's important to consider the specific tokenization rules of the language model being used when determining the `chunkSize`.
+
+### 🔧 getTokens - FUNCTION
+------------------------------------------------------------
+**Description:** This function counts the number of tokens in a given string of code by splitting on whitespace.
+
+**Code Snippet:**
+
+
+```typescript
+export function getTokens(code: string): number {
+    return code.split(' ').length
+}
+```
+
+- **Line:** 63
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **code** (string): The string of code to count the tokens in. 
+ Example: 'const myVar = 10;
+console.log(myVar);'
+###### Function Returns:
+- **Type:** number
+- **Description:** The number of tokens in the code string.
+- **Example:** 6
+###### Annotations / Comments:
+- **Purpose:** The `getTokens` function counts the number of tokens in a given string of code by splitting the string on whitespace.
+- **Parameters:** The function takes a single parameter, `code`, which is a string representing the code to be analyzed.
+- **Returns:** The function returns a number representing the total number of tokens found in the code string.
+- **Usage Example:** 
+
+
+```typescript
+const code = 'const myVar = 10;
+console.log(myVar);';
+const tokenCount = getTokens(code);
+console.log(tokenCount); // Output: 6
+```
+
+- **Edge Cases:** The function assumes that tokens are separated by whitespace. It does not account for other token delimiters, such as commas or semicolons.
+
+### 🔧 colorize - FUNCTION
+------------------------------------------------------------
+**Description:** This function applies ANSI color codes to a given string of text.
+
+**Code Snippet:**
+
+
+```typescript
+export function colorize(text: string, color: Color): string {
+    return `${colors[color]}${text}${reset}`.trim()
+}
+```
+
+- **Line:** 82
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **text** (string): The text to colorize. 
+ Example: 'Hello, world!'
+- **color** (Color): The desired color for the text. 
+ Example: 'green'
+###### Function Returns:
+- **Type:** string
+- **Description:** The colorized text.
+- **Example:** [32mHello, world![0m
+###### Annotations / Comments:
+- **Purpose:** The `colorize` function takes a string of text and a color as input and applies ANSI color codes to the text, returning the colorized string.
+- **Parameters:** - `text`: A string representing the text to be colorized.
+- `color`: A string representing the desired color for the text. It should be one of the following values: 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'.
+- **Returns:** The function returns a string containing the colorized text. The colorized text is achieved by wrapping the input text with ANSI escape sequences that define the desired color.
+- **Usage Example:** 
+
+
+```typescript
+const coloredText = colorize('Hello, world!', 'green');
+console.log(coloredText); // Output: [32mHello, world![0m
+```
+
+- **Edge Cases:** If an invalid color is provided, the function will likely return the text without any color applied. This is because the `colors` object does not have a corresponding ANSI escape sequence for the invalid color.
+- **Dependencies:** The function relies on the `colors` object, which defines ANSI color codes, and the `reset` variable, which represents the ANSI reset code.
+
+### 🔧 makeOSpathFriendly - FUNCTION
+------------------------------------------------------------
+**Description:** This function converts a string to a path that is compatible with the current operating system.
+
+**Code Snippet:**
+
+
+```typescript
+export const makeOSpathFriendly = (str: string) => {
+    const listOfNoNoChars = ['<', '>', ':', '"', '|', '?', '*'];
+    const platform = process.platform;
+
+    if (platform === 'win32') {
+        str = str.replace(/\/g, '\');
+    } else {
+        str = str.replace(/\/g, '/');
+    }
+
+    for (const char of listOfNoNoChars) {
+        str = str.replace(char, '_');
+    }
+    return str;
+}
+```
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **str** (string): The string to convert to an OS-compatible path. 
+ Example: 'path/to/file.txt'
+###### Function Returns:
+- **Type:** string
+- **Description:** The OS-compatible path string.
+- **Example:** 'path\to\file.txt'
+###### Annotations / Comments:
+- **Purpose:** The `makeOSpathFriendly` function takes a string as input and converts it to a path that is compatible with the current operating system. This is important for ensuring that file paths are handled correctly across different platforms, such as Windows and macOS.
+- **Parameters:** The function takes a single parameter, `str`, which is a string representing the path to be converted.
+- **Returns:** The function returns a string representing the OS-compatible path. It replaces forward slashes with backslashes on Windows and vice versa on other platforms. It also replaces characters that are not allowed in file names with underscores.
+- **Usage Example:** 
+
+
+```typescript
+const filePath = 'path/to/file.txt';
+const osPath = makeOSpathFriendly(filePath);
+// osPath will be 'path\to\file.txt' on Windows and 'path/to/file.txt' on other platforms
+```
+
+- **Edge Cases:** The function handles edge cases by replacing characters that are not allowed in file names with underscores. This ensures that the resulting path is valid on the current operating system.
+- **Dependencies:** The function uses the `process.platform` property to determine the current operating system.
+
+### 🔧 isArray - FUNCTION
+------------------------------------------------------------
+**Description:** This function checks if a given value is an array.
+
+**Code Snippet:**
+
+
+```typescript
+export function isArray(value: any): value is any[] {
+    return Array.isArray(value);
+}
+```
+
+- **Line:** 103
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **value** (any): The value to check. 
+ Example: '[1, 2, 3]'
+###### Function Returns:
+- **Type:** boolean
+- **Description:** True if the value is an array, false otherwise.
+- **Example:** true
+###### Annotations / Comments:
+- **Purpose:** The `isArray` function checks if a given value is an array using the built-in `Array.isArray` method.
+- **Parameters:** The function takes one parameter, `value`, which represents the value to be checked. The parameter type is `any`, indicating that it can accept any type of value.
+- **Returns:** The function returns a boolean value. It returns `true` if the `value` is an array, and `false` otherwise.
+- **Usage Example:** 
+
+
+```typescript
+const isArrayResult = isArray([1, 2, 3]); // isArrayResult will be true
+const isNotArrayResult = isArray('hello'); // isNotArrayResult will be false
+```
+
+
+### 🔧 escapeStringForMD - FUNCTION
+------------------------------------------------------------
+**Description:** This function escapes backticks in a string to prevent them from being interpreted as code blocks in Markdown.
+
+**Code Snippet:**
+
+
+```typescript
+export function escapeStringForMD(string:string|undefined){
+    if (typeof string != 'string'){
+        return "Data Not Available"
+    }
+
+    const backtickCount = (string.match(/`/g) || []).length;
+  
+    // If the number of backticks is odd, it means they're not properly closed
+    if (backtickCount % 2 !== 0) {
+      // Escape all backticks
+      return string.replace(/`/g, '\`')
+    }
+
+    return string;  
+}
+```
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **string** (string | undefined): The string to escape. 
+ Example: 'This string has backticks: \`'
+###### Function Returns:
+- **Type:** string
+- **Description:** The string with escaped backticks.
+- **Example:** 'This string has backticks: \\`'
+###### Annotations / Comments:
+- **Purpose:** The `escapeStringForMD` function is designed to prevent backticks from being interpreted as code blocks within Markdown text. It achieves this by escaping any backticks found within the input string.
+- **Parameters:** - `string`: This parameter represents the string that needs to be processed for backtick escaping. It can be either a string or undefined. If undefined, the function returns 'Data Not Available'.
+- **Returns:** - `escapedString`: This is the output of the function, returning a string where all backticks have been escaped with a backslash (`\`) to prevent them from being interpreted as code block delimiters in Markdown.
+- **Usage Example:** 
+
+
+```typescript
+const myString = 'This string has backticks: `';
+const escapedString = escapeStringForMD(myString);
+// escapedString will be: 'This string has backticks: \`'
+```
+
+- **Edge Cases:** - If the input string is undefined, the function returns 'Data Not Available'.
+- If the number of backticks in the input string is odd, it indicates that the backticks are not properly closed. In this case, all backticks are escaped to prevent potential Markdown parsing issues.
+
+### 🔧 getContextFromFile - FUNCTION
+------------------------------------------------------------
+**Description:** This function reads the content of a context file, either from the specified environment variable or from a default path.
+
+**Code Snippet:**
+
+
+```typescript
+export function getContextFromFile() {
+    const contextFile = (process.env.CONTEXT_FILE === '' || !process.env.CONTEXT_FILE) ? "./prompts/teamContext.md" : (process.env.CONTEXT_FILE || "./prompts/teamContext.md");
+    console.log("Looking for Context File at Path:", contextFile)
+    try {
+      if (!fs.existsSync(contextFile)) {
+        throw new Error("Context File Not Found!");
+      }
+      return fs.readFileSync(contextFile, "utf-8");
+    } catch (err) {
+      console.warn("Context File Not Loaded! Using Default Context");
+      return "N/A";
+    }
+  }
+
+  export function makeWebSafe(str: string): string {
+    return str.replace(/[^a-zA-Z0-9]/g, "_");
+  }
+
+  export function cleanBackticks(input: string): string {
+    const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c\+\+', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
+  
+    // Escape special characters in language names
+    const escapedLanguages = languages.map(lang => lang.replace(/[.*+?^${}()|[]\]/g, '\$&'));
+  
+    // Check if the input starts with a language identifier without backticks
+    const languageStartRegex = new RegExp(`^(${escapedLanguages.join('|')})\s*[
+]`, 'i');
+    const match = input.match(languageStartRegex);
+    
+    if (match) {
+      const lang = match[1].toLowerCase();
+      input = 
+````${lang}
+${input.slice(match[0].length)}`;
+    }
+  
+    // Add closing backticks if missing
+    if (input.startsWith('
+```') && !input.trim().endsWith('
+```')) {
+      input = input.trimEnd() + '
+```';
+    }
+  
+    // Fix language specifier on newline
+    const incorrectFormatRegex = new RegExp(
+````\s*[\n\r]+(${escapedLanguages.join('|')})\s*[\n\r]+`, 'gi');
+    input = input.replace(incorrectFormatRegex, (match, lang) => 
+````${lang.toLowerCase()}
+`);
+  
+    // IF closing backticks are not by themselves on a line, move them to a new line
+    input = input.replace(/
+```/g, '
+```');
+
+    // Remove extra newlines after opening backticks and before closing backticks
+    input = input.replace(/
+```(w+)s*[
+]+/g, '
+```$1
+');
+    input = input.replace(/[
+]+
+```/g, '
+```');
+
+
+  
+    return input;
+  }
+//   export function cleanBackticks(input: string): string {
+
+    // OK, we seem to have proper backticks, let's check to make sure the code header for the code block is present
+   
+    // const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c++', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
+  
+    // languages.forEach((lang) => {
+    //     const badFormatting = '
+```
+' + lang
+    //     const alsoBadFormatting = '
+```
+' + lang
+    //     const thisIsAlsoBadFormatting = '
+```' + lang
+    //     const thisIsREALLYbadFormatting = lang + "\n"
+    //     const correctFormatting = '
+```' + lang + "\n";
+
+    //     if (input.includes(thisIsREALLYbadFormatting) && !input.includes(correctFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${thisIsREALLYbadFormatting} with ${correctFormatting}`);
+    //         input = input.replace(thisIsREALLYbadFormatting, correctFormatting);
+    //     }
+
+    //     if (input.includes(badFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${badFormatting} with ${correctFormatting}`);
+    //         input = input.replace(badFormatting, correctFormatting);
+    //     }
+
+    //     if (input.includes(alsoBadFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${alsoBadFormatting} with ${correctFormatting}`);
+    //         input = input.replace(alsoBadFormatting, correctFormatting);
+    //     }
+
+    //     if (input.includes(thisIsAlsoBadFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${thisIsAlsoBadFormatting} with ${correctFormatting}`);
+    //         input = input.replace(thisIsAlsoBadFormatting, correctFormatting);
+    //     }
+
+
+    // }
+
+// )
+
+    // // Count the number of backticks
+    // const backtickCount = (input.match(/`/g) || []).length;
+  
+    // // If the number of backticks is odd, it means they're not properly closed
+    // if (backtickCount % 2 !== 0) {
+    //   // Remove all backticks
+    //   return input.replace(/`/g, '');
+    // }
+
+    // // Escape any backticks that are NOT at the beginning or end of the string
+    // input = input.replace(/([^`])`([^`])/g, '$1\`$2');
+
+    // // Escape any code block headers that are not at the beginning of the string
+    // // input = input.replace(/([^`])
+```/g, '$1\`\`\`');
+
+    // // If backticks are properly closed, return the original string
+    // return input;
+  // }
+
+  export function removeCodeBlockIfPresent(input: string): string {
+    console.debug("Removing code block if present:");
+    console.debug("Input:", input)
+
+    const codeBlockRegex = /^(
+```)?\n?.*?\n/g;
+    const codeBlockRegex2 = /
+```/g;
+    input = input.replace(codeBlockRegex, '');
+    input = input.replace(codeBlockRegex2, '');
+    input = input.trim();
+
+    console.debug("Output:", input)
+
+    return input;
+  }
+```
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Returns:
+- **Type:** string
+- **Description:** The content of the context file.
+- **Example:** This is the team context.
+###### Annotations / Comments:
+- **Purpose:** This function reads the content of a context file, either from the specified environment variable `CONTEXT_FILE` or from a default path (`./prompts/teamContext.md`).
+- **Returns:** The content of the context file as a string. If the file is not found, it returns "N/A".
+- **Usage Example:** 
+
+
+```typescript
+const context = getContextFromFile();
+console.log(context);
+```
+
+- **Edge Cases:** If the `CONTEXT_FILE` environment variable is not set or is empty, the function will use the default path (`./prompts/teamContext.md`). If the file is not found at either location, the function will return "N/A".
+- **Dependencies:** The function depends on the `fs` module for file system operations.
+
+### 🔧 makeWebSafe - FUNCTION
+------------------------------------------------------------
+**Description:** This function converts a string to a web-safe string by replacing all non-alphanumeric characters with underscores.
+
+**Code Snippet:**
+
+
+```typescript
+  export function makeWebSafe(str: string): string {
+    return str.replace(/[^a-zA-Z0-9]/g, "_");
+  }
+```
+
+- **Line:** 137
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **str** (string): The string to convert to a web-safe string. 
+ Example: 'This is a string with spaces.'
+###### Function Returns:
+- **Type:** string
+- **Description:** The web-safe string.
+- **Example:** 'This_is_a_string_with_underscores.'
+###### Annotations / Comments:
+- **Purpose:** The `makeWebSafe` function takes a string as input and converts it to a web-safe string by replacing all non-alphanumeric characters with underscores. This is useful for creating URLs, file names, or other identifiers that need to be safe for use on the web.
+- **Parameters:** The function takes a single parameter, `str`, which is a string representing the input string to be converted.
+- **Returns:** The function returns a string representing the web-safe version of the input string.
+- **Usage Example:** 
+
+
+```typescript
+const webSafeString = makeWebSafe('This is a string with spaces.');
+console.log(webSafeString); // Output: 'This_is_a_string_with_underscores.'
+```
+
+- **Edge Cases:** The function does not handle any specific edge cases. It simply replaces all non-alphanumeric characters with underscores.
+- **Dependencies:** The function does not have any external dependencies.
+
+### 🔧 cleanBackticks - FUNCTION
+------------------------------------------------------------
+**Description:** This function cleans up backticks in a string, ensuring proper code block formatting and escaping.
+
+**Code Snippet:**
+
+
+```typescript
+  export function cleanBackticks(input: string): string {
+    const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c\+\+', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
+  
+    // Escape special characters in language names
+    const escapedLanguages = languages.map(lang => lang.replace(/[.*+?^${}()|[]\]/g, '\$&'));
+  
+    // Check if the input starts with a language identifier without backticks
+    const languageStartRegex = new RegExp(`^(${escapedLanguages.join('|')})\s*[
+]`, 'i');
+    const match = input.match(languageStartRegex);
+    
+    if (match) {
+      const lang = match[1].toLowerCase();
+      input = 
+````${lang}
+${input.slice(match[0].length)}`;
+    }
+  
+    // Add closing backticks if missing
+    if (input.startsWith('
+```') && !input.trim().endsWith('
+```')) {
+      input = input.trimEnd() + '
+```';
+    }
+  
+    // Fix language specifier on newline
+    const incorrectFormatRegex = new RegExp(
+````\s*[\n\r]+(${escapedLanguages.join('|')})\s*[\n\r]+`, 'gi');
+    input = input.replace(incorrectFormatRegex, (match, lang) => 
+````${lang.toLowerCase()}
+`);
+  
+    // IF closing backticks are not by themselves on a line, move them to a new line
+    input = input.replace(/
+```/g, '
+```');
+
+    // Remove extra newlines after opening backticks and before closing backticks
+    input = input.replace(/
+```(w+)s*[
+]+/g, '
+```$1
+');
+    input = input.replace(/[
+]+
+```/g, '
+```');
+
+
+  
+    return input;
+  }
+//   export function cleanBackticks(input: string): string {
+
+    // OK, we seem to have proper backticks, let's check to make sure the code header for the code block is present
+   
+    // const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c++', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
+  
+    // languages.forEach((lang) => {
+    //     const badFormatting = '
+```
+' + lang
+    //     const alsoBadFormatting = '
+```
+' + lang
+    //     const thisIsAlsoBadFormatting = '
+```' + lang
+    //     const thisIsREALLYbadFormatting = lang + "\n"
+    //     const correctFormatting = '
+```' + lang + "\n";
+
+    //     if (input.includes(thisIsREALLYbadFormatting) && !input.includes(correctFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${thisIsREALLYbadFormatting} with ${correctFormatting}`);
+    //         input = input.replace(thisIsREALLYbadFormatting, correctFormatting);
+    //     }
+
+    //     if (input.includes(badFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${badFormatting} with ${correctFormatting}`);
+    //         input = input.replace(badFormatting, correctFormatting);
+    //     }
+
+    //     if (input.includes(alsoBadFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${alsoBadFormatting} with ${correctFormatting}`);
+    //         input = input.replace(alsoBadFormatting, correctFormatting);
+    //     }
+
+    //     if (input.includes(thisIsAlsoBadFormatting)) {
+    //         console.debug(`Replacing bad formatting: ${thisIsAlsoBadFormatting} with ${correctFormatting}`);
+    //         input = input.replace(thisIsAlsoBadFormatting, correctFormatting);
+    //     }
+
+
+    // }
+
+// )
+
+    // // Count the number of backticks
+    // const backtickCount = (input.match(/`/g) || []).length;
+  
+    // // If the number of backticks is odd, it means they're not properly closed
+    // if (backtickCount % 2 !== 0) {
+    //   // Remove all backticks
+    //   return input.replace(/`/g, '');
+    // }
+
+    // // Escape any backticks that are NOT at the beginning or end of the string
+    // input = input.replace(/([^`])`([^`])/g, '$1\`$2');
+
+    // // Escape any code block headers that are not at the beginning of the string
+    // // input = input.replace(/([^`])
+```/g, '$1\`\`\`');
+
+    // // If backticks are properly closed, return the original string
+    // return input;
+  // }
+
+  export function removeCodeBlockIfPresent(input: string): string {
+    console.debug("Removing code block if present:");
+    console.debug("Input:", input)
+
+    const codeBlockRegex = /^(
+```)?\n?.*?\n/g;
+    const codeBlockRegex2 = /
+```/g;
+    input = input.replace(codeBlockRegex, '');
+    input = input.replace(codeBlockRegex2, '');
+    input = input.trim();
+
+    console.debug("Output:", input)
+
+    return input;
+  }
+```
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **input** (string): The string to clean up. 
+ Example: '```javascript
+console.log('Hello, world!');
+```'
+###### Function Returns:
+- **Type:** string
+- **Description:** The string with cleaned up backticks.
+- **Example:** 'console.log('Hello, world!');'
+###### Annotations / Comments:
+- **Purpose:** The `cleanBackticks` function is designed to ensure proper code block formatting and escaping within a string. It handles various scenarios related to backtick usage, including language identification, code block closure, and formatting inconsistencies.
+- **Parameters:** The function takes a single parameter, `input`, which is a string representing the text that needs to be cleaned up.
+- **Returns:** The function returns a string with cleaned up backticks, ensuring proper code block formatting and escaping.
+- **Usage Example:** 
+
+
+```typescript
+const input = 
+````javascript
+console.log('Hello, world!');
+````;
+const cleanedInput = cleanBackticks(input);
+console.log(cleanedInput); // Output: 'console.log('Hello, world!');'
+```
+
+- **Edge Cases:** The function handles various edge cases, including:
+- Missing closing backticks: If the input starts with ````` but doesn't end with `````, the function adds the closing backticks.
+- Incorrect language specifier on newline: If the language specifier is on a separate line after the opening backticks, the function fixes the formatting.
+- Backticks not on their own line: If the closing backticks are not on their own line, the function moves them to a new line.
+- **Dependencies:** The function uses regular expressions to identify and manipulate the backticks and language specifiers within the input string.
+
+### 🔧 removeCodeBlockIfPresent - FUNCTION
+------------------------------------------------------------
+**Description:** This function removes any code blocks from a string, if present.
+
+**Code Snippet:**
+
+
+```typescript
+  export function removeCodeBlockIfPresent(input: string): string {
+    console.debug("Removing code block if present:");
+    console.debug("Input:", input)
+
+    const codeBlockRegex = /^(
+```)?\n?.*?\n/g;
+    const codeBlockRegex2 = /
+```/g;
+    input = input.replace(codeBlockRegex, '');
+    input = input.replace(codeBlockRegex2, '');
+    input = input.trim();
+
+    console.debug("Output:", input)
+
+    return input;
+  }
+```
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+- **Async:** false
+
+
+###### Function Parameters:
+- **input** (string): The string to remove code blocks from. 
+ Example: '```javascript
+console.log('Hello, world!');
+```'
+###### Function Returns:
+- **Type:** string
+- **Description:** The string with code blocks removed.
+- **Example:** 'console.log('Hello, world!');'
+###### Annotations / Comments:
+- **Purpose:** The `removeCodeBlockIfPresent` function removes any code blocks from a given input string. It uses regular expressions to identify and remove code blocks, which are typically enclosed in backticks () and may span multiple lines.
+- **Parameters:** The function takes a single parameter, `input`, which is a string representing the text to be cleaned.
+- **Returns:** The function returns a string with all code blocks removed. The returned string is trimmed to remove any leading or trailing whitespace.
+- **Usage Example:** 
+
+
+```typescript
+const input = `This is a string with a code block:
+```javascript
+console.log('Hello, world!');
+```
+
+const cleanedInput = removeCodeBlockIfPresent(input);
+
+console.log(cleanedInput); // Output: 'This is a string with a code block:'
+```
+
+- **Edge Cases:** The function assumes that code blocks are enclosed in backticks (\`\`\`) and may span multiple lines. It does not handle nested code blocks or code blocks that are not properly formatted.
+## variables
+
+
+### 🧮 API_COST_PER_CHARACTER - VARIABLE
+------------------------------------------------------------
+**Description:** The cost per character for API calls.
+
+**Code Snippet:**
+```
+export const API_COST_PER_CHARACTER = process.env.API_COST_PER_CHARACTER || 0.00025;
+```
+- **Line:** 6
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This constant defines the cost per character for API calls. It is used to calculate the cost of API calls based on the number of characters in the request.
+- **Usage Example:** 
+
+
+```typescript
+const apiCost = API_COST_PER_CHARACTER * request.length;
+```
+
+- **Dependencies:** process.env.API_COST_PER_CHARACTER
+
+### 🧮 API_COST_PER_CHARACTER_OUT - VARIABLE
+------------------------------------------------------------
+**Description:** The cost per character for API calls that output text.
+
+**Code Snippet:**
+```
+export const API_COST_PER_CHARACTER_OUT = process.env.API_COST_PER_CHARACTER_OUT || 0.00075;
+```
+- **Line:** 7
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines the cost per character for API calls that output text. It is set to 0.00075 by default, but can be overridden by the environment variable `API_COST_PER_CHARACTER_OUT`.
+- **Usage Example:** 
+
+
+```typescript
+const cost = API_COST_PER_CHARACTER_OUT * text.length;
+```
+
+- **Dependencies:** process.env
+
+### 🧮 API_COST_PER_EMBEDDING - VARIABLE
+------------------------------------------------------------
+**Description:** The cost per character for API calls that embed text.
+
+**Code Snippet:**
+```
+export const API_COST_PER_EMBEDDING = process.env.API_COST_PER_EMBEDDING || 0.000025;
+```
+- **Line:** 8
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines the cost per character for API calls that embed text. It is used to calculate the cost of embedding text for various purposes, such as searching or storing text in a vector database.
+- **Usage Example:** 
+
+
+```typescript
+const cost = API_COST_PER_EMBEDDING * text.length;
+```
+
+- **Dependencies:** process.env.API_COST_PER_EMBEDDING
+
+### 🧮 codeByLine - VARIABLE
+------------------------------------------------------------
+**Description:** An array of code lines.
+
+**Code Snippet:**
+```
+const codeByLine = code.split('
+');
+```
+- **Line:** 38
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores an array of strings, each representing a line of code from the input code string.
+- **Usage Example:** 
+
+
+```typescript
+const code = "line 1\nline 2\nline 3";
+const codeByLine = code.split('\n');
+// codeByLine will be an array: ["line 1", "line 2", "line 3"]
+```
+
+
+### 🧮 chunks - VARIABLE
+------------------------------------------------------------
+**Description:** An array of code chunks.
+
+**Code Snippet:**
+```
+const chunks = [];
+```
+- **Line:** 39
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable is used to store an empty array that will later be populated with code chunks.
+- **Usage Example:** 
+
+
+```typescript
+const code = `
+// Some code
+`;
+const chunks = breakCodeIntoChunks(code, 1000);
+```
+
+
+### 🧮 currentChunk - VARIABLE
+------------------------------------------------------------
+**Description:** The current code chunk being processed.
+
+**Code Snippet:**
+```
+let currentChunk = '';
+```
+- **Line:** 40
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `currentChunk` variable is used to store the current code chunk being processed within the `breakCodeIntoChunks` function. It accumulates lines of code until the token count exceeds the specified `chunkSize`, at which point the accumulated chunk is pushed into the `chunks` array.
+- **Usage Example:** 
+
+
+```typescript
+// Example usage within the breakCodeIntoChunks function:
+const codeByLine = code.split('\n');
+const chunks = [];
+let currentChunk = ''; // Initialize the variable
+let currentChunkTokenCount = 0;
+
+for (const line of codeByLine) {
+  // ...
+  if (currentChunkTokenCount + lineTokenCount <= chunkSize) {
+    currentChunk += line + '\n'; // Accumulate lines into currentChunk
+    // ...
+  } else {
+    chunks.push(currentChunk); // Push the accumulated chunk
+    currentChunk = line + '\n'; // Reset currentChunk
+    // ...
+  }
+}
+
+// ...
+```
+
+
+### 🧮 currentChunkTokenCount - VARIABLE
+------------------------------------------------------------
+**Description:** The number of tokens in the current code chunk.
+
+**Code Snippet:**
+```
+let currentChunkTokenCount = 0;
+```
+- **Line:** 41
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable keeps track of the number of tokens in the current code chunk being processed.
+
+### 🧮 lineTokenCount - VARIABLE
+------------------------------------------------------------
+**Description:** The number of tokens in the current line of code.
+
+**Code Snippet:**
+```
+const lineTokenCount = line.split(/s+/).length; // Approximate token count by splitting on whitespace
+```
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores the number of tokens in the current line of code.
+
+### 🧮 colors - VARIABLE
+------------------------------------------------------------
+**Description:** An object containing ANSI color codes.
+
+**Code Snippet:**
+```
+const colors: { [key in Color]: string } = {
+```
+- **Line:** 69
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `colors` variable defines an object containing ANSI color codes for use in the application's logging system.
+- **Usage Example:** 
+
+
+```typescript
+console.log(colors.blue("This text will be blue"));
+```
+
+
+### 🧮 reset - VARIABLE
+------------------------------------------------------------
+**Description:** The ANSI reset code.
+
+**Code Snippet:**
+```
+const reset = 'x1b[0m';
+```
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines the ANSI reset code, which is used to reset the terminal's text formatting to its default state.
+- **Usage Example:** 
+
+
+```typescript
+console.log(colorize('This is blue text', 'blue')); // Prints blue text
+console.log(reset); // Resets text formatting to default
+console.log('This is default text'); // Prints default text
+```
+
+
+### 🧮 listOfNoNoChars - VARIABLE
+------------------------------------------------------------
+**Description:** An array of characters that are not allowed in file names.
+
+**Code Snippet:**
+```
+const listOfNoNoChars = ['<', '>', ':', '"', '|', '?', '*'];
+```
+- **Line:** 88
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines an array of characters that are not allowed in file names. This is used to make file names OS-friendly by replacing these characters with underscores.
+
+### 🧮 platform - VARIABLE
+------------------------------------------------------------
+**Description:** The current operating system platform.
+
+**Code Snippet:**
+```
+const platform = process.platform;
+```
+- **Line:** 89
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores the current operating system platform using the `process.platform` property.
+
+### 🧮 char - VARIABLE
+------------------------------------------------------------
+**Description:** The current character being replaced.
+
+**Code Snippet:**
+```
+for (const char of listOfNoNoChars) {
+```
+- **Line:** 97
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable represents the current character being replaced in the `makeOSpathFriendly` function.
+
+### 🧮 contextFile - VARIABLE
+------------------------------------------------------------
+**Description:** The path to the context file.
+
+**Code Snippet:**
+```
+const contextFile = (process.env.CONTEXT_FILE === '' || !process.env.CONTEXT_FILE) ? "./prompts/teamContext.md" : (process.env.CONTEXT_FILE || "./prompts/teamContext.md");
+```
+- **Line:** 124
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines the path to the context file, which is used to provide additional information to the language model.
+- **Usage Example:** 
+
+
+```typescript
+const context = getContextFromFile();
+```
+
+- **Edge Cases:** If the environment variable `CONTEXT_FILE` is not set or is empty, the default path `./prompts/teamContext.md` is used.
+- **Dependencies:** The code depends on the `process.env` object to access environment variables and the `fs` module to read files.
+
+### 🧮 err - VARIABLE
+------------------------------------------------------------
+**Description:** The error that occurred.
+
+**Code Snippet:**
+```
+} catch (err) {
+```
+- **Line:** 131
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable captures the error object in a `catch` block, allowing for error handling and potential logging or reporting.
+
+### 🧮 backtickCount - VARIABLE
+------------------------------------------------------------
+**Description:** The number of backticks in the string.
+
+**Code Snippet:**
+
+const backtickCount = (string.match(/`/g) || []).length;
+
+- **Line:** 112
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This code snippet counts the number of backticks (\`) in a given string.
+- **Parameters:** string: The string to count backticks in.
+- **Returns:** The number of backticks in the string.
+- **Usage Example:** 
+
+
+```typescript
+const stringWithBackticks = "This string has `backticks`.";
+const backtickCount = (stringWithBackticks.match(/`/g) || []).length;
+console.log(backtickCount); // Output: 2
+```
+
+- **Edge Cases:** If the string does not contain any backticks, the function will return 0.
+
+### 🧮 lang - VARIABLE
+------------------------------------------------------------
+**Description:** The programming language of the code block.
+
+**Code Snippet:**
+```
+const lang = match[1].toLowerCase();
+```
+- **Line:** 152
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores the programming language of the code block, converted to lowercase.
+- **Usage Example:** 
+
+
+```typescript
+const lang = match[1].toLowerCase();
+```
+
+
+### 🧮 match - VARIABLE
+------------------------------------------------------------
+**Description:** The result of the regex match.
+
+**Code Snippet:**
+```
+const match = input.match(languageStartRegex);
+```
+- **Line:** 149
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable stores the result of a regular expression match on the `input` string using the `languageStartRegex` pattern.
+- **Edge Cases:** If the `languageStartRegex` pattern does not match the `input` string, the `match` variable will be `null`.
+- **Dependencies:** The `languageStartRegex` variable is likely defined elsewhere in the code.
+
+### 🧮 languageStartRegex - VARIABLE
+------------------------------------------------------------
+**Description:** A regular expression to match the start of a code block.
+
+**Code Snippet:**
+
+const languageStartRegex = new RegExp(`^(${escapedLanguages.join('|')})\s*[
+\r]`, 'i');
+
+- **Line:** 148
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines a regular expression that matches the start of a code block, which is used to identify and extract code blocks from text.
+- **Usage Example:** 
+
+
+```typescript
+const codeBlock = `
+```javascript
+console.log('Hello, world!');
+```
+`;
+
+const languageStartRegex = new RegExp(`^(${escapedLanguages.join('|')})\s*[
+\r]`, 'i');
+
+const match = languageStartRegex.exec(codeBlock);
+
+console.log(match[1]); // Output: javascript
+```
+
+- **Dependencies:** escapedLanguages
+
+### 🧮 escapedLanguages - VARIABLE
+------------------------------------------------------------
+**Description:** An array of escaped programming language names.
+
+**Code Snippet:**
+```
+const escapedLanguages = languages.map(lang => lang.replace(/[.*+?^${}()|[]\\/g, '\$&'));
+```
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This code snippet defines a variable called `escapedLanguages` which is an array of escaped programming language names. It uses the `map` function to iterate over an array called `languages` and applies a regular expression to escape any special characters in each language name.
+- **Usage Example:** 
+
+
+```typescript
+const languages = ['JavaScript', 'Python', 'C++'];
+const escapedLanguages = languages.map(lang => lang.replace(/[.*+?^${}()|[]\\/g, '\$&'));
+console.log(escapedLanguages); // Output: ['JavaScript', 'Python', 'C\+\+']
+```
+
+
+### 🧮 languages - VARIABLE
+------------------------------------------------------------
+**Description:** An array of programming language names.
+
+**Code Snippet:**
+```
+const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c\+\+', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
+```
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This code object defines a constant variable named `languages` that stores an array of programming language names.
+- **Usage Example:** 
+
+
+```typescript
+const language = languages[0];
+```
+
+
+### 🧮 incorrectFormatRegex - VARIABLE
+------------------------------------------------------------
+**Description:** A regular expression to match incorrect code block formatting.
+
+**Code Snippet:**
+
+const incorrectFormatRegex = new RegExp(
+````\s*[\n\r]+(${escapedLanguages.join('|')})\s*[\n\r]+`, 'gi');
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines a regular expression to match incorrect code block formatting in a string.
+- **Usage Example:** 
+
+
+```typescript
+const codeBlock = `
+```javascript
+console.log('Hello, world!');
+```
+`;
+const incorrectFormat = incorrectFormatRegex.test(codeBlock);
+// incorrectFormat will be true because the code block is not properly formatted.
+```
+
+
+### 🧮 codeBlockRegex - VARIABLE
+------------------------------------------------------------
+**Description:** A regular expression to match code blocks.
+
+**Code Snippet:**
+```
+const codeBlockRegex = /^()?\n?.*?\n/g;
+```
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines a regular expression to match code blocks in a string.
+- **Usage Example:** 
+
+
+```typescript
+const codeBlock = `
+```javascript
+console.log('Hello, world!');
+```
+`;
+const codeBlocks = codeBlock.match(codeBlockRegex);
+console.log(codeBlocks); // Output: [ '
+```javascript
+console.log('Hello, world!');
+```
+' ]
+```
+
+
+### 🧮 codeBlockRegex2 - VARIABLE
+------------------------------------------------------------
+**Description:** A regular expression to match code blocks.
+
+**Code Snippet:**
+
+const codeBlockRegex2 = /
+```/g;
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** false
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This variable defines a regular expression to match code blocks in text.
+- **Usage Example:** 
+
+
+```typescript
+const codeBlockRegex2 = /
+```/g;
+const text = "This is some text with a code block:
+```
+console.log(text.match(codeBlockRegex2)); // Output: ['
+```']
+```
+
+## types
+
+
+### 🏷️ Color - TYPE
+------------------------------------------------------------
+**Description:** Type alias for a color string.
+
+**Code Snippet:**
+```
+type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white';
+```
+- **Line:** 67
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This type alias defines a set of valid color strings that can be used in the `colorize` function.
+- **Usage Example:** 
+
+
+```typescript
+const coloredText = colorize('Hello, world!', 'blue');
+```
+
+## imports
+
+
+### 📥 readFile - IMPORT
+------------------------------------------------------------
+**Description:** Imports the readFile function from the fs/promises module, which allows reading files asynchronously.
+
+**Code Snippet:**
+```
+import { readFile } from 'fs/promises';
+```
+- **Line:** 1
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code imports the `readFile` function from the `fs/promises` module, which allows reading files asynchronously.
+- **Usage Example:** 
+
+
+```typescript
+const fileContent = await readFile('path/to/file.txt', 'utf-8');
+```
+
+- **Edge Cases:** The function can throw an error if the file does not exist or if there is an error reading the file.
+- **Dependencies:** fs/promises
+
+### 📥 fs - IMPORT
+------------------------------------------------------------
+**Description:** Imports the fs module, which provides a way to interact with the file system.
+
+**Code Snippet:**
+```
+import fs from 'fs';
+```
+- **Line:** 2
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** Imports the `fs` module, which provides a way to interact with the file system in Node.js.
+- **Usage Example:** 
+
+
+```typescript
+const data = fs.readFileSync('file.txt', 'utf-8');
+```
+
+
+### 📥 dotenv/config - IMPORT
+------------------------------------------------------------
+**Description:** Imports the dotenv/config module, which loads environment variables from a .env file.
+
+**Code Snippet:**
+```
+import "dotenv/config";
+```
+- **Line:** 3
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This import statement loads environment variables from a ".env" file using the `dotenv/config` module.
+- **Dependencies:** dotenv/config
+
+### 📥 ./logger - IMPORT
+------------------------------------------------------------
+**Description:** Imports the logger module from the current directory, which likely provides logging functionality.
+
+**Code Snippet:**
+```
+import "./logger";
+```
+- **Line:** 4
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code imports the `logger` module from the current directory. This module likely provides logging functionality for the application.
+- **Dependencies:** The `logger` module from the current directory.
+## exports
+
+
+### 📤 API_COST_PER_CHARACTER - EXPORT
+------------------------------------------------------------
+**Description:** The cost per character for API calls.
+
+**Code Snippet:**
+```
+export const API_COST_PER_CHARACTER = process.env.API_COST_PER_CHARACTER || 0.00025;
+```
+- **Line:** 6
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This constant defines the cost per character for API calls, which is used to calculate the cost of using the API based on the number of characters in the input.
+- **Usage Example:** 
+
+
+```typescript
+const apiCost = API_COST_PER_CHARACTER * inputString.length;
+```
+
+- **Dependencies:** process.env.API_COST_PER_CHARACTER
+
+### 📤 API_COST_PER_CHARACTER_OUT - EXPORT
+------------------------------------------------------------
+**Description:** The cost per character for API calls that output text.
+
+**Code Snippet:**
+```
+export const API_COST_PER_CHARACTER_OUT = process.env.API_COST_PER_CHARACTER_OUT || 0.00075;
+```
+- **Line:** 7
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This code object defines a constant variable named `API_COST_PER_CHARACTER_OUT` that represents the cost per character for API calls that output text.
+- **Usage Example:** 
+
+
+```typescript
+const cost = API_COST_PER_CHARACTER_OUT * text.length;
+```
+
+- **Dependencies:** process.env
+
+### 📤 API_COST_PER_EMBEDDING - EXPORT
+------------------------------------------------------------
+**Description:** The cost per character for API calls that embed text.
+
+**Code Snippet:**
+```
+export const API_COST_PER_EMBEDDING = process.env.API_COST_PER_EMBEDDING || 0.000025;
+```
+- **Line:** 8
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This code object defines a constant named `API_COST_PER_EMBEDDING` which represents the cost per character for API calls that embed text. It uses the environment variable `API_COST_PER_EMBEDDING` if it is defined, otherwise it defaults to 0.000025.
+- **Usage Example:** 
+
+
+```typescript
+const cost = API_COST_PER_EMBEDDING * text.length;
+```
+
+- **Dependencies:** process.env
+
+### 📤 getFileContentLen - EXPORT
+------------------------------------------------------------
+**Description:** Gets the length of the content of a file.
+
+**Code Snippet:**
+```
+export async function getFileContentLen(filePath: string): Promise<number> {
+    return await readFile(filePath, 'utf-8').then(content => content.length);
+}
+```
+- **Line:** 11
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function reads the content of a file asynchronously and returns the length of the content in characters.
+- **Parameters:** filePath: string - The path to the file to read.
+- **Returns:** Promise<number> - A promise that resolves to the length of the file content in characters.
+- **Usage Example:** 
+
+
+```typescript
+const filePath = './myFile.txt';
+const fileContentLen = await getFileContentLen(filePath);
+console.log('File content length:', fileContentLen);
+```
+
+- **Edge Cases:** If the file does not exist or cannot be read, the promise will reject with an error.
+- **Dependencies:** fs/promises: readFile - This function uses the readFile function from the fs/promises module to read the file content.
+
+### 📤 getCostOfAPICall - EXPORT
+------------------------------------------------------------
+**Description:** Calculates the cost of an API call based on the number of characters.
+
+**Code Snippet:**
+```
+export const getCostOfAPICall = (characters: number): number => {
+    characters = characters / 1000;
+    const cost: number =  typeof API_COST_PER_CHARACTER === 'string' ? parseFloat(API_COST_PER_CHARACTER) : API_COST_PER_CHARACTER;
+    console.debug("Cost of API Call:", cost)
+    return characters * cost;
+}
+```
+- **Line:** 15
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function calculates the cost of an API call based on the number of characters in the input.
+- **Parameters:** characters: number - The number of characters in the input.
+- **Returns:** number - The calculated cost of the API call.
+- **Usage Example:** 
+
+
+```typescript
+const cost = getCostOfAPICall(1000); // Calculates the cost for 1000 characters
+```
+
+- **Dependencies:** API_COST_PER_CHARACTER - Environment variable that defines the cost per character.
+
+### 📤 getCostOfAPICallTextOut - EXPORT
+------------------------------------------------------------
+**Description:** Calculates the cost of an API call that outputs text based on the number of characters.
+
+**Code Snippet:**
+```
+export const getCostOfAPICallTextOut = (characters: number): number => {
+    characters = characters / 1000;
+    const cost: number =  typeof API_COST_PER_CHARACTER_OUT === 'string' ? parseFloat(API_COST_PER_CHARACTER_OUT) : API_COST_PER_CHARACTER_OUT;
+    console.debug("Cost of API Call Text Out:", cost)
+    return characters * cost;
+}
+```
+- **Line:** 22
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function calculates the cost of an API call that outputs text based on the number of characters.
+- **Parameters:** characters: number - The number of characters in the text output.
+- **Returns:** number - The calculated cost of the API call.
+- **Usage Example:** 
+
+
+```typescript
+const cost = getCostOfAPICallTextOut(1000);
+```
+
+- **Dependencies:** API_COST_PER_CHARACTER_OUT - Environment variable that defines the cost per 1000 characters.
+
+### 📤 getCostOfAPICallEmbedding - EXPORT
+------------------------------------------------------------
+**Description:** Calculates the cost of an API call that embeds text based on the number of characters.
+
+**Code Snippet:**
+```
+export const getCostOfAPICallEmbedding = (characters: number): number => {
+    characters = characters / 1000;
+    const cost: number =  typeof API_COST_PER_EMBEDDING === 'string' ? parseFloat(API_COST_PER_EMBEDDING) : API_COST_PER_EMBEDDING;
+    console.debug("Cost of API Call Embedding:", cost)
+    return characters * cost;
+}
+```
+- **Line:** 29
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function calculates the cost of an API call that embeds text based on the number of characters.
+- **Parameters:** characters: number - The number of characters in the text to be embedded.
+- **Returns:** number - The estimated cost of the API call in dollars.
+- **Usage Example:** 
+
+
+```typescript
+const cost = getCostOfAPICallEmbedding(1000);
+console.log(cost); // Output: 0.01
+```
+
+- **Edge Cases:** The function assumes that the API cost per embedding is defined in the environment variable `API_COST_PER_EMBEDDING`. If the variable is not defined or is not a valid number, the function will use the default value of 0.01.
+- **Dependencies:** API_COST_PER_EMBEDDING - Environment variable that defines the cost per embedding.
+
+### 📤 getTotalLines - EXPORT
+------------------------------------------------------------
+**Description:** Gets the total number of lines in a string.
+
+**Code Snippet:**
+```
+export const getTotalLines = (code: string) => code.split('
+').length;
+```
+- **Line:** 35
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function counts the number of lines in a given string of code.
+- **Parameters:** code: string - The string of code to count the lines in.
+- **Returns:** number - The total number of lines in the code string.
+- **Usage Example:** 
+
+
+```typescript
+const code = `
+const myVar = 'hello';
+console.log(myVar);
+`;
+const totalLines = getTotalLines(code);
+console.log(totalLines); // Output: 3
+```
+
+
+### 📤 breakCodeIntoChunks - EXPORT
+------------------------------------------------------------
+**Description:** Breaks a string of code into chunks of a specified size.
+
+**Code Snippet:**
+```
+export function breakCodeIntoChunks(code: string, chunkSize: number): string[] {
+    const codeByLine = code.split('
+');
+    const chunks = [];
+    let currentChunk = '';
+    let currentChunkTokenCount = 0;
+
+    for (const line of codeByLine) {
+        const lineTokenCount = line.split(/\s+/).length; // Approximate token count by splitting on whitespace
+
+        if (currentChunkTokenCount + lineTokenCount <= chunkSize) {
+            currentChunk += line + '
+';
+            currentChunkTokenCount += lineTokenCount;
+        } else {
+            chunks.push(currentChunk);
+            currentChunk = line + '
+';
+            currentChunkTokenCount = lineTokenCount;
+        }
+    }
+
+    if (currentChunk) {
+        chunks.push(currentChunk);
+    }
+
+    return chunks;
+}
+```
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `breakCodeIntoChunks` function takes a string of code and divides it into smaller chunks of a specified size. This is useful for processing large code files by breaking them down into manageable pieces.
+- **Parameters:** - `code`: A string representing the code to be chunked.
+- `chunkSize`: An integer representing the maximum number of tokens allowed in each chunk. This is used to control the size of the chunks and ensure that they are not too large for processing.
+- **Returns:** An array of strings, where each string represents a chunk of the original code.
+- **Usage Example:** 
+
+
+```typescript
+const code = `// Example code
+function myFunction() {
+  // Code logic
+}
+`;
+const chunks = breakCodeIntoChunks(code, 100); // Chunk the code into pieces with a maximum of 100 tokens each
+console.log(chunks); // Output the chunks
+```
+
+- **Edge Cases:** If the code is shorter than the chunk size, the function will return a single chunk containing the entire code.
+
+### 📤 getTokens - EXPORT
+------------------------------------------------------------
+**Description:** Gets the number of tokens in a string.
+
+**Code Snippet:**
+```
+export function getTokens(code: string): number {
+    return code.split(' ').length
+}
+```
+- **Line:** 64
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function counts the number of tokens in a string by splitting it on whitespace.
+- **Parameters:** code: string - The string to count tokens in.
+- **Returns:** number - The number of tokens in the string.
+- **Usage Example:** 
+
+
+```typescript
+const tokens = getTokens("This is a string with 5 tokens.");
+console.log(tokens); // Output: 5
+```
+
+
+### 📤 colorize - EXPORT
+------------------------------------------------------------
+**Description:** Colorizes a string with ANSI escape codes.
+
+**Code Snippet:**
+
+export function colorize(text: string, color: Color): string {
+    return `${colors[color]}${text}${reset}`.trim()
+}
+
+- **Line:** 83
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `colorize` function adds ANSI escape codes to a string to colorize it in the terminal.
+- **Parameters:** - `text`: The string to colorize.
+- `color`: The color to apply to the string. Valid colors are: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`.
+- **Returns:** The colorized string.
+- **Usage Example:** 
+
+
+```typescript
+console.log(colorize("Hello, world!", "blue")); // Prints "Hello, world!" in blue
+```
+
+- **Edge Cases:** None.
+- **Dependencies:** - `colors` object: Contains ANSI escape codes for different colors.
+- `reset` variable: Contains the ANSI escape code to reset the terminal color.
+
+### 📤 makeOSpathFriendly - EXPORT
+------------------------------------------------------------
+**Description:** Makes a string OS path friendly by replacing special characters.
+
+**Code Snippet:**
+```
+export const makeOSpathFriendly = (str: string) => {
+    const listOfNoNoChars = ['<', '>', ':', '"', '|', '?', '*'];
+    const platform = process.platform;
+
+    if (platform === 'win32') {
+        str = str.replace(/\//g, '\\');
+    } else {
+        str = str.replace(/\\/g, '/');
+    }
+
+    for (const char of listOfNoNoChars) {
+        str = str.replace(char, '_');
+    }
+    return str;
+}
+```
+- **Line:** 88
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `makeOSpathFriendly` function takes a string as input and returns a modified string that is safe to use as a file path on both Windows and macOS/Linux operating systems. It achieves this by replacing certain characters that are considered invalid or problematic in file paths with underscores.
+- **Parameters:** str: string - The input string representing a file path.
+- **Returns:** string - The modified string that is safe to use as a file path.
+- **Usage Example:** 
+
+
+```typescript
+const filePath = "My File/With/Special Characters.txt";
+const safeFilePath = makeOSpathFriendly(filePath);
+console.log(safeFilePath); // Output: My_File_With_Special_Characters.txt
+```
+
+- **Edge Cases:** The function handles different operating systems by replacing forward slashes with backslashes on Windows and vice versa. It also replaces characters like '<', '>', ':', '"', '|', '?', and '*' with underscores.
+
+### 📤 isArray - EXPORT
+------------------------------------------------------------
+**Description:** Checks if a value is an array.
+
+**Code Snippet:**
+```
+export function isArray(value: any): value is any[] {
+    return Array.isArray(value);
+}
+```
+- **Line:** 104
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `isArray` function checks if a given value is an array using the built-in `Array.isArray` method.
+- **Parameters:** value: any - The value to check.
+- **Returns:** boolean - Returns `true` if the value is an array, `false` otherwise.
+- **Usage Example:** 
+
+
+```typescript
+const isArrayResult = isArray([1, 2, 3]); // true
+const isNotArrayResult = isArray('hello'); // false
+```
+
+
+### 📤 escapeStringForMD - EXPORT
+------------------------------------------------------------
+**Description:** Escapes backticks in a string for use in Markdown.
+
+**Code Snippet:**
+
+export function escapeStringForMD(string:string|undefined){
+    if (typeof string != 'string'){
+        return "Data Not Available"
+    }
+
+    const backtickCount = (string.match(/`/g) || []).length;
+  
+    // If the number of backticks is odd, it means they're not properly closed
+    if (backtickCount % 2 !== 0) {
+      // Escape all backticks
+      return string.replace(/`/g, '\`')
+    }
+
+    return string;  
+}
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `escapeStringForMD` function is designed to escape backticks within a string, ensuring they are rendered correctly when used within Markdown content.
+- **Parameters:** - `string`: The input string that needs to be escaped. It can be either a string or undefined. If undefined, the function returns "Data Not Available".
+- **Returns:** - `string`: The input string with all backticks escaped using a backslash (`\`) character.
+- **Usage Example:** 
+
+
+```typescript
+const myString = `This string has backticks: 
+```
+`;
+const escapedString = escapeStringForMD(myString);
+console.log(escapedString); // Output: This string has backticks: \`\`\`
+```
+
+- **Edge Cases:** - If the input string is not a string, the function returns "Data Not Available".
+- If the number of backticks in the input string is odd, it means they are not properly closed. In this case, the function escapes all backticks to prevent unexpected behavior in Markdown rendering.
+- **Dependencies:** None
+
+### 📤 getContextFromFile - EXPORT
+------------------------------------------------------------
+**Description:** Gets the context from a file.
+
+**Code Snippet:**
+```
+export function getContextFromFile() {
+    const contextFile = (process.env.CONTEXT_FILE === '' || !process.env.CONTEXT_FILE) ? "./prompts/teamContext.md" : (process.env.CONTEXT_FILE || "./prompts/teamContext.md");
+    console.log("Looking for Context File at Path:", contextFile)
+    try {
+      if (!fs.existsSync(contextFile)) {
+        throw new Error("Context File Not Found!");
+      }
+      return fs.readFileSync(contextFile, "utf-8");
+    } catch (err) {
+      console.warn("Context File Not Loaded! Using Default Context");
+      return "N/A";
+    }
+  }
+```
+- **Line:** 124
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function retrieves the content of a context file, which is used to provide additional information to the language model during code analysis.
+- **Returns:** A string containing the content of the context file. If the file is not found, it returns "N/A".
+- **Usage Example:** 
+
+
+```typescript
+const context = getContextFromFile();
+```
+
+- **Edge Cases:** If the context file is not found, the function will return "N/A".
+- **Dependencies:** fs (Node.js file system module)
+
+### 📤 makeWebSafe - EXPORT
+------------------------------------------------------------
+**Description:** Makes a string web safe by replacing non-alphanumeric characters with underscores.
+
+**Code Snippet:**
+```
+export function makeWebSafe(str: string): string {
+    return str.replace(/[^a-zA-Z0-9]/g, "_");
+  }
+```
+- **Line:** 138
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `makeWebSafe` function takes a string as input and returns a new string with all non-alphanumeric characters replaced with underscores. This is useful for creating web-safe filenames or URLs.
+- **Parameters:** str: string - The input string to be made web-safe.
+- **Returns:** string - The web-safe string.
+- **Usage Example:** 
+
+
+```typescript
+const webSafeString = makeWebSafe("This is a string with spaces and special characters.");
+console.log(webSafeString); // Output: This_is_a_string_with_spaces_and_special_characters_
+```
+
+
+### 📤 cleanBackticks - EXPORT
+------------------------------------------------------------
+**Description:** Cleans up backticks in a string, ensuring proper code block formatting.
+
+**Code Snippet:**
+
+export function cleanBackticks(input: string): string {
+    const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c\\+\\+', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
+  
+    // Escape special characters in language names
+    const escapedLanguages = languages.map(lang => lang.replace(/[.*+?^${}()|[]\\/g, '\$&'));
+  
+    // Check if the input starts with a language identifier without backticks
+    const languageStartRegex = new RegExp(`^(${escapedLanguages.join('|')})\s*[
+\r]`, 'i');
+    const match = input.match(languageStartRegex);
+    
+    if (match) {
+      const lang = match[1].toLowerCase();
+      input = 
+````${lang}
+${input.slice(match[0].length)}`;
+    }
+  
+    // Add closing backticks if missing
+    if (input.startsWith('') && !input.trim().endsWith('
+```')) {
+      input = input.trimEnd() + '
+```';
+    }
+  
+    // Fix language specifier on newline
+    const incorrectFormatRegex = new RegExp(
+````\s*[\n\r]+(${escapedLanguages.join('|')})\s*[\n\r]+`, 'gi');
+    input = input.replace(incorrectFormatRegex, (match, lang) => 
+````${lang.toLowerCase()}
+`);
+  
+    // IF closing backticks are not by themselves on a line, move them to a new line
+    input = input.replace(/
+```/g, '
+```');
+
+    // Remove extra newlines after opening backticks and before closing backticks
+    input = input.replace(/
+```(\w+)\s*[
+\r]+/g, '
+```$1
+');
+    input = input.replace(/[
+\r]+
+```/g, '
+```');
+
+
+  
+    return input;
+  }
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** The `cleanBackticks` function aims to ensure proper code block formatting within a string by addressing various issues related to backtick usage.
+- **Parameters:** The function takes a single parameter, `input`, which is a string representing the text containing code blocks.
+- **Returns:** The function returns a string with corrected backtick formatting, ensuring that code blocks are properly delimited and formatted.
+- **Usage Example:** 
+
+
+```typescript
+const inputString = `This is a code block:
+```javascript
+console.log('Hello, world!');
+```
+
+const cleanedString = cleanBackticks(inputString);
+console.log(cleanedString); // Output: This is a code block:
+```javascript
+console.log('Hello, world!');
+```
+```
+
+- **Edge Cases:** The function handles cases where code blocks might have missing closing backticks, incorrect language specifiers on newlines, or extra newlines after opening backticks and before closing backticks.
+- **Dependencies:** The function uses regular expressions to identify and manipulate backtick patterns within the input string.
+
+### 📤 removeCodeBlockIfPresent - EXPORT
+------------------------------------------------------------
+**Description:** Removes a code block from a string if it is present.
+
+**Code Snippet:**
+
+export function removeCodeBlockIfPresent(input: string): string {
+    console.debug("Removing code block if present:");
+    console.debug("Input:", input)
+
+    const codeBlockRegex = /^(
+```)?\n?.*?\n/g;
+    const codeBlockRegex2 = /
+```/g;
+    input = input.replace(codeBlockRegex, '');
+    input = input.replace(codeBlockRegex2, '');
+    input = input.trim();
+
+    console.debug("Output:", input)
+
+    return input;
+  }
+
+- **Line:** Could Not Verify Line
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** true
+- **Private:** false
+###### Annotations / Comments:
+- **Purpose:** This function removes code blocks from a string. It uses regular expressions to identify and remove code blocks, including those with backticks.
+- **Parameters:** input: string - The string to remove code blocks from.
+- **Returns:** string - The string with code blocks removed.
+- **Usage Example:** 
+
+
+```typescript
+const inputString = `This is a string with a code block:
+```typescript
+console.log(inputString);
+```
+
+const outputString = removeCodeBlockIfPresent(inputString);
+console.log(outputString); // Output: This is a string with a code block:
+```
+
+- **Edge Cases:** The function assumes that code blocks are delimited by backticks (\`\`\`). It may not work correctly if the code blocks are delimited by other characters.
+## interfaces
+
+
+### 🌉 Color - INTERFACE
+------------------------------------------------------------
+**Description:** Type alias for a color string.
+
+**Code Snippet:**
+```
+type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white';
+```
+- **Line:** 67
+- **Location:** shared.ts (./src/shared.ts)
+- **Exported:** Could Not Determine
+- **Private:** Could Not Determine
+###### Annotations / Comments:
+- **Purpose:** This code defines a type alias called `Color` that represents a string literal union type. It allows the variable to be assigned one of the specified color values.
+- **Usage Example:** 
+
+
+```typescript
+const color: Color = 'red';
+```
+

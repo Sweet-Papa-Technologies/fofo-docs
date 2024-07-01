@@ -1,0 +1,3 @@
+from chromadb/chroma
+
+EXPOSE 8000
