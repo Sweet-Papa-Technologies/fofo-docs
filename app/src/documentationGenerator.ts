@@ -1,27 +1,51 @@
-import { CodeObject, ProjectSummary, CodeObjectType } from "./objectSchemas";
+import { CodeObject, ProjectSummary, CodeObjectType, fofoMermaidChart, chartPNG } from "./objectSchemas";
 import fs from 'fs';
 import path from 'path';
 import "dotenv/config";
-import { cleanBackticks, escapeStringForMD, makeOSpathFriendly } from "./shared";
+import { base64ToPngFile, cleanBackticks, escapeStringForMD, makeOSpathFriendly } from "./shared";
 import showdown from 'showdown';
 import "./logger";
+import {generateMermaidCharts, createPNGfromMermaidCharts} from "./generateMermaid";
 
 
 const backupDirectory = path.join(__dirname, 'backup');
 
-function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
+async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const projectFolder = path.join(outputFolder, `${projectSummary.projectName}-${timestamp}`);
     fs.mkdirSync(projectFolder, { recursive: true });
 
     const toc: string[] = [];
 
-    toc.push(`[Back to Readme](./README.md)\n\n`);
     
     toc.push(`# Project | ${escapeStringForMD(projectSummary.projectName)}`);
     toc.push(`\n## Project Description\n${escapeStringForMD(projectSummary.projectDescription.goal)}`);
     toc.push(`\n## Tech Stack Description\n${escapeStringForMD(projectSummary.projectTechStackDescription)}`);
     toc.push(`\n## Features and Functions\n${escapeStringForMD(projectSummary.projectDescription.features_functions)}`);
+
+    // Build out our flow chart PNGs
+    const makeShortDescriptionFilePathFriendly = (shortDescription: string) => {
+        return shortDescription.replace(/[^a-zA-Z0-9]/g, '-');
+    }
+    
+    // Write out the PNGs to the project folder
+    fs.mkdirSync(path.join(projectFolder, 'flow-charts'), { recursive: true });
+    toc.push(`\n## Diagrams - Flow Charts\n`);
+    toc.push(`Here are some helpful visuals to help you understand the project:\n`);
+    for (const png of projectSummary.chartPNGs || []) {
+        const fileName = `${makeShortDescriptionFilePathFriendly(png.chartData.shortDescription)}.png`;
+        const filePath = path.join(projectFolder, 'flow-charts', fileName);
+        // Write out the PNG to the project folder
+        try{ 
+            await base64ToPngFile(png.base64PNG, filePath);
+            toc.push(`### ${png.chartData.shortDescription}\n`);
+            toc.push(`![${png.chartData.shortDescription}](./flow-charts/${fileName})\n`);
+            toc.push(`\n[${png.chartData.shortDescription}](./flow-charts/${fileName})\n`);
+            toc.push(`Full Description: \n${png.chartData.longDescription}\n`);
+        } catch (err) {
+            console.log("Error writing", filePath, err);
+        }
+    }
     
     // List out dependencies:
     toc.push(`\n## Project Dependencies / Modules:`);
@@ -37,7 +61,9 @@ function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: string) {
         const filePath = path.join(projectFolder, fileName);
         toc.push(`\n- [${file.fileName}](./${fileName})`);
 
-        let fileContent = `# ${file.fileName} - ${projectSummary.projectName}\n`;
+        let fileContent = `[Back to Readme](./README.md)\n\n`; 
+
+        fileContent += `# ${file.fileName} - ${projectSummary.projectName}\n`;
         fileContent += `\n**Summary:** ${file.codeSummary.goal}\n`;
         fileContent += `\n- **File Location:** ${file.fileLocation}`;
         fileContent += `\n- **Language:** ${file.language}`;
@@ -442,7 +468,14 @@ export async function generateDocumentation(folderPath: string, projectContext: 
         console.error(`Error generating MD file. Project context is empty.`);
         return false;
     }
-    jsonToMarkdown(projectContext, folderPath);
+
+    // OKIE DOKES, IF WE got this far we can go ahead and also generate our charts using mermaid, etc.!
+    projectContext.mermaidCharts = await generateMermaidCharts(projectContext);
+
+    // Convert all of our charts to PNGs using mermaid
+    projectContext.chartPNGs = await createPNGfromMermaidCharts(projectContext.mermaidCharts);
+
+    await jsonToMarkdown(projectContext, folderPath);
 
     // Convert markdown to HTML
     markdownToHTML(folderPath);

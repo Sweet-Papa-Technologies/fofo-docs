@@ -20,6 +20,18 @@ export interface llmRuntimeData {
 
 }
 
+export interface fofoMermaidChart {
+    chart_code: string;
+    shortDescription: string;
+    longDescription: string;
+    relevantFiles: string[];
+}
+
+export interface chartPNG {
+    chartData: fofoMermaidChart;
+    base64PNG: string;
+}
+
 export interface runtimeData {
 
     appVersion: string;
@@ -43,6 +55,8 @@ export interface ProjectSummary {
     codeFiles: CodeFileSummary[];
     ragData: RagData[];
     teamContext: string;
+    mermaidCharts?: fofoMermaidChart[]
+    chartPNGs?: chartPNG[]
 }
 
 export interface models {
@@ -60,12 +74,14 @@ export interface RagData {
         codeChunkId: string|number;
         codeChunkLineStart: number;
         codeChunkLineEnd: number;
-        codeObjects: CodeObject;
+        codeObjects: {
+            [key : string]: CodeObject[]
+          };
         codeChunkSummary: string;
     };
     embeddings?: number[][]; // Example: Embeddings could be an array of numbers
     documentData: any
-    allSearchResults: QueryResponse,
+    allSearchResults: QueryResponse | any,
     allResults: {
         documents: any,
         embeddings: Embeddings[] | null,
@@ -84,7 +100,9 @@ export interface CodeFileSummary {
     codeSummary: codeSummary;
     language: string;
     executionFlow: ExecutionFlow[];
-    codeObjects: CodeObject;
+    codeObjects: {
+        [key : string]: CodeObject[]
+    }
 }
 
 export interface ExecutionFlow {
@@ -106,12 +124,14 @@ export interface FunctionParameter {
 }
 
 export interface FunctionReturn {
+
+    name?: string;
     type: string;
     description: string;
     example: string;
 }
 
-export interface CodeObject {
+export interface CodeObject extends Object {
     name: string;
     type: CodeObjectType;
     description: string;
@@ -126,11 +146,11 @@ export interface CodeObject {
     parentObject?: CodeObject;
     functionParameters?: FunctionParameter[];
     functionReturns?: FunctionReturn;
-    isExported: boolean;
-    isFunction: boolean;
-    isClass: boolean;
-    isPrivate: boolean;
-    isAsync: boolean;
+    isExported?: boolean;
+    isFunction?: boolean;
+    isClass?: boolean;
+    isPrivate?: boolean;
+    isAsync?: boolean;
 }
 
 export type CodeObjectTypes = 'name' | 'type' | 'description' | 'codeSnippet' | 'codeLine' | 'codeIndent' | 'fileName' | 'fileLocation' | 'subObjects' | 'parentObject' | 'functionParameters' | 'functionReturns' | 'isExported' | 'isFunction' | 'isClass' | 'isPrivate' | 'isAsync'

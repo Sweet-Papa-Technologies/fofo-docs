@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import fs from 'fs';
 import "dotenv/config";
 import "./logger";
+import path from 'path';
 
 export const API_COST_PER_CHARACTER = process.env.API_COST_PER_CHARACTER || 0.00025;
 export const API_COST_PER_CHARACTER_OUT = process.env.API_COST_PER_CHARACTER_OUT || 0.00075;
@@ -10,6 +11,134 @@ export const API_COST_PER_EMBEDDING = process.env.API_COST_PER_EMBEDDING || 0.00
 export async function getFileContentLen(filePath: string): Promise<number> {
     return await readFile(filePath, 'utf-8').then(content => content.length);
 }
+
+
+
+/**
+ * Custom error class for Base64 to PNG conversion errors
+ */
+class Base64ToPngError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'Base64ToPngError';
+    }
+}
+
+/**
+ * Configuration options for the conversion
+ */
+interface ConversionOptions {
+    /**
+     * Whether to create the output directory if it doesn't exist
+     * @default true
+     */
+    createDirectory?: boolean;
+    /**
+     * Whether to overwrite the file if it already exists
+     * @default false
+     */
+    overwrite?: boolean;
+}
+
+/**
+ * Result of the conversion process
+ */
+interface ConversionResult {
+    /** The path where the file was saved */
+    filePath: string;
+    /** The size of the written file in bytes */
+    size: number;
+}
+
+/**
+ * Converts a base64 string to a PNG file and saves it to the specified path
+ * @param base64String - The base64 string to convert (with or without data URI prefix)
+ * @param filePath - The full path where the PNG file should be saved
+ * @param options - Optional configuration for the conversion process
+ * @returns Promise resolving to the conversion result
+ * @throws {Base64ToPngError} If the conversion fails for any reason
+ */
+async function base64ToPngFile(
+    base64String: string,
+    filePath: string,
+    options: ConversionOptions = {}
+): Promise<ConversionResult> {
+    const {
+        createDirectory = true,
+        overwrite = false
+    } = options;
+
+    try {
+        // Input validation
+        if (!base64String) {
+            throw new Base64ToPngError('Base64 string is required');
+        }
+        if (!filePath) {
+            throw new Base64ToPngError('File path is required');
+        }
+
+        // Ensure the file extension is .png
+        if (path.extname(filePath).toLowerCase() !== '.png') {
+            throw new Base64ToPngError('File path must have .png extension');
+        }
+
+        // Check if file exists and handle overwrite option
+        try {
+            const stats = await fs.statSync(filePath);
+            if (stats.isFile() && !overwrite) {
+                throw new Base64ToPngError('File already exists and overwrite is not enabled');
+            }
+        } catch (error) {
+            // If error is anything other than 'file not found', rethrow it
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw error;
+            }
+        }
+
+        // Remove data URI prefix if it exists
+        let cleanBase64 = base64String;
+        if (base64String.startsWith('data:image/png;base64,')) {
+            cleanBase64 = base64String.replace(/^data:image\/png;base64,/, '');
+        }
+
+        // Validate base64 string format
+        if (!/^[A-Za-z0-9+/]+[=]{0,2}$/.test(cleanBase64)) {
+            throw new Base64ToPngError('Invalid base64 string format');
+        }
+
+        // Convert base64 to buffer
+        const buffer = Buffer.from(cleanBase64, 'base64');
+
+        // Verify PNG signature (first 8 bytes)
+        const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+        if (buffer.slice(0, 8).compare(pngSignature) !== 0) {
+            throw new Base64ToPngError('Invalid PNG format');
+        }
+
+        // Create directory if needed
+        if (createDirectory) {
+            const directory = path.dirname(filePath);
+            await fs.mkdirSync(directory, { recursive: true });
+        }
+
+        // Write the file
+        await fs.writeFileSync(filePath, buffer);
+
+        return {
+            filePath,
+            size: buffer.length
+        };
+    } catch (error) {
+        if (error instanceof Base64ToPngError) {
+            throw error;
+        }
+        throw new Base64ToPngError(
+            `Failed to convert base64 to PNG: ${(error as Error).message}`
+        );
+    }
+}
+
+export { base64ToPngFile, Base64ToPngError, type ConversionOptions, type ConversionResult };
 
 export const getCostOfAPICall = (characters: number): number => {
     characters = characters / 1000;

@@ -5,6 +5,7 @@ import {
   CodeFileSummary,
   CodeObject,
   CodeObjects,
+  FunctionParameter,
   ProjectSummary,
   RagData,
   codeSummary,
@@ -57,10 +58,14 @@ const promptUser = (question:string) => {
     })
 };
 
-async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string):Promise<CodeObject>{
+async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string):Promise<{
+  [key : string]: CodeObject[]
+}>{
     // Process each chunk's code objects (update projectSummary.ragData, etc.)
     const objectKeys:CodeObjects[] = ['classes', 'functions', 'variables', 'types', 'interfaces', 'imports', 'exports']
-    const chunkCodeObjectsAny = {} as any;
+    const chunkCodeObjectsAny = {} as {
+      [key : string]: CodeObject[]
+    };
 
     
     for (const key of objectKeys) {
@@ -106,26 +111,32 @@ async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, c
         filePath,
         bRag,
         llmToUse
-      );
+      ) as {
+        [key : string]: CodeObject[]
+      }
 
      // insert the object into the chunkCodeObjects
      chunkCodeObjectsAny[key] = codeObjects[key];
     }
 
-    const chunkCodeObjects = chunkCodeObjectsAny as CodeObject;
-
-    return chunkCodeObjects;
+    return chunkCodeObjectsAny;
 }
 
 
 export function mergeObjectArrays(
-  codeObjArray: CodeObject,
-  newCodeObj: any
-): CodeObject {
+  codeObjArray: {
+    [key: string]: CodeObject[];
+},
+  newCodeObj: {
+    [key: string]: CodeObject[];
+}
+): {
+  [key: string]: CodeObject[];
+} {
   // We need to merge our incoming codeObj's key-array pairs with the existing codeObjArray
   // If the key already exists, we need to merge the arrays
   // If the key does not exist, we need to add it to the codeObjArray
-  const mergedCodeObj: any = codeObjArray;
+  const mergedCodeObj = codeObjArray;
   for (const key in newCodeObj) {
 
     // if the current key is a string, skip it
@@ -168,18 +179,18 @@ export function mergeObjectArrays(
       if ("name" in arrayObj) {
         if (foundKeys.includes(arrayObj.name)) {
           mergedCodeObj[key] = mergedCodeObj[key].filter(
-            (obj: any) => obj.name !== arrayObj.name
+            (obj) => obj.name !== arrayObj.name
           );
         } else {
           foundKeys.push(arrayObj.name);
         }
-      } else if ("content" in arrayObj) {
-        if (foundKeys.includes(arrayObj.content)) {
+      } else if ("content" in arrayObj && arrayObj['content'] !== undefined) {
+        if (foundKeys.includes(arrayObj['content'])) {
           mergedCodeObj[key] = mergedCodeObj[key].filter(
-            (obj: any) => obj.content !== arrayObj.content
+            (obj) => obj['content'] !== arrayObj['content']
           );
         } else {
-          foundKeys.push(arrayObj.content);
+          foundKeys.push(arrayObj['content']);
         }
       } else {
         console.warn("Error: Code Object has no name or content property");
@@ -388,7 +399,9 @@ console.log(filePaths)
       codeSummary: {} as codeSummary, // Placeholder, will be updated later
       language: fileLanguage.language || "Unknown",
       executionFlow: [], // Placeholder, will be updated later
-      codeObjects: {} as CodeObject, // Placeholder, will be updated later
+      codeObjects: {} as {
+        [key: string]: CodeObject[];
+    }, // Placeholder, will be updated later
     };
     let currentLine = 0;
 
@@ -423,7 +436,13 @@ console.log(filePaths)
             try {
               const codeLineUpdatedObject =  findCorrectCodeLineForObject(res, chunk)
               if (codeLineUpdatedObject.codeLine){
-                codeLineUpdatedObject.codeLine = codeLineUpdatedObject.codeLine + currentLine
+                // codeLineUpdatedObject.codeLine = codeLineUpdatedObject.codeLine + currentLine
+                for (const obj of codeLineUpdatedObject.codeObjects) {
+                  if (!obj.codeLine) {
+                    obj.codeLine = 0
+                  }
+                  obj.codeLine = obj.codeLine + currentLine
+                }
                 return codeLineUpdatedObject 
               }
             } catch (err) {
@@ -433,7 +452,16 @@ console.log(filePaths)
         });
 
         // Update the Data with correct line information:
-        
+        const description = (()=>{
+          // Take all of the code objects and turn them into a single string
+          let description = ""
+        for (const obj of Object.keys(chunkCodeObjects)) {
+          for (const codeObj of chunkCodeObjects[obj]) {
+            description += codeObj.codeLine + "\n"
+          }
+        }
+          return description
+        })()
         const ragData: RagData = {
           metadata: {
             filename: fullFilePath,
@@ -441,10 +469,11 @@ console.log(filePaths)
             codeChunkLineStart: currentLine,
             codeChunkLineEnd: endLine,
             codeObjects: chunkCodeObjects,
-            codeChunkSummary: chunkCodeObjects.description,
+            codeChunkSummary: description,
           },
           documentData: chunk,
           allSearchResults: {
+            included: [],
             ids: [],
             embeddings: null,
             documents: [],
@@ -490,6 +519,16 @@ console.log(filePaths)
         return res
       });
       // Process code objects and update projectSummary and codeFiles
+      const description = (()=>{
+        // Take all of the code objects and turn them into a single string
+        let description = ""
+        for (const obj of Object.keys(codeObjects)) {
+          for (const codeObj of codeObjects[obj]) {
+            description += codeObj.codeLine + "\n"
+          }
+        }
+        return description
+      })()
 
       // Process each chunk's code objects (update projectSummary.ragData, etc.)
       const ragData: RagData = {
@@ -499,10 +538,11 @@ console.log(filePaths)
           codeChunkLineStart: 1,
           codeChunkLineEnd: getTotalLines(fileContent),
           codeObjects: codeObjects,
-          codeChunkSummary: codeObjects.description,
+          codeChunkSummary: description,
         },
         documentData: fileContent,
         allSearchResults: {
+          included: [],
           ids: [],
           embeddings: null,
           documents: [],
@@ -574,7 +614,11 @@ console.log(filePaths)
   return projectSummary;
 }
 
-export function findCorrectCodeLineForObject(codeObj: CodeObject, code: string): CodeObject {
+export function findCorrectCodeLineForObject(codeObj: {
+  [key : string]: CodeObject[]
+}, code: string): {
+  [key : string]: CodeObject[]
+} {
   // Split the entire code into lines
   const codeLines = code.split("\n");
 
@@ -597,23 +641,20 @@ export function findCorrectCodeLineForObject(codeObj: CodeObject, code: string):
 
   // Find the correct code line for each object
   for (const key in codeObj) {
-      const codeObject = codeObj as any;
+      const codeObject = codeObj
       try {
         for (const objects of codeObject[key]) {
-          const obj = objects as CodeObject;
+          const obj = objects;
           const codeSnippet = removeCodeBlockIfPresent(obj.codeSnippet)
           const snippetLines = codeSnippet.split("\n");
 
           const startLine = findStartLine(snippetLines, codeLines);
           obj.codeLine = startLine !== -1 ? startLine : -2;
-
-          
-      }
-
+        }
       } catch(err) {
           console.error("Error finding correct code line for object", err);
           console.debug("Code Object:", codeObj);
-          console.debug("Code Object Key:", codeObject[key]);
+          console.debug("Code Object Key:", key);
           continue
       }
   }

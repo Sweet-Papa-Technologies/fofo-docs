@@ -31,12 +31,12 @@ const addCodeObjectBackToProjectSummaryObject = (
     if (file.fileName === codeObj.fileName) {
       for (const objKey in file.codeObjects) {
         const codeObjects = file.codeObjects[
-          objKey as keyof CodeObject
-        ] as CodeObject;
+          objKey
+        ] ;
         for (const i in codeObjects) {
-          const currentCodeObject = codeObjects[i as keyof CodeObject] as any;
+          const currentCodeObject = codeObjects[i] as any;
           if (currentCodeObject.codeSnippet === codeObj.codeSnippet) {
-            (codeObjects[i as keyof CodeObject] as any) = codeObj;
+            (codeObjects[i] as any) = codeObj;
           }
         }
       }
@@ -67,6 +67,9 @@ async function getRelevantCodeSnippets(
           "Distance LVL1: ",
           results.allSearchResults.distances[indexLvl1]
         );
+      }
+      if (!codeObj) {
+        continue;
       }
       for (const codeSnippet of codeObj) {
         indexLvl2++;
@@ -141,7 +144,7 @@ export async function annotateProject(
   const context = await summarizeAllFiles(projectSummary.codeFiles);
 
   for (const aFile of projectSummary.codeFiles) {
-    const file = aFile as any;
+    const file = aFile;
     const fileAnnotations = [];
 
     for (const key in file.codeObjects) {

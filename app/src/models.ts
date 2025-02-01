@@ -110,6 +110,11 @@ export const MODEL_MODES_BASE:llmModel[] = [
       backend: "OLLAMA"
     },
     {
+      name: "gpt-4o-mini",
+      model: "gpt-4o-mini",
+      backend: "OPENAI"
+    },
+    {
       name: "gpt-4o",
       model: "gpt-4o",
       backend: "OPENAI"
@@ -142,6 +147,21 @@ export const MODEL_MODES_BASE:llmModel[] = [
     {
       name: "codechat-bison-32k",
       model: "codechat-bison-32k",
+      backend: "VERTEX",
+    },
+    {
+      name: "gemini-1.5-flash",
+      model: "gemini-1.5-flash",
+      backend: "VERTEX",
+    },
+    {
+      name: "gemini-2.0-flash-exp",
+      model: "gemini-2.0-flash-exp",
+      backend: "VERTEX",
+    },
+    {
+      name: "gemini-1.5-flash-002",
+      model: "gemini-1.5-flash-002",
       backend: "VERTEX",
     },
     {
