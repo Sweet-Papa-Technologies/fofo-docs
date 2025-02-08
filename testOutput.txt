@@ -1,0 +1,44 @@
+* 22be294 working version, patched
+* 9b224b1 Added fixes for code line selection and code blocks
+* d7c91b3 Adjusted for RAG-less workflow
+* a313c90 Added code to use ChromaDB if specified
+*   a03f491 Merge pull request #4 from Sweet-Papa-Technologies/alpha-4
+|\  
+| * a80a0b3 Syncing changes for this version
+* | d49088e Merge pull request #3 from Sweet-Papa-Technologies/alpha-4
+|\| 
+| * 1e4b85b saving recent changes
+| * 10d7390 Added console log to show output folder
+| * 71fabd0 Added Annotations feature, still in progress
+| * ab45725 Added code to better find the line sample for a code sample
+| * 6b56e99 Syncing changes:
+|/  
+*   238315d Merge pull request #2 from Sweet-Papa-Technologies/alpha-3
+|\  
+| * 28b4fab Updated README
+| * 871c5a7 Updated Readme and example output
+| * eedb698 Added teamContext, changed default params across all models
+|/  
+*   f12dae1 Merge pull request #1 from Sweet-Papa-Technologies/alpha-2
+|\  
+| * 8230c29 Updated Example
+| * 5bfb1fb Added some various changes to how inference is done, fixed duplication issues seemingly
+| * 7b13e5d Updating README
+| * b916cdb Updating README
+| * 33e5453 Updating README
+| * 2ad984f Updating README
+| * 4614f64 Updating README
+| * 0d4d57a Added sample documentation for the app itself. Changed call to OpenAI embedding model to use cheaper embedding model
+|/  
+* ed36827 Moved folder structure
+* b53f97d Moved folder structure
+* 5ebf53c updated the readme
+* c8b75d1 Got the documentation output to work much better now.
+* 6977388 Got the documentation output to work much better now.
+* e594727 Fixed several bugs, added OpenAI and Ollama support
+* 6d308d6 Saving state
+* 1dab173 Initial version of the documentation JSON creation workflow
+* 09d9fd2 Added some boilerplate code
+* 4ae00d5 Added some boilerplate code
+* 5c103d5 Updated PLANNING.md
+* 4711475 Initial commit

@@ -75,8 +75,8 @@ const contextLength = Number(process.env.MODEL_CONTEXT || 4096); // 8000 Works R
 // Vertex Settings:
 const project = process.env.GCP_PROJECT_ID || "Not Set";
 const location = process.env.GCP_REGION || "us-central1";
-const textModel = "gemini-1.5-flash";
-const textModelAdvanced = "gemini-1.5-flash";
+const textModel = "gemini-2.0-flash-001";
+const textModelAdvanced = "gemini-2.0-flash-001";
 
 const vertexAI = new VertexAI({ project: project, location: location });
 
@@ -251,7 +251,7 @@ export async function infer(
       if (model.includes("gemini-1.5-pro") == true) {
         genFunction = generateModelAdv;
       } else {
-        console.warn(
+        console.info(
           "Specified model was FLASH, using provided model: ",
           model
         );

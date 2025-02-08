@@ -41,6 +41,46 @@ const maxCallsPerMin = Number(process.env.MAX_CALLS_PER_MINUTE) || 60;
 import readline from 'readline'
 import { fofoDocsBuiltInFileSearch, fofoDocsBuiltInGlobSearch, isNoNoFile } from "./appData";
 
+
+const  ensureCodeObjectHasAllKeys = async (codeObjects: {
+  [key : string]: CodeObject[]
+}, key: string) => {
+    if (!codeObjects[key]) {
+      console.log(`Code object ${key} not found`)
+       return false
+    }
+
+    // Check that the code object has all keys
+    const keys = Object.keys(codeObjects[key]);
+    const dummyCodeObject: CodeObject = {
+      name: "",
+      type: "function",
+      description: "",
+      codeSnippet: "",
+      fileName: "",
+      fileLocation: ""
+    } 
+
+    // Ensure the code object has all keys that are expected in the CodeObjects interface
+    let index = 0
+    for (const key of Object.keys(dummyCodeObject)) {
+        if (!keys.includes(key)) {
+            console.log(`Code object ${index} does not seem to have key ${key}`)
+            console.log("The Actual Code Object:")
+            console.debug(JSON.stringify(codeObjects[key], null, 2))
+            console.log("The Expected Code Object Schema:")
+            console.debug(JSON.stringify(dummyCodeObject, null, 2))
+            console.log(`Missing key: ${key}`)
+            return false
+        }
+        index++
+    }
+
+    // If we get here, the code object has all keys
+    return true
+}
+
+
 // Create readline interface
 
 // Function to prompt user for input
@@ -58,7 +98,9 @@ const promptUser = (question:string) => {
     })
 };
 
-async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string):Promise<{
+let maxRetries = 3;
+let currentRetry = 0;
+async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, chunk:string, bRetry = true):Promise<{
   [key : string]: CodeObject[]
 }>{
     // Process each chunk's code objects (update projectSummary.ragData, etc.)
@@ -104,7 +146,7 @@ async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, c
 
     const bRag = process.env.EMBEDDER_MODE === 'OFF' ? false : true
 
-    const codeObjects = await callLLM(
+    let codeObjects = await callLLM(
         promptTemplate,
         projectSummary,
         chunk,
@@ -113,6 +155,32 @@ async function genCodeChunkObj(projectSummary:ProjectSummary, filePath:string, c
         llmToUse
       ) as {
         [key : string]: CodeObject[]
+      }
+
+      // We need to ensure the CodeObject actually contains all of the keys we would expect,
+      // and if not, we need to try generating it again!
+      const bOK = await ensureCodeObjectHasAllKeys(codeObjects, key);
+
+      if (bOK === false) {
+        console.log(`Code object ${key} not found -- WE NEED TO RETRY?`)
+        console.debug(codeObjects)
+        console.debug(JSON.stringify(codeObjects))
+        currentRetry++
+        console.log(`Current Retry: ${currentRetry}`)
+
+        if (currentRetry > maxRetries) {
+          console.log(`Max retries reached for chunk ${chunk}`)
+          console.warn(`Unable to generate code object ${key} for chunk ${chunk}, skipping`)
+          currentRetry = 0
+          bRetry = false
+        } else {
+          if (bRetry) {
+            console.log(`Retrying for chunk ${chunk}`)
+            return await genCodeChunkObj(projectSummary, filePath, chunk, bRetry)
+          }
+        }
+      } else {
+        currentRetry = 0
       }
 
      // insert the object into the chunkCodeObjects
@@ -136,7 +204,7 @@ export function mergeObjectArrays(
   // We need to merge our incoming codeObj's key-array pairs with the existing codeObjArray
   // If the key already exists, we need to merge the arrays
   // If the key does not exist, we need to add it to the codeObjArray
-  const mergedCodeObj = codeObjArray;
+  const mergedCodeObj = { ...codeObjArray };
   for (const key in newCodeObj) {
 
     // if the current key is a string, skip it
@@ -154,6 +222,7 @@ export function mergeObjectArrays(
         mergedCodeObj[key] = [...mergedCodeObj[key], ...newCodeObj[key]];
       } else{
         console.error("Not an Array?")
+
       }
 
     } else {
@@ -163,18 +232,43 @@ export function mergeObjectArrays(
 
   // Delete any duplicate code objects:
   console.log("Deleting Duplicate Code Objects");
+  console.debug(mergedCodeObj);
+  console.debug(JSON.stringify(mergedCodeObj));
+
+  if (!mergedCodeObj) {
+    console.warn("Error: Merged Code Object is undefined or null, we have to return the original object, which may have duplicates!");
+    console.info(codeObjArray);
+    console.info(JSON.stringify(codeObjArray));
+    return codeObjArray;
+  }
+
   const mergedCodeKeys = Object.keys(mergedCodeObj);
-    for (const key of mergedCodeKeys) {
+  for (const key of mergedCodeKeys) {
 
     const foundKeys: string[] = [];
 
     // Make sure the key object is iterable
-    if (!Array.isArray(mergedCodeObj[key])) {
-      console.warn("Error: Code Object is not an array");
+    // MAY Need to put this back later or something
+    // if (!Array.isArray(mergedCodeObj[key])) {
+    //   console.warn("Error: Code Object is not an array");
+    //   console.log(mergedCodeObj[key]);
+    //   console.log(key);
+    //   continue;
+    // }
+
+    if (!mergedCodeObj[key]) {
+      console.warn("Error: Code Object is undefined or null, we have to return the original object, which may have duplicates!");
       console.log(mergedCodeObj[key]);
+      console.log(key);
+      console.log(JSON.stringify(mergedCodeObj[key]));
       continue;
     }
 
+    if ('name' in Object.keys(mergedCodeObj[key])) {
+      console.warn("Error: We got a Code Object when we shouldn't have!!!")
+      console.log(mergedCodeObj[key]);
+      continue;
+    }
     for (const arrayObj of mergedCodeObj[key]) {
       if ("name" in arrayObj) {
         if (foundKeys.includes(arrayObj.name)) {
@@ -193,7 +287,22 @@ export function mergeObjectArrays(
           foundKeys.push(arrayObj['content']);
         }
       } else {
-        console.warn("Error: Code Object has no name or content property");
+        const expectedSchema = {
+          name: "",
+          type: "function",
+          description: "",
+          codeSnippet: "",
+          fileName: "",
+          fileLocation: ""
+        };
+        console.error(
+          "Missing key 'name'. Detailed object:",
+          JSON.stringify(arrayObj, null, 2),
+          "\nExpected schema:",
+          JSON.stringify(expectedSchema, null, 2),
+          "\nStack trace:",
+          new Error().stack
+        );
         continue;
       }
     }
@@ -456,8 +565,13 @@ console.log(filePaths)
           // Take all of the code objects and turn them into a single string
           let description = ""
         for (const obj of Object.keys(chunkCodeObjects)) {
+          if (!chunkCodeObjects[obj]) continue;
+          if (!Array.isArray(chunkCodeObjects[obj])) continue;
+          if (chunkCodeObjects[obj].length === 0) continue;
+          if (chunkCodeObjects[obj][0] instanceof String) continue;
+          if (chunkCodeObjects[obj][0].description === undefined) continue;
           for (const codeObj of chunkCodeObjects[obj]) {
-            description += codeObj.codeLine + "\n"
+            description += codeObj.description + "\n"
           }
         }
           return description
@@ -523,8 +637,13 @@ console.log(filePaths)
         // Take all of the code objects and turn them into a single string
         let description = ""
         for (const obj of Object.keys(codeObjects)) {
+          if (!codeObjects[obj]) continue;
+          if (!Array.isArray(codeObjects[obj])) continue;
+          if (codeObjects[obj].length === 0) continue;
+          if (codeObjects[obj][0] instanceof String) continue;
+          if (codeObjects[obj][0].description === undefined) continue;
           for (const codeObj of codeObjects[obj]) {
-            description += codeObj.codeLine + "\n"
+            description += codeObj.description + "\n"
           }
         }
         return description
@@ -614,52 +733,62 @@ console.log(filePaths)
   return projectSummary;
 }
 
-export function findCorrectCodeLineForObject(codeObj: {
-  [key : string]: CodeObject[]
-}, code: string): {
-  [key : string]: CodeObject[]
-} {
-  // Split the entire code into lines
-  const codeLines = code.split("\n");
+// export function findCorrectCodeLineForObject(codeObj: {
+//   [key : string]: CodeObject[]
+// }, code: string): {
+//   [key : string]: CodeObject[]
+// } {
+//   // Split the entire code into lines
+//   const codeLines = code.split("\n");
 
-  // Function to find the start line of a code snippet with fuzzy matching
-  const findStartLine = (snippetLines: string[], codeLines: string[]): number => {
-      for (let i = 0; i < codeLines.length; i++) {
-          let match = true;
-          for (let j = 0; j < snippetLines.length; j++) {
-              if (i + j >= codeLines.length || !codeLines[i + j].includes(snippetLines[j].trim())) {
-                  match = false;
-                  break;
-              }
-          }
-          if (match) {
-              return i + 1; // Line numbers are 1-based
-          }
-      }
-      return -1; // Not found
-  };
+//   // Function to find the start line of a code snippet with fuzzy matching
+//   const findStartLine = (snippetLines: string[], codeLines: string[]): number => {
+//       for (let i = 0; i < codeLines.length; i++) {
+//           let match = true;
+//           for (let j = 0; j < snippetLines.length; j++) {
+//               if (i + j >= codeLines.length || !codeLines[i + j].includes(snippetLines[j].trim())) {
+//                   match = false;
+//                   break;
+//               }
+//           }
+//           if (match) {
+//               return i + 1; // Line numbers are 1-based
+//           }
+//       }
+//       return -1; // Not found
+//   };
 
-  // Find the correct code line for each object
-  for (const key in codeObj) {
-      const codeObject = codeObj
-      try {
-        for (const objects of codeObject[key]) {
-          const obj = objects;
-          const codeSnippet = removeCodeBlockIfPresent(obj.codeSnippet)
-          const snippetLines = codeSnippet.split("\n");
+//   // Find the correct code line for each object
+//   for (const key in codeObj) {
+//       const codeObject = codeObj
+//       try {
+//         if (!codeObject[key]) continue;
+//         if (!Array.isArray(codeObject[key])) continue;
+//         if (codeObject[key].length === 0) continue;
+//         if (codeObject[key][0] instanceof String) continue;
+//         if (codeObject[key][0].codeSnippet === undefined) continue;
+//         for (const objects of codeObject[key]) {
+//           const obj = objects;
+//           const codeSnippet = removeCodeBlockIfPresent(obj.codeSnippet)
+//           const snippetLines = codeSnippet.split("\n");
 
-          const startLine = findStartLine(snippetLines, codeLines);
-          obj.codeLine = startLine !== -1 ? startLine : -2;
-        }
-      } catch(err) {
-          console.error("Error finding correct code line for object", err);
-          console.debug("Code Object:", codeObj);
-          console.debug("Code Object Key:", key);
-          continue
-      }
-  }
-  return codeObj;
-}
+//           const startLine = findStartLine(snippetLines, codeLines);
+//           obj.codeLine = startLine !== -1 ? startLine : -2;
+//         }
+//       } catch(err) {
+//         console.error("Error finding correct code line for object", err);
+//         console.debug("Code Object RAW:", codeObj);
+//         console.debug("Code Object Stringified:", JSON.stringify(codeObj));
+//         console.debug("Typeof Code Object:", typeof codeObj);
+//         console.debug("Code Object Key:", key);
+
+//         // This may be a BAD object, so let us go ahead and CREATE it and add some blank data
+//         if (!codeObj) codeObj = {} as { [key: string]: CodeObject[] };
+//         if (!codeObj[key]) codeObj[key] = [];
+//       }
+//   }
+//   return codeObj;
+// }
 
 
 
@@ -727,3 +856,60 @@ async function isFileTooLarge(
   return await getFileSizeInKB(filePath).then((size) => size > maxFileSizeKB);
 }
 
+
+export function findCorrectCodeLineForObject(codeObj: {
+  [key : string]: CodeObject[]
+}, code: string): {
+  [key : string]: CodeObject[]
+} {
+  // Split the entire code into lines
+  const codeLines = code.split("\n");
+
+  // Function to find the start line of a code snippet with fuzzy matching
+  const findStartLine = (snippetLines: string[], codeLines: string[]): number => {
+      for (let i = 0; i < codeLines.length; i++) {
+          let match = true;
+          for (let j = 0; j < snippetLines.length; j++) {
+              if (i + j >= codeLines.length || !codeLines[i + j].includes(snippetLines[j].trim())) {
+                  match = false;
+                  break;
+              }
+          }
+          if (match) {
+              return i + 1; // Line numbers are 1-based
+          }
+      }
+      return -1; // Not found
+  };
+
+  // Find the correct code line for each object
+  for (const key in codeObj) {
+      const codeObject = codeObj
+      try {
+        if (!codeObject[key]) continue;
+        if (!Array.isArray(codeObject[key])) continue;
+        if (codeObject[key].length === 0) continue;
+        if (codeObject[key][0] instanceof String) continue;
+        if (codeObject[key][0].codeSnippet === undefined) continue;
+        for (const objects of codeObject[key]) {
+          const obj = objects;
+          const codeSnippet = removeCodeBlockIfPresent(obj.codeSnippet)
+          const snippetLines = codeSnippet.split("\n");
+
+          const startLine = findStartLine(snippetLines, codeLines);
+          obj.codeLine = startLine !== -1 ? startLine : -2;
+        }
+      } catch(err) {
+        console.error("Error finding correct code line for object", err);
+        console.debug("Code Object RAW:", codeObj);
+        console.debug("Code Object Stringified:", JSON.stringify(codeObj));
+        console.debug("Typeof Code Object:", typeof codeObj);
+        console.debug("Code Object Key:", key);
+
+        // This may be a BAD object, so let us go ahead and CREATE it and add some blank data
+        if (!codeObj) codeObj = {} as { [key: string]: CodeObject[] };
+        if (!codeObj[key]) codeObj[key] = [];
+      }
+  }
+  return codeObj;
+}
