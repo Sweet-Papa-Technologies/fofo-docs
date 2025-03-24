@@ -8,116 +8,109 @@ import fs from "fs";
 import path from "path";
 import { annotateCodeObjectPrompt } from "./prompt";
 import { infer } from "./llmInterface";
-import "dotenv/config";
 import { makeOSpathFriendly } from "./shared";
 import { searchRAG } from "./vectorDB";
 import "./logger";
+import "dotenv/config";
 
 const sModel = process.env["LLM_TO_USE"] || undefined;
 const codeRelevanceMin =
-  (process.env["CODE_RELEVANCE_MIN"]
-    ? Number(process.env["CODE_RELEVANCE_MIN"])
-    : undefined) || 0.2;
+  Number(process.env["CODE_RELEVANCE_MIN"] || 0.2) || 0.2;
 
+/**
+ * Re-inserts the annotated code object back into the main ProjectSummary structure
+ */
 const addCodeObjectBackToProjectSummaryObject = (
   codeObj: CodeObject,
   annotation: Annotation,
   projectSummary: ProjectSummary
 ) => {
-  // Add annotation to the code object
   codeObj.annotation = annotation;
-
   for (const file of projectSummary.codeFiles) {
     if (file.fileName === codeObj.fileName) {
       for (const objKey in file.codeObjects) {
-        const codeObjects = file.codeObjects[
-          objKey
-        ] ;
-        for (const i in codeObjects) {
-          const currentCodeObject = codeObjects[i] as any;
-          if (currentCodeObject.codeSnippet === codeObj.codeSnippet) {
-            (codeObjects[i] as any) = codeObj;
+        const codeObjects = file.codeObjects[objKey];
+        for (let i = 0; i < codeObjects.length; i++) {
+          // If the codeSnippet matches, assume it's the same object
+          if (codeObjects[i].codeSnippet === codeObj.codeSnippet) {
+            codeObjects[i] = codeObj;
           }
         }
       }
     }
   }
-
   return projectSummary;
 };
 
+/**
+ * Retrieves relevant code snippets from RAG data that match the code object's description
+ */
 async function getRelevantCodeSnippets(
   codeObj: CodeObject,
   projectName: string
 ): Promise<string> {
-  let relevantCodeSnippets: string[] = [];
-  let returnString = "";
+  const relevantCodeSnippets: string[] = [];
 
+  // Importing AI usage data on the fly (from llmInterface) if needed
   const llmRuntimeDataResult = (await import("./llmInterface")).AIusageData;
 
-  const results = await searchRAG(projectName || "", codeObj.description, undefined, llmRuntimeDataResult);
+  // Query the vector DB
+  const results = await searchRAG(
+    projectName || "",
+    codeObj.description,
+    undefined,
+    llmRuntimeDataResult
+  );
 
-  if (results) {
-    let indexLvl1 = -1;
-    let indexLvl2 = -1;
-    for (const codeObj of results.allSearchResults.documents) {
-      indexLvl1++;
-      if (results.allSearchResults.distances) {
-        console.debug(
-          "Distance LVL1: ",
-          results.allSearchResults.distances[indexLvl1]
-        );
-      }
-      if (!codeObj) {
-        continue;
-      }
-      for (const codeSnippet of codeObj) {
-        indexLvl2++;
+  if (results && results.allSearchResults?.documents) {
+    const docArr = results.allSearchResults.documents;
+    // Distances array is often [ [distance1, distance2, ...], [distance1, distance2... ] ]
+    // We'll iterate in parallel
+    let topIndex = -1;
+    for (const docSet of docArr) {
+      topIndex++;
+      if (!docSet) continue;
+
+      let secondIndex = -1;
+      for (const snippet of docSet) {
+        secondIndex++;
         if (
           results.allSearchResults.distances &&
-          results.allSearchResults.distances[indexLvl1]
+          results.allSearchResults.distances[topIndex] &&
+          results.allSearchResults.distances[topIndex][secondIndex] &&
+          results.allSearchResults.distances[topIndex][secondIndex] > codeRelevanceMin
         ) {
-          console.debug(
-            "Distance LVL2: ",
-            results.allSearchResults.distances[indexLvl1][indexLvl2]
-          );
-        }
-        if (
-          results.allSearchResults.distances &&
-          results.allSearchResults.distances[indexLvl1][indexLvl2]
-        ) {
-          if (
-            results.allSearchResults.distances[indexLvl1][indexLvl2] >
-            codeRelevanceMin
-          ) {
-            if (codeSnippet) {
-              console.debug("Code Snippet: ", codeSnippet);
-              relevantCodeSnippets.push(codeSnippet);
-            }
+          if (snippet) {
+            relevantCodeSnippets.push(snippet);
           }
         }
       }
     }
   }
 
-  return returnString.concat(relevantCodeSnippets.join("\n"));
+  // Join all relevant snippets with a newline
+  return relevantCodeSnippets.join("\n");
 }
 
+/**
+ * Annotates a single CodeObject by calling the LLM with a prompt
+ */
 async function annotateCodeObject(
   codeObj: CodeObject,
   context: string,
   projectName?: string
 ): Promise<Annotation> {
-  // Generate prompt for LLM
   const bRAG = process.env.EMBEDDER_MODE || "OFF";
-  const bUseRag = bRAG !== "OFF" ? true : false;
-  // const ragContext = bUseRag === true ? (await searchRAG(projectName || "", codeObj.description)).metadata.codeObjects.codeSnippet : undefined;
-    const ragContext = bUseRag === true ? await getRelevantCodeSnippets(codeObj, projectName || "") : undefined;
+  const bUseRag = bRAG !== "OFF";
 
-  console.debug("Annotating code object: ", ragContext);
+  // If RAG is on, fetch relevant code snippets
+  const ragContext = bUseRag
+    ? await getRelevantCodeSnippets(codeObj, projectName || "")
+    : undefined;
 
   const prompt = annotateCodeObjectPrompt(codeObj, context, ragContext);
-  return await infer(
+  // We want JSON, so let's just ask the model for that
+  return infer(
     prompt,
     "JSON object",
     undefined,
@@ -128,75 +121,84 @@ async function annotateCodeObject(
   );
 }
 
+/**
+ * Main function to annotate the entire project
+ */
 export async function annotateProject(
   projectSummary: ProjectSummary,
   outputDir: string
 ) {
-  const annotationsFolder = path.join(outputDir, "annotations", projectSummary.projectName);
+  // Create an 'annotations' folder if it doesn't exist
+  const annotationsFolder = path.join(
+    outputDir,
+    "annotations",
+    projectSummary.projectName
+  );
   try {
     fs.mkdirSync(annotationsFolder, { recursive: true });
   } catch (error) {
-    console.error(error);
-    console.error("Error creating annotations folder");
+    console.error("Error creating annotations folder:", error);
   }
 
-  // Summarize all files
+  // Summarize all files (provides global context for the LLM)
   const context = await summarizeAllFiles(projectSummary.codeFiles);
 
+  // For each file, annotate each code object
   for (const aFile of projectSummary.codeFiles) {
-    const file = aFile;
-    const fileAnnotations = [];
+    const fileAnnotations: { codeObj: CodeObject; annotation: Annotation }[] = [];
 
-    for (const key in file.codeObjects) {
-      const codeObjects = file.codeObjects[key];
-      try {
-        for (const codeObj of codeObjects) {
-          const annotation = await annotateCodeObject(codeObj, context, projectSummary.projectName);
-          try {
-            // UPDATE the project summary with the annotation == TODO: Redo this. we don't need to update the project summary at every iteration, we should do it at the end
-            projectSummary = addCodeObjectBackToProjectSummaryObject(
-              codeObj,
-              annotation,
-              projectSummary
-            );
-          } catch (error) {
-            console.error(error);
-          }
-          fileAnnotations.push({ codeObj, annotation });
+    for (const key in aFile.codeObjects) {
+      const codeObjects = aFile.codeObjects[key];
+      // Annotate each object
+      for (const obj of codeObjects) {
+        try {
+          const annotation = await annotateCodeObject(
+            obj,
+            context,
+            projectSummary.projectName
+          );
+
+          // Update the project summary so the annotation is stored
+          projectSummary = addCodeObjectBackToProjectSummaryObject(
+            obj,
+            annotation,
+            projectSummary
+          );
+
+          fileAnnotations.push({ codeObj: obj, annotation });
+        } catch (error) {
+          console.error("Error annotating code object:", error);
         }
-      } catch (error) {
-        console.error(error);
       }
     }
 
-    // // Write annotations to a file
+    // Write annotations for this file to a timestamped JSON
     const sDate = new Date().toISOString().replace(/:/g, "-");
     const filePath = path.join(
       annotationsFolder,
-      `${makeOSpathFriendly(file.fileName)}-${makeOSpathFriendly(
-        sDate
-      )}-annotations.json`
+      `${makeOSpathFriendly(aFile.fileName)}-${makeOSpathFriendly(sDate)}-annotations.json`
     );
-    const filePathFolder = path.dirname(filePath);
     try {
+      const filePathFolder = path.dirname(filePath);
       if (!fs.existsSync(filePathFolder)) {
         fs.mkdirSync(filePathFolder, { recursive: true });
       }
       fs.writeFileSync(filePath, JSON.stringify(fileAnnotations, null, 2));
     } catch (error) {
-      console.error(error);
+      console.error("Error writing annotations JSON:", error);
     }
   }
 
   return projectSummary;
 }
 
-// Example function to summarize all files (for context)
-async function summarizeAllFiles(
-  codeFiles: CodeFileSummary[]
-): Promise<string> {
+/**
+ * Helper function to summarize all files in the project.
+ * Returns a short string that describes each file's summary.
+ */
+async function summarizeAllFiles(codeFiles: CodeFileSummary[]): Promise<string> {
   let summary =
-    "Project contains the following files and their high-level summaries:\n";
+    "Project contains the following files and their high-level summaries:\n\n";
 
   for (const file of codeFiles) {
     summary += `File: ${file.fileName}\nSummary: ${file.codeSummary.goal}\n\n`;

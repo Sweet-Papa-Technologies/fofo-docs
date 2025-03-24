@@ -49,9 +49,16 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
     
     // List out dependencies:
     toc.push(`\n## Project Dependencies / Modules:`);
-    projectSummary.projectDependencies.forEach(dep => {
-        toc.push(`  - ${dep.name} - ${dep.version}`);
-    });
+    // Ensure projectDependencies exists before trying to iterate through it
+    if (Array.isArray(projectSummary.projectDependencies) && projectSummary.projectDependencies.length > 0) {
+        projectSummary.projectDependencies.forEach(dep => {
+            if (dep && dep.name) {
+                toc.push(`  - ${escapeStringForMD(dep.name)} - ${escapeStringForMD(dep.version || 'N/A')}`);
+            }
+        });
+    } else {
+        toc.push(`  - No dependencies found or specified`);
+    }
 
     // Process Code Files
     toc.push(`\n## Table of Contents - Project Files\n`);
@@ -375,7 +382,12 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
     return content;
 }
 
-function getEmoji(type: string): string {
+function getEmoji(type: string | undefined): string {
+    // Handle undefined or null type
+    if (!type) {
+        return '📄'; // Default emoji for undefined types
+    }
+    
     type = type.toLowerCase();
     if (type === 'classes' || type === 'class') {
         return '📘';

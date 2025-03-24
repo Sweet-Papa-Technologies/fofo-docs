@@ -5,11 +5,68 @@ import puppeteer from 'puppeteer';
 
 
 function cleanUpChartData(chart: fofoMermaidChart) {
-
   chart.chart_code = chart.chart_code.trim();
   chart.chart_code = chart.chart_code.replace("```mermaid", '');
   chart.chart_code = chart.chart_code.replace(/\`\`\`/g, '');
-
+  
+  // Fix common class diagram syntax issues
+  if (chart.chart_code.includes('classDiagram')) {
+    // First ensure the classDiagram declaration is on its own line
+    chart.chart_code = chart.chart_code.replace(/classDiagram\s+/, 'classDiagram\n');
+    
+    const lines = chart.chart_code.split('\n');
+    const cleanedLines = [];
+    
+    let inClassDefinition = false;
+    let currentClassIndentation = '';
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trimRight();
+      
+      // Always keep the classDiagram declaration as is
+      if (line.trim() === 'classDiagram') {
+        cleanedLines.push(line);
+        continue;
+      }
+      
+      // Check if entering a class definition block
+      const classMatch = line.match(/(\s*)class\s+(\w+)\s*\{/);
+      if (classMatch) {
+        inClassDefinition = true;
+        currentClassIndentation = classMatch[1] || '';
+        cleanedLines.push(line);
+        continue;
+      }
+      
+      // Check if exiting a class definition block
+      if (inClassDefinition && line.includes('}')) {
+        inClassDefinition = false;
+        cleanedLines.push(line);
+        continue;
+      }
+      
+      // Inside class definition, check for properties without type declarations
+      if (inClassDefinition) {
+        // Find properties that don't have a type (end with identifier without colon)
+        const propertyMatch = line.match(/^(\s*)([-+]?\s*\w+)(\s*)$/);
+        if (propertyMatch) {
+          // Add type declaration
+          cleanedLines.push(`${propertyMatch[1]}${propertyMatch[2]}: string`);
+        } else {
+          cleanedLines.push(line);
+        }
+      } else {
+        cleanedLines.push(line);
+      }
+    }
+    
+    chart.chart_code = cleanedLines.join('\n');
+    
+    // Fix relationship syntax issues - carefully with precise patterns
+    chart.chart_code = chart.chart_code.replace(/--|>\s+([^:]+)\s+:\s+has a/g, '--* $1 : has a');
+    chart.chart_code = chart.chart_code.replace(/--|>\s+([^:]+)\s+:\s+uses/g, '--> $1 : uses');
+  }
+  
   return chart;
 }
 
