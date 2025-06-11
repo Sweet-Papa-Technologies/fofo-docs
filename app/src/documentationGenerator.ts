@@ -1,4 +1,4 @@
-import { CodeObject, ProjectSummary, CodeObjectType, fofoMermaidChart, chartPNG } from "./objectSchemas";
+import { CodeObject, ProjectSummary, CodeObjectType, fofoMermaidChart, chartPNG, CodeFileSummary } from "./objectSchemas";
 import fs from 'fs';
 import path from 'path';
 import "dotenv/config";
@@ -40,8 +40,8 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
             await base64ToPngFile(png.base64PNG, filePath);
             toc.push(`### ${png.chartData.shortDescription}\n`);
             toc.push(`![${png.chartData.shortDescription}](./flow-charts/${fileName})\n`);
-            toc.push(`\n[${png.chartData.shortDescription}](./flow-charts/${fileName})\n`);
-            toc.push(`Full Description: \n${png.chartData.longDescription}\n`);
+            // Removed duplicate link
+            toc.push(`**Full Description:** ${png.chartData.longDescription}\n`);
         } catch (err) {
             console.log("Error writing", filePath, err);
         }
@@ -49,19 +49,62 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
     
     // List out dependencies:
     toc.push(`\n## Project Dependencies / Modules:`);
-    // Ensure projectDependencies exists before trying to iterate through it
+    // Enhanced dependency handling with better fallback display
     if (Array.isArray(projectSummary.projectDependencies) && projectSummary.projectDependencies.length > 0) {
         projectSummary.projectDependencies.forEach(dep => {
             if (dep && dep.name) {
-                toc.push(`  - ${escapeStringForMD(dep.name)} - ${escapeStringForMD(dep.version || 'N/A')}`);
+                let description = dep.description ? ` - ${escapeStringForMD(dep.description)}` : '';
+                toc.push(`  - **${escapeStringForMD(dep.name)}** (${escapeStringForMD(dep.version || 'latest')})${description}`);
             }
         });
     } else {
-        toc.push(`  - No dependencies found or specified`);
+        // Try to extract from package.json if dependencies array is empty
+        const packageJsonPath = path.join(projectSummary.projectLocation, 'package.json');
+        try {
+            if (fs.existsSync(packageJsonPath)) {
+                const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+                const dependencies = { ...packageData.dependencies || {}, ...packageData.devDependencies || {} };
+                if (Object.keys(dependencies).length > 0) {
+                    Object.entries(dependencies).forEach(([name, version]) => {
+                        toc.push(`  - **${escapeStringForMD(name)}** (${escapeStringForMD(version as string)})`);
+                    });
+                } else {
+                    toc.push(`  - No dependencies found in package.json`);
+                }
+            } else {
+                toc.push(`  - No dependencies found or specified`);
+            }
+        } catch (err) {
+            console.warn("Error loading dependencies from package.json:", err);
+            toc.push(`  - No dependencies found or specified`);
+        }
     }
 
     // Process Code Files
     toc.push(`\n## Table of Contents - Project Files\n`);
+    
+    // Group files by directories for better organization
+    const filesByDirectory: Record<string, CodeFileSummary[]> = {};
+    projectSummary.codeFiles.forEach(file => {
+        const dirPath = path.dirname(file.fileLocation);
+        if (!filesByDirectory[dirPath]) {
+            filesByDirectory[dirPath] = [];
+        }
+        filesByDirectory[dirPath].push(file);
+    });
+    
+    // Add file navigation with hierarchy
+    if (Object.keys(filesByDirectory).length > 1) {
+        // If we have multiple directories, show organized structure
+        Object.entries(filesByDirectory).forEach(([dir, files]) => {
+            const dirName = path.basename(dir);
+            toc.push(`\n### ${dirName}/`);
+            files.forEach(file => {
+                const fileName = `${file.fileName}.md`;
+                toc.push(`- [${file.fileName}](./${fileName})`);
+            });
+        });
+    }
 
     projectSummary.codeFiles.forEach(file => {
         const fileName = `${file.fileName}.md`;
@@ -74,6 +117,55 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
         fileContent += `\n**Summary:** ${file.codeSummary.goal}\n`;
         fileContent += `\n- **File Location:** ${file.fileLocation}`;
         fileContent += `\n- **Language:** ${file.language}`;
+        
+        // Add enhanced file information based on file type
+        const isTestFile = file.fileName.includes('.test.') || file.fileName.includes('.spec.') || 
+                          file.fileLocation.includes('/test/') || file.fileLocation.includes('/tests/');
+                          
+        if (isTestFile) {
+            fileContent += `\n- **Type:** Test File`;
+            fileContent += `\n\n## Test Summary\n`;
+            fileContent += `This file contains tests for validating the functionality of the application.\n`;
+            
+            if (file.codeSummary && file.codeSummary.features_functions) {
+                fileContent += `\n### Tests Overview\n${file.codeSummary.features_functions}\n`;
+            }
+            
+            fileContent += `\n### Key Components Being Tested\n`;
+            // Extract component names from code objects to list what's being tested
+            const testTargets = new Set<string>();
+            if (file.codeObjects && Array.isArray(file.codeObjects)) {
+                file.codeObjects.forEach((obj: CodeObject) => {
+                    if (obj.name && (obj.type === 'function' || obj.type === 'method')) {
+                        const name = obj.name.toLowerCase();
+                        if (name.startsWith('test') || name.includes('should') || name.includes('expect')) {
+                            // Try to extract what's being tested from the name
+                            const words = obj.name.split(/(?=[A-Z])|\s|_|(?=\d)/).filter(Boolean);
+                            const targetIndex = words.findIndex((w: string) => 
+                                w.toLowerCase() === 'test' || 
+                                w.toLowerCase() === 'should' || 
+                                w.toLowerCase() === 'expect'
+                            );
+                            
+                            if (targetIndex >= 0 && words.length > targetIndex + 1) {
+                                testTargets.add(words.slice(targetIndex + 1).join(' '));
+                            }
+                        }
+                    }
+                });
+            }
+            
+            if (testTargets.size > 0) {
+                Array.from(testTargets).forEach(target => {
+                    fileContent += `- ${target}\n`;
+                });
+            } else {
+                fileContent += `- Components being tested are not explicitly identified in the test names.\n`;
+            }
+        } else if (file.codeSummary && file.codeSummary.features_functions) {
+            fileContent += `\n\n## Key Functionality\n${file.codeSummary.features_functions}\n`;
+        }
+        
         fileContent += `\n## Table of Contents\n`;
 
         const sectionLinks: string[] = [];
@@ -254,9 +346,21 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
 
 
 
-    if ( projectSummary.projectDependencies && projectSummary.projectDependencies.length > 0) {
+    // Improved Team Context section with better fallback
+    if (projectSummary.teamContext && projectSummary.teamContext !== 'N/A') {
         toc.push(`\n## Project/Team Context\n${escapeStringForMD(projectSummary.teamContext)}`);
+    } else {
+        toc.push(`\n## Project Context\nThis documentation was generated automatically based on code analysis.`);
     }
+    
+    // Add a Getting Started section with installation instructions
+    toc.push(`\n## Getting Started\n`);
+    toc.push(`### Installation\n`);
+    toc.push(`To install the project dependencies, run:\n`);
+    toc.push(`\`\`\`bash\nnpm install\n\`\`\`\n`);
+    
+    toc.push(`### Usage\n`);
+    toc.push(`Please refer to the individual file documentation for specific usage examples.\n`);
     
 
     // Write TOC
@@ -310,71 +414,205 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
     const fancyBar = '---'.repeat(20);
     const emoji = getEmoji(codeObject.type);
 
+    // Detect the language for better syntax highlighting
+    let codeLanguage = '';
+    if (codeObject.fileName) {
+        if (codeObject.fileName.endsWith('.ts') || codeObject.fileName.endsWith('.tsx')) {
+            codeLanguage = 'typescript';
+        } else if (codeObject.fileName.endsWith('.js') || codeObject.fileName.endsWith('.jsx')) {
+            codeLanguage = 'javascript';
+        } else if (codeObject.fileName.endsWith('.py')) {
+            codeLanguage = 'python';
+        } else if (codeObject.fileName.endsWith('.java')) {
+            codeLanguage = 'java';
+        } else if (codeObject.fileName.endsWith('.html')) {
+            codeLanguage = 'html';
+        } else if (codeObject.fileName.endsWith('.css')) {
+            codeLanguage = 'css';
+        }
+    }
+    
     let content = `\n\n${indentation}### ${emoji} ${escapeStringForMD(codeObject.name) || 'Other Details'} - ${(escapeStringForMD(codeObject.type) || 'Undefined').toUpperCase()}`;
     content += `\n${fancyBar}`;
-    content += `\n**Description:** ${escapeStringForMD(codeObject.description) || 'undefined'}`;
+    content += `\n**Description:** ${escapeStringForMD(codeObject.description) || 'No description available'}`;
 
+    // Improve code snippet display with proper syntax highlighting and formatting
     if (codeObject.codeSnippet && codeObject.codeSnippet.length > 0) {
-        content += `\n\n**Code Snippet:**\n${cleanBackticks(codeObject.codeSnippet).includes('\`') ? "" : "\`\`\`"}\n${cleanBackticks(codeObject.codeSnippet)}\n${cleanBackticks(codeObject.codeSnippet).includes('\`') ? "" : "\`\`\`"}`;
+        const trimmedSnippet = codeObject.codeSnippet.trim();
+        
+        // Process the snippet to ensure it doesn't contain nested code blocks
+        let processedSnippet = trimmedSnippet;
+        
+        // Determine appropriate fence length to handle backticks in snippet
+        const backtickSequences = processedSnippet.match(/`+/g) || [];
+        const maxBackticks = backtickSequences.reduce((max, seq) => Math.max(max, seq.length), 0);
+        const fenceLength = Math.max(3, maxBackticks + 1);
+        const fence = '`'.repeat(fenceLength);
+
+        // Add fencing for code block with proper language tag
+        content += `\n\n${indentation}${fence}${codeLanguage}\n${processedSnippet}\n${indentation}${fence}\n`;
     }
-    content += `\n${indentation}- **Line:** ${(codeObject.codeLine !== undefined && codeObject.codeLine !== -1 && codeObject.codeLine !== -2) ? codeObject.codeLine : 'Could Not Verify Line'}`;
-    content += `\n${indentation}- **Location:** ${codeObject.fileName || 'undefined'} (${codeObject.fileLocation || 'Unable to Load'})`;
-    content += `\n${indentation}- **Exported:** ${codeObject.isExported !== undefined ? codeObject.isExported : 'Could Not Determine'}`;
-    content += `\n${indentation}- **Private:** ${codeObject.isPrivate !== undefined ? codeObject.isPrivate : 'Could Not Determine'}`;
+    
+    // Improve metadata display
+    const lineInfo = (codeObject.codeLine !== undefined && codeObject.codeLine !== -1 && codeObject.codeLine !== -2) 
+        ? codeObject.codeLine 
+        : 'Not specified';
+        
+    content += `\n${indentation}- **Line:** ${lineInfo}`;
+    // Don't duplicate file location in parentheses
+    content += `\n${indentation}- **Location:** ${codeObject.fileLocation || 'Unknown'}`;
+    
+    // Format boolean values more clearly
+    const exportedInfo = codeObject.isExported === true ? 'Yes' : 
+                       (codeObject.isExported === false ? 'No' : 'Not specified');
+    const privateInfo = codeObject.isPrivate === true ? 'Yes' : 
+                      (codeObject.isPrivate === false ? 'No' : 'Not specified');
+                      
+    content += `\n${indentation}- **Exported:** ${exportedInfo}`;
+    content += `\n${indentation}- **Private:** ${privateInfo}`;
   
 
     if (codeObject.type === 'function' && codeObject.isAsync !== undefined) {
-        content += `\n${indentation}- **Async:** ${codeObject.isAsync !== undefined ? codeObject.isAsync : 'Could Not Determine'}\n\n`;
+        const asyncInfo = codeObject.isAsync === true ? 'Yes' : 
+                       (codeObject.isAsync === false ? 'No' : 'Not specified');
+        content += `\n${indentation}- **Async:** ${asyncInfo}`;
     }
 
+    // Improve function parameters formatting
     if (codeObject.functionParameters && codeObject.functionParameters.length > 0) {
-
-        content += `\n${indentation}###### Function Parameters:`;
+        content += `\n\n${indentation}###### Function Parameters:`;
         codeObject.functionParameters.forEach(param => {
-            content += `\n${indentation}- **${escapeStringForMD(param.name)}** (${escapeStringForMD(param.type)}): ${escapeStringForMD(param.description)} \n Example: ${escapeStringForMD(param.example)}`;
+            const paramName = param.name || 'unnamed';
+            const paramType = param.type || 'any';
+            const paramDesc = param.description || 'No description provided';
+            
+            content += `\n${indentation}- **${escapeStringForMD(paramName)}** (${escapeStringForMD(paramType)}): ${escapeStringForMD(paramDesc)}`;
+            
+            // Only show example if it exists
+            if (param.example && param.example.trim()) {
+                content += `\n${indentation}  - Example: \`${escapeStringForMD(param.example)}\``;
+            }
         });
+    } else if (codeObject.type === 'function' || codeObject.type === 'constructor' || codeObject.type === 'method') {
+        // Indicate when there are no parameters for functions
+        content += `\n\n${indentation}###### Function Parameters: None`;
     }
 
+    // Improve function returns formatting
     if (codeObject.functionReturns) {
-        content += `\n${indentation}###### Function Returns:`;
-        content += `\n${indentation}- **Type:** ${escapeStringForMD(codeObject.functionReturns.type)}`;
-        content += `\n${indentation}- **Description:** ${escapeStringForMD(codeObject.functionReturns.description)}`;
-        content += `\n${indentation}- **Example:** ${escapeStringForMD(codeObject.functionReturns.example)}`;
+        content += `\n\n${indentation}###### Function Returns:`;
+        
+        // Handle missing properties gracefully
+        const returnType = codeObject.functionReturns.type || 'void';
+        const returnDesc = codeObject.functionReturns.description || 'No description provided';
+        
+        content += `\n${indentation}- **Type:** ${escapeStringForMD(returnType)}`;
+        content += `\n${indentation}- **Description:** ${escapeStringForMD(returnDesc)}`;
+        
+        // Only show example if it exists
+        if (codeObject.functionReturns.example && codeObject.functionReturns.example.trim()) {
+            content += `\n${indentation}- **Example:** \`${escapeStringForMD(codeObject.functionReturns.example)}\``;
+        }
+    } else if (codeObject.type === 'function' || codeObject.type === 'method') {
+        // Indicate when there is no return info for functions
+        content += `\n\n${indentation}###### Function Returns: Not specified`;
     }
 
     if (codeObject.annotation) {
-        content += `\n${indentation}###### Annotations / Comments:`;
+        content += `\n\n${indentation}###### Annotations / Comments:`;
 
         const annotation = codeObject.annotation;
+        let hasAnnotation = false;
 
-        if (annotation.purpose && annotation.purpose.length > 0) {
+        if (annotation.purpose && annotation.purpose.trim().length > 0) {
             content += `\n${indentation}- **Purpose:** ${escapeStringForMD(annotation.purpose)}`;
+            hasAnnotation = true;
         }
 
-        if (annotation.parameters && annotation.parameters.length > 0) {
+        if (annotation.parameters && annotation.parameters.trim().length > 0) {
             content += `\n${indentation}- **Parameters:** ${escapeStringForMD(annotation.parameters)}`;
+            hasAnnotation = true;
         }
 
-        if (annotation.returns && annotation.returns.length > 0) {
+        if (annotation.returns && annotation.returns.trim().length > 0) {
             content += `\n${indentation}- **Returns:** ${escapeStringForMD(annotation.returns)}`;
+            hasAnnotation = true;
         }
 
-        if (annotation.usageExample && annotation.usageExample.length > 0) {
-            content += `\n${indentation}- **Usage Example:** \n${cleanBackticks(annotation.usageExample).includes('\`') ? "" : "\`\`\`"}\n${cleanBackticks(annotation.usageExample)}\n${cleanBackticks(annotation.usageExample).includes('\`') ? "" : "\`\`\`"}`;
+        if (annotation.usageExample && annotation.usageExample.trim().length > 0) {
+            // Detect the language for better syntax highlighting
+            let exampleLanguage = codeLanguage || 'typescript';
+            
+            // Determine fence length for usage example
+            const exampleBacktickSeq = annotation.usageExample.match(/`+/g) || [];
+            const exampleMaxBackticks = exampleBacktickSeq.reduce((max, seq) => Math.max(max, seq.length), 0);
+            const exampleFenceLen = Math.max(3, exampleMaxBackticks + 1);
+            const exampleFence = '`'.repeat(exampleFenceLen);
+
+            // Add fenced code block for usage example
+            content += `\n${indentation}- **Usage Example:**`; 
+            content += `\n\n${indentation}${exampleFence}${exampleLanguage}\n${annotation.usageExample}\n${indentation}${exampleFence}\n`;
+            hasAnnotation = true;
         }
 
-        if (annotation.edgeCases && annotation.edgeCases.length > 0) {
+        if (annotation.edgeCases && annotation.edgeCases.trim().length > 0) {
             content += `\n${indentation}- **Edge Cases:** ${escapeStringForMD(annotation.edgeCases)}`;
+            hasAnnotation = true;
         }
 
-        if (annotation.dependencies && annotation.dependencies.length > 0) {
+        if (annotation.dependencies && annotation.dependencies.trim().length > 0) {
             content += `\n${indentation}- **Dependencies:** ${escapeStringForMD(annotation.dependencies)}`;
+            hasAnnotation = true;
+        }
+        
+        if (annotation.errorHandling && annotation.errorHandling.trim().length > 0) {
+            content += `\n${indentation}- **Error Handling:** ${escapeStringForMD(annotation.errorHandling)}`;
+            hasAnnotation = true;
+        }
+        
+        if (annotation.performance && annotation.performance.trim().length > 0) {
+            content += `\n${indentation}- **Performance:** ${escapeStringForMD(annotation.performance)}`;
+            hasAnnotation = true;
+        }
+        
+        if (annotation.bestPractices && annotation.bestPractices.trim().length > 0) {
+            content += `\n${indentation}- **Best Practices:** ${escapeStringForMD(annotation.bestPractices)}`;
+            hasAnnotation = true;
+        }
+        
+        // If no annotation content was added, provide a note
+        if (!hasAnnotation) {
+            content += `\n${indentation}- No detailed annotations available`;
         }
     } 
 
     if (codeObject.subObjects && codeObject.subObjects.length > 0) {
-        content += `\n${indentation}###### Sub Objects:`;
-        codeObject.subObjects.forEach(subObj => {
+        content += `\n\n${indentation}###### Sub Objects:`;
+        
+        // Sort sub-objects for more logical presentation
+        const sortedSubObjects = [...codeObject.subObjects].sort((a, b) => {
+            // Sort by type first (classes, then constructors, then functions, etc)
+            const typeOrder: Record<string, number> = { 
+                'class': 1, 
+                'constructor': 2, 
+                'function': 3, 
+                'method': 4,
+                'variable': 5,
+                'interface': 6
+            };
+            
+            const aTypeValue = a.type && typeOrder[a.type] ? typeOrder[a.type] : 99;
+            const bTypeValue = b.type && typeOrder[b.type] ? typeOrder[b.type] : 99;
+            
+            if (aTypeValue !== bTypeValue) {
+                return aTypeValue - bTypeValue;
+            }
+            
+            // Then sort alphabetically by name
+            return (a.name || '').localeCompare(b.name || '');
+        });
+        
+        sortedSubObjects.forEach(subObj => {
             content += generateCodeObjectContent(subObj, indent + 1);
         });
     }
@@ -456,6 +694,35 @@ export async function generateDocumentation(folderPath: string, projectContext: 
         // if (folderPath.startsWith("./") || folderPath.startsWith("../") || folderPath.startsWith(".\\") || folderPath.startsWith("..\\")) {
         //     folderPath = path.resolve(folderPath);
         // }
+
+        // Enhance the project context with additional information if missing
+        if (projectContext) {
+            // Ensure team context has useful information
+            if (!projectContext.teamContext || projectContext.teamContext === 'N/A') {
+                projectContext.teamContext = 'This documentation was automatically generated based on code analysis.'
+            }
+            
+            // If dependencies are missing, try to extract from package.json
+            if (!projectContext.projectDependencies || projectContext.projectDependencies.length === 0) {
+                try {
+                    const packageJsonPath = path.join(projectContext.projectLocation, 'package.json');
+                    if (fs.existsSync(packageJsonPath)) {
+                        const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+                        const dependencies = { ...packageData.dependencies || {}, ...packageData.devDependencies || {} };
+                        
+                        if (Object.keys(dependencies).length > 0) {
+                            projectContext.projectDependencies = Object.entries(dependencies).map(([name, version]) => ({
+                                name,
+                                version: version as string,
+                                description: ''
+                            }));
+                        }
+                    }
+                } catch (err) {
+                    console.warn("Error loading dependencies from package.json:", err);
+                }
+            }
+        }
 
         try {
             fs.writeFileSync(jsonFile, JSON.stringify(projectContext, null, 4));

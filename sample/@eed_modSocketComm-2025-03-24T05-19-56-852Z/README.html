@@ -1,0 +1,38 @@
+<h1 id="projecteed_modsocketcomm">Project | @eed_modSocketComm</h1>
+<h2 id="projectdescription">Project Description</h2>
+<p>The code defines a <code>NativeSocket</code> class for inter-process communication using Unix domain sockets or Windows named pipes. It includes a Jest test suite to ensure the <code>NativeSocket</code> class functions correctly, covering connection management, message sending/receiving, error handling, and reconnection logic. The Jest configuration file sets up the testing environment for a TypeScript project.</p>
+<h2 id="techstackdescription">Tech Stack Description</h2>
+<p>"TypeScript, Node.js, Jest"</p>
+<h2 id="featuresandfunctions">Features and Functions</h2>
+<p>Key features include: <code>NativeSocket</code> class with <code>setupServer()</code>, <code>connect()</code>, <code>disconnect()</code>, <code>emit()</code>, and <code>on()</code> methods; automatic reconnection logic; payload size limits; error handling; Jest unit tests covering various scenarios; Jest configuration for TypeScript projects with code coverage reporting.</p>
+<h2 id="diagramsflowcharts">Diagrams - Flow Charts</h2>
+<p>Here are some helpful visuals to help you understand the project:</p>
+<h3 id="nativesocketsetupserverflowchart">NativeSocket Setup Server Flowchart</h3>
+<p><img src="./flow-charts/NativeSocket-Setup-Server-Flowchart.png" alt="NativeSocket Setup Server Flowchart" /></p>
+<p><a href="./flow-charts/NativeSocket-Setup-Server-Flowchart.png">NativeSocket Setup Server Flowchart</a></p>
+<p>Full Description: 
+This flowchart outlines the steps involved in setting up the <code>NativeSocket</code> server, including checking for existing socket files, creating the server, setting up listeners, and handling errors. It provides a visual representation of the server setup process.</p>
+<h3 id="nativesocketconnectflowchart">NativeSocket Connect Flowchart</h3>
+<p><img src="./flow-charts/NativeSocket-Connect-Flowchart.png" alt="NativeSocket Connect Flowchart" /></p>
+<p><a href="./flow-charts/NativeSocket-Connect-Flowchart.png">NativeSocket Connect Flowchart</a></p>
+<p>Full Description: 
+This flowchart illustrates the steps involved in connecting to the <code>NativeSocket</code> server, including creating the connection, setting up timeout, and handling connection events. It provides a visual representation of the client connection process.</p>
+<h3 id="nativesocketdisconnectflowchart">NativeSocket Disconnect Flowchart</h3>
+<p><img src="./flow-charts/NativeSocket-Disconnect-Flowchart.png" alt="NativeSocket Disconnect Flowchart" /></p>
+<p><a href="./flow-charts/NativeSocket-Disconnect-Flowchart.png">NativeSocket Disconnect Flowchart</a></p>
+<p>Full Description: 
+This flowchart outlines the steps involved in disconnecting the <code>NativeSocket</code>, including cleaning up the socket, clearing timers, and emitting the disconnect event. It provides a visual representation of the disconnection process.</p>
+<h3 id="nativesocketreconnectstatemachine">NativeSocket Reconnect State Machine</h3>
+<p><img src="./flow-charts/NativeSocket-Reconnect-State-Machine.png" alt="NativeSocket Reconnect State Machine" /></p>
+<p><a href="./flow-charts/NativeSocket-Reconnect-State-Machine.png">NativeSocket Reconnect State Machine</a></p>
+<p>Full Description: 
+This state machine diagram illustrates the reconnection logic of the <code>NativeSocket</code> class, including the initial disconnected state, the reconnection attempts, and the connected state. It provides a visual representation of the reconnection process.</p>
+<h2 id="projectdependenciesmodules">Project Dependencies / Modules:</h2>
+<h2 id="tableofcontentsprojectfiles">Table of Contents - Project Files</h2>
+<ul>
+<li><p><a href="./jest.config.js.md">jest.config.js</a></p></li>
+<li><p><a href="./tests/socket.test.ts.md">tests/socket.test.ts</a></p></li>
+<li><p><a href="./src/index.ts.md">src/index.ts</a></p></li>
+</ul>
+<h2 id="projectteamcontext">Project/Team Context</h2>
+<p>N/A</p>

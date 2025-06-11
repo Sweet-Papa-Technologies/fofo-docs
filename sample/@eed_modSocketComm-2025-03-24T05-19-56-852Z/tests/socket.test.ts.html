@@ -1,0 +1,646 @@
+<p><a href="./README.md">Back to Readme</a></p>
+<h1 id="testssockettesttseed_modsocketcomm">tests/socket.test.ts - @eed_modSocketComm</h1>
+<p><strong>Summary:</strong> This code defines a suite of Jest unit tests for a <code>NativeSocket</code> class. The goal is to thoroughly test the functionality of the <code>NativeSocket</code> class, including establishing connections, sending and receiving events, handling disconnections and reconnections, managing payload sizes, handling invalid message formats, dealing with connection errors, managing timeouts, and ensuring proper cleanup of socket files.</p>
+<ul>
+<li><strong>File Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts</li>
+<li><strong>Language:</strong> TypeScript</li>
+</ul>
+<h2 id="tableofcontents">Table of Contents</h2>
+<ul>
+<li><a href="#classes">classes</a></li>
+<li><a href="#variables">variables</a></li>
+<li><a href="#imports">imports</a></li>
+</ul>
+<h2 id="classes">classes</h2>
+<h2 id="nativesocketclass">### 📘 NativeSocket - CLASS</h2>
+<p><strong>Description:</strong> Tests for the NativeSocket class.</p>
+<p><strong>Code Snippet:</strong></p>
+<p>describe('NativeSocket', () =&gt; {
+  let server: NativeSocket;
+  let client: NativeSocket;</p>
+<p>beforeEach(async () =&gt; {
+    server = new NativeSocket({ socketPath: TEST<em>SOCKET</em>PATH });
+    client = new NativeSocket({ socketPath: TEST<em>SOCKET</em>PATH });
+  });</p>
+<p>afterEach(async () =&gt; {
+    await Promise.all(<a href="">
+      client.disconnect(),
+      server.disconnect()
+    </a>);
+  });</p>
+<p>it('should establish connection between server and client', async () =&gt; {
+    const serverConnected = new Promise<void>((resolve) =&gt; {
+      server.once('connect', () =&gt; resolve());
+    });</p>
+<pre><code>const clientConnected = new Promise&lt;void&gt;((resolve) =&gt; {
+  client.once('connect', () =&gt; resolve());
+});
+
+await server.setupServer();
+await client.connect();
+
+await Promise.all([serverConnected, clientConnected]);
+</code></pre>
+<p>});</p>
+<p>it('should send and receive events', async () =&gt; {
+    await server.setupServer();
+    await client.connect();</p>
+<pre><code>const message = { test: 'Hello World' };
+const received = new Promise&lt;any&gt;((resolve) =&gt; {
+  server.once('test-event', (data) =&gt; resolve(data));
+});
+
+client.emit('test-event', message);
+const result = await received;
+expect(result).toEqual(message);
+</code></pre>
+<p>});</p>
+<p>it('should handle disconnection and reconnection', async () =&gt; {
+    await server.setupServer();
+    await client.connect();</p>
+<pre><code>const disconnected = new Promise&lt;void&gt;((resolve) =&gt; {
+  client.once('disconnect', () =&gt; resolve());
+});
+
+const reconnected = new Promise&lt;void&gt;((resolve) =&gt; {
+  client.once('connect', () =&gt; resolve());
+});
+
+await server.disconnect();
+await disconnected;
+
+await server.setupServer();
+await reconnected;
+</code></pre>
+<p>});</p>
+<p>it('should reject payloads exceeding maximum size', async () =&gt; {
+    const smallSocket = new NativeSocket({ 
+      socketPath: TEST<em>SOCKET</em>PATH,
+      maxPayloadSize: 10 
+    });</p>
+<pre><code>await server.setupServer();
+await smallSocket.connect();
+
+const error = new Promise&lt;Error&gt;((resolve) =&gt; {
+  smallSocket.once('error', (err) =&gt; resolve(err as Error));
+});
+
+smallSocket.emit('test-event', { data: 'x'.repeat(100) });
+const err = await error;
+expect(err.message).toContain('Payload size exceeds maximum');
+
+await smallSocket.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should handle invalid message formats', async () =&gt; {
+    await server.setupServer();
+    await client.connect();</p>
+<pre><code>const error = new Promise&lt;Error&gt;((resolve) =&gt; {
+  server.once('error', (err) =&gt; resolve(err as Error));
+});
+
+// @ts-ignore - Accessing private property for testing
+client.socket?.write('invalid json\n');
+
+const err = await error;
+expect(err.message).toBe('Invalid message format');
+</code></pre>
+<p>});</p>
+<p>it('should handle connection errors', async () =&gt; {
+    const error = new Promise<Error>((resolve) =&gt; {
+      client.once('error', (err) =&gt; resolve(err as Error));
+    });</p>
+<pre><code>try {
+  await client.connect();
+} catch (err) {
+  // Expected error
+}
+
+const result = await error;
+expect(result).toBeDefined();
+</code></pre>
+<p>});</p>
+<p>it('should properly stay connected beyond the timeout execution, if successfully connected', async ()=&gt;{
+    const server = new NativeSocket({ socketPath: TEST<em>SOCKET</em>PATH, connectTimeout: 5000 });
+    const client = new NativeSocket({ socketPath: TEST<em>SOCKET</em>PATH, connectTimeout: 5000 });
+    await server.setupServer();
+    await client.connect();</p>
+<pre><code>await new Promise&lt;void&gt;((resolve) =&gt; {
+  setTimeout(resolve, 6000);
+})
+
+await expect(server.connected).toBe(true);
+await expect(client.connected).toBe(true);
+
+await server.disconnect();
+await client.disconnect();
+
+// Ensure both sockets are disconnected
+await expect(server.connected).toBe(false);
+await expect(client.connected).toBe(false);
+</code></pre>
+<p>})</p>
+<p>it('should properly timeout if the path is not writeable after a certain period of time', async ()=&gt;{
+    const server = new NativeSocket({ socketPath: TEST<em>SOCKET</em>PATH, connectTimeout: 3000 });
+    const client = new NativeSocket({ socketPath: TEST<em>SOCKET</em>PATH, connectTimeout: 3000 });</p>
+<pre><code>const interval = setInterval(()=&gt;{
+  // CHMOD the sock to not be readable/writable!
+  try {
+    fs.chmodSync(TEST_SOCKET_PATH, 0o000);
+
+  } catch (e) {
+    // ignore
+  }
+}, 500)
+
+ const serverConnect = await server.setupServer()
+ .then(()=&gt;false) 
+
+await new Promise&lt;void&gt;((resolve) =&gt; {
+  setTimeout(resolve, 4000);
+})
+
+clearInterval(interval);
+
+expect(server.connected).toBe(false);
+expect(client.connected).toBe(false);
+expect(serverConnect).toBe(false);
+</code></pre>
+<p>})</p>
+<p>// Commenting this test out for now - communication works between Feather and SDR using this module, but this test does not
+  // it('should properly handle multiple back and forth communications without issues', async ()=&gt;{</p>
+<p>//   await server.setupServer();
+  //   await client.connect();</p>
+<p>//   const numberOfMessagesToSend = 25;
+  //   let messageNumber = 0;
+  //   const message = 'Hello World!';</p>
+<p>//   server.on('test-event', (data) =&gt; {
+  //     expect(server.connected).toBe(true);
+  //     expect(data).toEqual(message);
+  //     messageNumber++;
+  //     server.emit('test-event-returned', data + ' back' + messageNumber);</p>
+<p>//   })</p>
+<p>//   const clientDoneSending = new Promise<boolean>((resolve) =&gt; {
+  //     const timeout = setTimeout(() =&gt; {
+  //       console.log("Timeout reached")
+  //       resolve(false);
+  //     }, 30000);</p>
+<p>//   client.on('test-event-returned', (data) =&gt; {
+  //     expect(client.connected).toBe(true);
+  //     expect(data).toEqual(message + ' back' + messageNumber);
+  //     if (messageNumber === numberOfMessagesToSend) {
+  //       clearTimeout(timeout);
+  //       resolve(true);
+  //     } else {
+  //       client.emit('test-event', message);
+  //     }
+  //   })
+  // })
+  //   client.emit('test-event', message);</p>
+<p>//   const bOK = await clientDoneSending;
+  //   expect(bOK).toBe(true);</p>
+<p>// })</p>
+<p>it('should attempt multiple reconnects before succeeding once the server is up', async () =&gt; {
+    const client = new NativeSocket({
+      socketPath: TEST<em>SOCKET</em>PATH,
+      reconnectDelay: 1000,
+      maxRetries: 5
+    });</p>
+<pre><code>// We'll start the server after 3 seconds, ensuring first attempts fail.
+let serverStartTimeout: NodeJS.Timeout;
+
+// Promises to track client events
+const errorEvents: Array&lt;Error&gt; = [];
+client.on('error', (err) =&gt; {
+  errorEvents.push(err);
+});
+
+const connectedPromise = new Promise&lt;void&gt;((resolve) =&gt; {
+  client.once('connect', () =&gt; {
+    resolve();
+  });
+});
+
+// Initiate client connection before server is up
+await client.connect().catch(() =&gt; {
+  // We expect some initial connection failures
+});
+
+// Start the server after 3 seconds to ensure the client has time to fail a few times
+serverStartTimeout = setTimeout(async () =&gt; {
+  await server.setupServer(); // Reuse existing server from your describe hooks or a new instance
+}, 3000);
+
+// Wait for the client to eventually connect
+await connectedPromise;
+clearTimeout(serverStartTimeout);
+
+// Validate that we did get some errors along the way
+expect(errorEvents.length).toBeGreaterThan(0);
+
+// Cleanup
+await client.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should stop trying to connect after maxRetries is exceeded', async () =&gt; {
+    const client = new NativeSocket({
+      socketPath: TEST<em>SOCKET</em>PATH,
+      reconnectDelay: 500,
+      maxRetries: 2
+    });</p>
+<pre><code>let finalError: Error | null = null;
+client.on('error', (err) =&gt; {
+  finalError = err;
+});
+
+// Attempt to connect to a server that will not be started
+await expect(client.connect()).rejects.toThrow();
+
+// Wait enough time for all retries to be exhausted
+await new Promise(resolve =&gt; setTimeout(resolve, 3 * 1000)); 
+// 3 seconds is enough for 2 retries at 500ms
+
+// Because the server never starts, we expect client to hit maxRetries and fail
+expect(client['retries']).toBe(2); // If you can access private property
+expect(client.connected).toBe(false);
+expect(finalError).toBeTruthy();
+// You could also check if finalError message indicates something like 'Max retries reached'
+
+// Cleanup
+await client.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should handle multiple concurrent connect calls gracefully', async () =&gt; {
+    const client = new NativeSocket({
+      socketPath: TEST<em>SOCKET</em>PATH,
+      reconnectDelay: 500,
+      maxRetries: 2
+    });</p>
+<pre><code>// Setup a spy for the actual socket creation
+const originalCreateConnection = client['socket']; // or a method if you're mocking net.createConnection
+
+// Attempt multiple connects in quick succession
+const connectPromises = [
+  client.connect().catch(() =&gt; {}),
+  client.connect().catch(() =&gt; {}),
+];
+
+// Start the server after a short delay
+setTimeout(async () =&gt; {
+  await server.setupServer();
+}, 1000);
+
+await Promise.all(connectPromises);
+
+// Check that client is connected
+expect(client.connected).toBe(true);
+
+// If you have a spy or a mock, confirm only one socket was created
+// e.g., expect(mockCreateConnection).toHaveBeenCalledTimes(1);
+
+// Cleanup
+await client.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should reconnect if the server closes the connection unexpectedly', async () =&gt; {
+    await server.setupServer();
+    const client = new NativeSocket({
+      socketPath: TEST<em>SOCKET</em>PATH,
+      reconnectDelay: 1000,
+      maxRetries: 2
+    });</p>
+<pre><code>// Track disconnect and reconnect events
+let disconnectCount = 0;
+client.on('disconnect', () =&gt; {
+  disconnectCount++;
+});
+
+await client.connect();
+expect(client.connected).toBe(true);
+
+// We forcibly close the server side socket
+if (server['socket']) {
+  server['socket'].destroy();
+}
+
+// Wait for the client to detect the 'close' event and attempt reconnection
+await new Promise(resolve =&gt; setTimeout(resolve, 2000)); 
+// 2 seconds for one reconnect cycle
+
+expect(disconnectCount).toBeGreaterThan(0);
+// The client should have tried to reconnect automatically
+// If the server is still up, it should reconnect successfully
+// If you want to verify reconnection success, do:
+// expect(client.connected).toBe(true); 
+// But you might need the server to accept a new socket or re-listen
+
+// Cleanup
+await client.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should reject large payloads sent from the server to the client', async () =&gt; {
+    const smallClient = new NativeSocket({ 
+      socketPath: TEST<em>SOCKET</em>PATH,
+      maxPayloadSize: 10 
+    });
+    await server.setupServer();
+    await smallClient.connect();</p>
+<pre><code>const errorPromise = new Promise&lt;Error&gt;((resolve) =&gt; {
+  smallClient.once('error', (err) =&gt; resolve(err));
+});
+
+// Emulate the server sending data that exceeds the client's maxPayloadSize
+// You may need a way to send data from server =&gt; client. 
+// e.g., server.emit('test-event', { data: 'too large...' });
+server.emit('test-event', { data: 'x'.repeat(100) });
+
+const err = await errorPromise;
+expect(err.message).toContain('Payload size exceeds maximum allowed');
+
+await smallClient.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should emit error if server does not accept connection within connectTimeout', async () =&gt; {
+    // We create a 'fake' server that never actually calls accept or responds
+    // or we skip server setup. The client will attempt connect, but never get 'connect' event</p>
+<pre><code>const client = new NativeSocket({
+  socketPath: TEST_SOCKET_PATH,
+  connectTimeout: 2000,  // short for test
+});
+
+const errorPromise = new Promise&lt;Error&gt;((resolve) =&gt; {
+  client.once('error', (err) =&gt; resolve(err));
+});
+
+await expect(client.connect()).rejects.toThrow();
+
+const err = await errorPromise;
+expect(err).toBeInstanceOf(Error);
+expect(err.message).toMatch(/timeout/i);
+
+await client.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should remove socket file on server disconnect', async () =&gt; {
+    await server.setupServer();
+    const socketPath = server['socketPath']; // or however you access it</p>
+<pre><code>// Ensure file exists
+expect(fs.existsSync(socketPath)).toBe(true);
+
+await server.disconnect();
+
+// Check that the socket file has been removed
+const fileStillExists = fs.existsSync(socketPath);
+expect(fileStillExists).toBe(false);
+</code></pre>
+<p>});</p>
+<p>it('should emit error when writing to a closed socket', async () =&gt; {
+    await server.setupServer();
+    await client.connect();</p>
+<pre><code>// Simulate server closing socket abruptly
+server['socket']?.destroy();
+
+const errorPromise = new Promise&lt;Error&gt;((resolve) =&gt; {
+  client.once('error', (err) =&gt; resolve(err));
+});
+
+// Attempt to emit from the client side after server is closed
+client.emit('test-event', { foo: 'bar' });
+
+const err = await errorPromise;
+expect(err.message).toMatch(/Not connected/);
+
+await client.disconnect();
+</code></pre>
+<p>});</p>
+<p>it('should cancel pending reconnect when disconnect is called', async () =&gt; {
+    const client = new NativeSocket({
+      socketPath: TEST<em>SOCKET</em>PATH,
+      reconnectDelay: 1000,
+      maxRetries: 3
+    });</p>
+<pre><code>// The server won't be started, so the client tries to reconnect
+client.connect().catch(() =&gt; {});
+
+// Wait briefly to let the first connection fail and a retry get scheduled
+await new Promise((resolve) =&gt; setTimeout(resolve, 500));
+
+// Disconnect, which should cancel any further retry
+await client.disconnect();
+
+// Wait enough time that would otherwise trigger 2 or 3 more retries
+await new Promise((resolve) =&gt; setTimeout(resolve, 3000));
+
+// If `disconnect()` is correct, retries won't happen, so 'retries' won't increment
+expect(client['retries']).toBeLessThanOrEqual(1);
+
+// Validate no timers are still running
+expect(client.connected).toBe(false);
+</code></pre>
+<p>});</p>
+<p>});</p>
+<ul>
+<li><strong>Line:</strong> 13</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> This <code>describe</code> block defines a suite of Jest tests for the <code>NativeSocket</code> class. It aims to thoroughly test the functionality of the <code>NativeSocket</code> class, including establishing connections, sending and receiving events, handling disconnections and reconnections, managing payload sizes, handling invalid message formats, dealing with connection errors, managing timeouts, and ensuring proper cleanup of socket files.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">// This is a test suite, so it doesn't have a direct usage example.
+// However, each `it` block demonstrates how to use the NativeSocket class.
+// For example, to test connection establishment:
+// const server = new NativeSocket({ socketPath: TEST_SOCKET_PATH });
+// const client = new NativeSocket({ socketPath: TEST_SOCKET_PATH });
+// await server.setupServer();
+// await client.connect();
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The tests cover various edge cases, such as exceeding maximum payload size, invalid message formats, connection errors, timeouts, and unexpected disconnections.</li>
+<li><strong>Dependencies:</strong> Jest, <code>NativeSocket</code> class (from '../src'), <code>path</code>, <code>os</code>, <code>fs</code></li>
+</ul>
+<h2 id="variables">variables</h2>
+<h2 id="test_socket_pathvariable">### 🧮 TEST<em>SOCKET</em>PATH - VARIABLE</h2>
+<p><strong>Description:</strong> Defines the socket path based on the operating system.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>const TEST_SOCKET_PATH = platform() === 'win32' 
+  ? '\\\\.\\pipe\\feather-test-unit.pipe'
+  : join('/Users/Shared/Library/Application Support/Stanford', 'feather-test-unit.sock');
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 7</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-1">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines a constant <code>TEST_SOCKET_PATH</code> that specifies the file path for the Unix domain socket (or named pipe on Windows) used in the unit tests. The path is determined based on the operating system. This ensures that the tests use a consistent and appropriate socket path for the platform they are running on.</li>
+<li><strong>Returns:</strong> string: The socket path. On Windows, it's a named pipe path (e.g., <code>\\.\pipe\feather-test-unit.pipe</code>). On other platforms, it's a file path within the <code>/Users/Shared/Library/Application Support/Stanford</code> directory (e.g., <code>/Users/Shared/Library/Application Support/Stanford/feather-test-unit.sock</code>).</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { TEST_SOCKET_PATH } from './socket.test';
+
+const socketPath = TEST_SOCKET_PATH; // Use the socket path in tests
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The socket path is hardcoded and might need to be adjusted based on the environment or user preferences. The Windows named pipe path format is specific to Windows. The Unix domain socket path is specific to macOS and may need to be adjusted for other Unix-like systems.</li>
+<li><strong>Dependencies:</strong> os, path</li>
+</ul>
+<h2 id="servervariable">### 🧮 server - VARIABLE</h2>
+<p><strong>Description:</strong> Variable to hold the NativeSocket server instance.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>let server: NativeSocket;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 13</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-2">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Declares a variable named <code>server</code> to hold an instance of the <code>NativeSocket</code> class. This instance will be used to represent the server-side socket in the unit tests.</li>
+<li><strong>Returns:</strong> None</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">let server: NativeSocket;
+
+beforeEach(async () =&gt; {
+  server = new NativeSocket({ socketPath: TEST_SOCKET_PATH });
+});
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>server</code> variable is initially undefined and must be initialized before use. If not initialized, any operation on it will result in an error.</li>
+<li><strong>Dependencies:</strong> NativeSocket class (from '../src')</li>
+</ul>
+<h2 id="clientvariable">### 🧮 client - VARIABLE</h2>
+<p><strong>Description:</strong> Variable to hold the NativeSocket client instance.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>let client: NativeSocket;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 14</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-3">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Declares a variable <code>client</code> to hold an instance of the <code>NativeSocket</code> class. This instance will represent the client-side socket connection in the unit tests.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">client = new NativeSocket({ socketPath: TEST_SOCKET_PATH });
+await client.connect();
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>client</code> variable is initially undefined and must be initialized with a <code>NativeSocket</code> instance before use. Failure to do so will result in runtime errors.</li>
+<li><strong>Dependencies:</strong> NativeSocket (from '../src')</li>
+</ul>
+<h2 id="imports">imports</h2>
+<h2 id="nativesocketimport">### 📥 NativeSocket - IMPORT</h2>
+<p><strong>Description:</strong> Imports the NativeSocket class from the specified path.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { NativeSocket } from '../src';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-4">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>NativeSocket</code> class from the <code>../src/index.ts</code> file, making it available for use in the test file. This allows the test suite to instantiate and test the functionality of the <code>NativeSocket</code> class.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { NativeSocket } from '../src';
+
+// Now you can use the NativeSocket class
+const socket = new NativeSocket();
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the path to <code>../src/index.ts</code> is incorrect, the import will fail, and the test suite will not be able to run.</li>
+<li><strong>Dependencies:</strong> The <code>NativeSocket</code> class itself, which relies on modules like <code>net</code>, <code>fs</code>, <code>os</code>, and <code>eventemitter3</code> as defined in <code>src/index.ts</code>.</li>
+</ul>
+<h2 id="joinimport">### 📥 join - IMPORT</h2>
+<p><strong>Description:</strong> Imports the join function from the path module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { join } from 'path';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 2</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-5">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>join</code> function from the <code>path</code> module. This function is used to construct file paths in a platform-independent manner.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { join } from 'path';
+const filePath = join('/Users/Shared/Library/Application Support/Stanford', 'feather-test-unit.sock');
+console.log(filePath); // Output: /Users/Shared/Library/Application Support/Stanford/feather-test-unit.sock
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>join</code> function handles cases where path segments are empty strings, <code>.</code> (current directory), or <code>..</code> (parent directory) correctly.</li>
+<li><strong>Dependencies:</strong> path module (Node.js built-in module)</li>
+</ul>
+<h2 id="platformimport">### 📥 platform - IMPORT</h2>
+<p><strong>Description:</strong> Imports the platform function from the os module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { platform } from 'os';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 3</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-6">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>platform</code> function from the <code>os</code> module. This function is used to determine the operating system the code is running on, which is crucial for platform-specific logic, such as determining the correct socket path (Unix domain socket vs. named pipe on Windows).</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { platform } from 'os';
+
+if (platform() === 'win32') {
+  // Windows-specific code
+} else {
+  // Non-Windows code
+}
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>platform</code> function relies on the underlying operating system reporting the correct platform. In rare cases where the OS is misconfigured or spoofed, the function might return an incorrect value.</li>
+<li><strong>Dependencies:</strong> os module</li>
+</ul>
+<h2 id="fsimport">### 📥 fs - IMPORT</h2>
+<p><strong>Description:</strong> Imports the fs module.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import * as fs from 'fs';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 4</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/tests/socket.test.ts (/Users/fterry/code/modSocketComm/tests/socket.test.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-7">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the Node.js 'fs' (file system) module, providing functions for interacting with the file system. This is used in the test suite to check for the existence and permissions of the socket file.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import * as fs from 'fs';
+
+if (fs.existsSync('/path/to/file')) {
+  console.log('File exists!');
+}
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The 'fs' module relies on the underlying operating system's file system. Errors can occur due to permission issues, file not found, or other system-level problems.</li>
+<li><strong>Dependencies:</strong> Node.js runtime environment.</li>
+</ul>

@@ -1,0 +1,707 @@
+<p><a href="./README.md">Back to Readme</a></p>
+<h1 id="srcindextseed_modsocketcomm">src/index.ts - @eed_modSocketComm</h1>
+<p><strong>Summary:</strong> This code defines a <code>NativeSocket</code> class that facilitates communication between processes using Unix domain sockets (or named pipes on Windows). It provides functionality for both a server and a client to connect, send, and receive messages. The class handles connection management, reconnection attempts, payload size limits, and error handling.</p>
+<ul>
+<li><strong>File Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts</li>
+<li><strong>Language:</strong> TypeScript</li>
+</ul>
+<h2 id="tableofcontents">Table of Contents</h2>
+<ul>
+<li><a href="#classes">classes</a></li>
+<li><a href="#imports">imports</a></li>
+<li><a href="#exports">exports</a></li>
+<li><a href="#interfaces">interfaces</a></li>
+</ul>
+<h2 id="classes">classes</h2>
+<h2 id="nativesocketclass">### 📘 NativeSocket - CLASS</h2>
+<p><strong>Description:</strong> A class for handling native socket connections.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export class NativeSocket extends EventEmitter { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines a <code>NativeSocket</code> class that extends <code>EventEmitter</code> to provide a mechanism for inter-process communication using Unix domain sockets (or named pipes on Windows). It handles connection management, data transfer, and error handling for both server and client roles.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { NativeSocket, SocketConfig } from './src';
+
+// Example configuration
+const config: SocketConfig = {
+  socketPath: '/tmp/my_socket.sock',
+  maxPayloadSize: 1024 * 1024, // 1MB
+  reconnectDelay: 5000, // 5 seconds
+  connectTimeout: 10000, // 10 seconds
+  maxRetries: 3
+};
+
+// Create a NativeSocket instance
+const socket = new NativeSocket(config);
+
+// Setup as a server
+async function setup() {
+  try {
+    await socket.setupServer();
+    socket.on('my-event', (data) =&gt; {
+      console.log('Received data:', data);
+    });
+  } catch (error) {
+    console.error('Server setup failed:', error);
+  }
+}
+
+// Connect as a client
+async function connect() {
+  try {
+    await socket.connect();
+    socket.emit('my-event', { message: 'Hello from client!' });
+  } catch (error) {
+    console.error('Connection failed:', error);
+  }
+}
+
+// Disconnect
+async function disconnect() {
+  await socket.disconnect();
+}
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> Handles cases where the socket file already exists, connection timeouts occur, payload sizes exceed the maximum allowed, invalid message formats are received, and connection errors happen. It also manages reconnection attempts with a maximum retry limit.</li>
+<li><strong>Dependencies:</strong> eventemitter3, net, fs/promises, os, path</li>
+</ul>
+<h6 id="subobjects">Sub Objects:</h6>
+<h2 id="socketvariable">  ### 🧮 socket - VARIABLE</h2>
+<p><strong>Description:</strong> The socket instance.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private socket: Socket | null = null;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 14</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="servervariable">  ### 🧮 server - VARIABLE</h2>
+<p><strong>Description:</strong> The server instance.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private server: any = null;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 15</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="isservervariable">  ### 🧮 isServer - VARIABLE</h2>
+<p><strong>Description:</strong> A flag indicating if this is a server.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private isServer: boolean = false;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 16</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="reconnecttimervariable">  ### 🧮 reconnectTimer - VARIABLE</h2>
+<p><strong>Description:</strong> The reconnect timer.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private reconnectTimer: NodeJS.Timeout | null = null;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 17</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="connectedvariable">  ### 🧮 connected - VARIABLE</h2>
+<p><strong>Description:</strong> A flag indicating if the socket is connected.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>public connected: boolean = false;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 18</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="socketpathvariable">  ### 🧮 socketPath - VARIABLE</h2>
+<p><strong>Description:</strong> The path to the socket.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private socketPath: string;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 19</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="maxpayloadsizevariable">  ### 🧮 maxPayloadSize - VARIABLE</h2>
+<p><strong>Description:</strong> The maximum payload size.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private maxPayloadSize: number;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 20</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="connecttimeoutvariable">  ### 🧮 connectTimeout - VARIABLE</h2>
+<p><strong>Description:</strong> The connection timeout.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private connectTimeout: number;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 21</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="timeouttimervariable">  ### 🧮 timeoutTimer - VARIABLE</h2>
+<p><strong>Description:</strong> The timeout timer.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private timeoutTimer: NodeJS.Timeout | null = null;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 22</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="reconnectdelayvariable">  ### 🧮 reconnectDelay - VARIABLE</h2>
+<p><strong>Description:</strong> The delay between reconnection attempts.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private reconnectDelay: number;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 23</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="maxretriesvariable">  ### 🧮 maxRetries - VARIABLE</h2>
+<p><strong>Description:</strong> Maximum number of reconnection attempts</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private maxRetries: number;  // Maximum number of reconnection attempts
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 24</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="retriesvariable">  ### 🧮 retries - VARIABLE</h2>
+<p><strong>Description:</strong> Current reconnection attempt count</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private retries: number;  // Current reconnection attempt count
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 25</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="constructorfunction">  ### 🔧 constructor - FUNCTION</h2>
+<p><strong>Description:</strong> Constructor for the NativeSocket class.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>constructor(config?: SocketConfig) { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 28</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Function Parameters:</li>
+<li><strong>config</strong> (SocketConfig): Optional configuration object. 
+Example: { socketPath: '/tmp/my.sock', maxPayloadSize: 2048 }
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="getdefaultsocketpathfunction">  ### 🔧 getDefaultSocketPath - FUNCTION</h2>
+<p><strong>Description:</strong> Gets the default socket path based on the platform.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private getDefaultSocketPath(): string { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 38</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Function Returns:</li>
+<li><strong>Type:</strong> string</li>
+<li><strong>Description:</strong> The default socket path.</li>
+<li><strong>Example:</strong> /tmp/feather.sock
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="setupserverfunction">  ### 🔧 setupServer - FUNCTION</h2>
+<p><strong>Description:</strong> Sets up the socket server.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>async setupServer(): Promise&lt;void&gt; { ... }
+</code></pre>
+<ul>
+<li><p><strong>Line:</strong> 45</p></li>
+<li><p><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</p></li>
+<li><p><strong>Exported:</strong> Could Not Determine</p></li>
+<li><p><strong>Private:</strong> Could Not Determine</p></li>
+<li><p><strong>Async:</strong> true</p>
+<h6 id="annotationscomments-10">Annotations / Comments:</h6></li>
+</ul>
+<h2 id="connectfunction">  ### 🔧 connect - FUNCTION</h2>
+<p><strong>Description:</strong> Connects to the socket.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>async connect(): Promise&lt;void&gt; { ... }
+</code></pre>
+<ul>
+<li><p><strong>Line:</strong> 160</p></li>
+<li><p><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</p></li>
+<li><p><strong>Exported:</strong> Could Not Determine</p></li>
+<li><p><strong>Private:</strong> Could Not Determine</p></li>
+<li><p><strong>Async:</strong> true</p>
+<h6 id="annotationscomments-11">Annotations / Comments:</h6></li>
+</ul>
+<h2 id="cleanupsocketfunction">  ### 🔧 cleanupSocket - FUNCTION</h2>
+<p><strong>Description:</strong> Cleans up the socket.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private async cleanupSocket(): Promise&lt;void&gt; { ... }
+</code></pre>
+<ul>
+<li><p><strong>Line:</strong> 215</p></li>
+<li><p><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</p></li>
+<li><p><strong>Exported:</strong> Could Not Determine</p></li>
+<li><p><strong>Private:</strong> true</p></li>
+<li><p><strong>Async:</strong> true</p>
+<h6 id="annotationscomments-12">Annotations / Comments:</h6></li>
+</ul>
+<h2 id="disconnectfunction">  ### 🔧 disconnect - FUNCTION</h2>
+<p><strong>Description:</strong> Disconnects from the socket.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>async disconnect(): Promise&lt;void&gt; { ... }
+</code></pre>
+<ul>
+<li><p><strong>Line:</strong> 241</p></li>
+<li><p><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</p></li>
+<li><p><strong>Exported:</strong> Could Not Determine</p></li>
+<li><p><strong>Private:</strong> Could Not Determine</p></li>
+<li><p><strong>Async:</strong> true</p>
+<h6 id="annotationscomments-13">Annotations / Comments:</h6></li>
+</ul>
+<h2 id="schedulereconnectfunction">  ### 🔧 scheduleReconnect - FUNCTION</h2>
+<p><strong>Description:</strong> Schedules a reconnection attempt.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private async scheduleReconnect(): Promise&lt;void&gt; { ... }
+</code></pre>
+<ul>
+<li><p><strong>Line:</strong> 254</p></li>
+<li><p><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</p></li>
+<li><p><strong>Exported:</strong> Could Not Determine</p></li>
+<li><p><strong>Private:</strong> true</p></li>
+<li><p><strong>Async:</strong> true</p>
+<h6 id="annotationscomments-14">Annotations / Comments:</h6></li>
+</ul>
+<h2 id="setupsockethandlersfunction">  ### 🔧 setupSocketHandlers - FUNCTION</h2>
+<p><strong>Description:</strong> Sets up the socket handlers.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>private setupSocketHandlers(socket: Socket): void { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 292</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> true
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="emitfunction">  ### 🔧 emit - FUNCTION</h2>
+<p><strong>Description:</strong> Emits an event.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>emit(event: string | symbol, ...args: any[]): boolean { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 347</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="onfunction">  ### 🔧 on - FUNCTION</h2>
+<p><strong>Description:</strong> Attaches an event listener.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>on&lt;T extends string | symbol&gt;(event: T, listener: (...args: any[]) =&gt; void): this { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 406</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="imports">imports</h2>
+<h2 id="eventemitterimport">### 📥 EventEmitter - IMPORT</h2>
+<p><strong>Description:</strong> Imports EventEmitter from eventemitter3.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { EventEmitter } from 'eventemitter3';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 1</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-1">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>EventEmitter</code> class from the <code>eventemitter3</code> library. This class is used as the base class for <code>NativeSocket</code> to provide event emission and handling capabilities.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { EventEmitter } from 'eventemitter3';
+
+class MyClass extends EventEmitter {
+  constructor() {
+    super();
+  }
+
+  doSomething() {
+    this.emit('somethingHappened', { data: 'some data' });
+  }
+}
+
+const myInstance = new MyClass();
+myInstance.on('somethingHappened', (data) =&gt; {
+  console.log('Event received:', data);
+});
+
+myInstance.doSomething();
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>EventEmitter</code> class itself doesn't have specific edge cases, but its usage within <code>NativeSocket</code> might have limitations related to the number of listeners or the complexity of event handling.</li>
+<li><strong>Dependencies:</strong> eventemitter3</li>
+</ul>
+<h2 id="socketimport">### 📥 Socket - IMPORT</h2>
+<p><strong>Description:</strong> Imports Socket from net.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { Socket, createServer, createConnection } from 'net';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 2</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-2">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>Socket</code>, <code>createServer</code>, and <code>createConnection</code> classes from the <code>net</code> module. These classes are fundamental for creating and managing TCP sockets, which are used for inter-process communication in this <code>NativeSocket</code> implementation.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { Socket, createServer, createConnection } from 'net';
+
+// Example usage (within the NativeSocket class):
+const server = createServer((socket: Socket) =&gt; {
+  // Handle socket connection
+});
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>net</code> module is platform-dependent and may behave differently on different operating systems (e.g., Windows vs. Linux).</li>
+<li><strong>Dependencies:</strong> The code depends on the built-in <code>net</code> module in Node.js.</li>
+</ul>
+<h2 id="chmodimport">### 📥 chmod - IMPORT</h2>
+<p><strong>Description:</strong> Imports chmod from fs/promises.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { chmod, unlink } from 'fs/promises';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 3</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-3">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>chmod</code> and <code>unlink</code> functions from the <code>fs/promises</code> module. These functions are used for changing file permissions and deleting files asynchronously, respectively.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { chmod, unlink } from 'fs/promises';
+
+async function changePermissions(filePath: string, mode: number) {
+  try {
+    await chmod(filePath, mode);
+    console.log(`Permissions changed for ${filePath}`);
+  } catch (error) {
+    console.error(`Failed to change permissions for ${filePath}:`, error);
+  }
+}
+
+async function deleteFile(filePath: string) {
+  try {
+    await unlink(filePath);
+    console.log(`File deleted: ${filePath}`);
+  } catch (error) {
+    console.error(`Failed to delete file ${filePath}:`, error);
+  }
+}
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>chmod</code> function may throw an error if the file does not exist or if the user does not have permission to change the file's permissions. The <code>unlink</code> function may throw an error if the file does not exist or if the user does not have permission to delete the file. On Windows, <code>chmod</code> might not behave as expected for all permission changes.</li>
+<li><strong>Dependencies:</strong> fs/promises</li>
+</ul>
+<h2 id="platformimport">### 📥 platform - IMPORT</h2>
+<p><strong>Description:</strong> Imports platform from os.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { platform } from 'os';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 4</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-4">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>platform</code> function from the <code>os</code> module. This function is used to determine the operating system the code is running on (e.g., 'win32', 'darwin', 'linux').</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { platform } from 'os';
+const osType = platform();
+console.log(`Operating system: ${osType}`);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The <code>platform</code> function relies on the underlying operating system's identification. It might return unexpected values in virtualized or containerized environments if the OS is not correctly identified.</li>
+<li><strong>Dependencies:</strong> os</li>
+</ul>
+<h2 id="dirnameimport">### 📥 dirname - IMPORT</h2>
+<p><strong>Description:</strong> Imports dirname from path.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { dirname, join } from 'path';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 5</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-5">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>dirname</code> and <code>join</code> functions from the <code>path</code> module. These functions are used for manipulating file paths.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { dirname, join } from 'path';
+
+const directory = dirname('/path/to/file.txt'); // Returns '/path/to'
+const fullPath = join('/path', 'to', 'file.txt'); // Returns '/path/to/file.txt'
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The behavior of <code>dirname</code> and <code>join</code> can vary slightly depending on the operating system, especially regarding path separators.</li>
+<li><strong>Dependencies:</strong> path module (Node.js built-in)</li>
+</ul>
+<h2 id="lstatsyncimport">### 📥 lstatSync - IMPORT</h2>
+<p><strong>Description:</strong> Imports lstatSync from fs.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>import { lstatSync, mkdirSync } from 'fs';
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 6</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-6">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Imports the <code>lstatSync</code> and <code>mkdirSync</code> functions from the <code>fs</code> (file system) module. <code>lstatSync</code> is used to synchronously retrieve file or directory statistics, including whether a path refers to a socket. <code>mkdirSync</code> is used to synchronously create a directory.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { lstatSync, mkdirSync } from 'fs';
+
+try {
+  const stats = lstatSync('/path/to/socket');
+  const isSocket = stats.isSocket();
+  console.log(`Is socket: ${isSocket}`);
+} catch (error) {
+  console.error('Error getting file stats:', error);
+}
+
+try {
+  mkdirSync('/path/to/new/directory', { recursive: true });
+  console.log('Directory created successfully');
+} catch (error) {
+  console.error('Error creating directory:', error);
+}
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If the file or directory does not exist, <code>lstatSync</code> will throw an error. If the directory already exists, <code>mkdirSync</code> with <code>recursive: true</code> will not throw an error. If the user does not have permissions to access the file or directory, an error will be thrown.</li>
+<li><strong>Dependencies:</strong> fs (Node.js file system module)</li>
+</ul>
+<h2 id="exports">exports</h2>
+<h2 id="nativesocketexport">### 📤 NativeSocket - EXPORT</h2>
+<p><strong>Description:</strong> Exports the NativeSocket class.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export class NativeSocket extends EventEmitter { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-7">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the <code>NativeSocket</code> class, which provides a mechanism for inter-process communication using Unix domain sockets (or named pipes on Windows). It handles connection management, message sending/receiving, reconnection attempts, payload size limits, and error handling. It extends EventEmitter to provide a publish/subscribe pattern for socket events.</li>
+<li><strong>Parameters:</strong> config?: SocketConfig - An optional configuration object that allows customization of the socket's behavior. It can include properties like <code>socketPath</code>, <code>maxPayloadSize</code>, <code>reconnectDelay</code>, <code>connectTimeout</code>, and <code>maxRetries</code>.</li>
+<li><strong>Returns:</strong> N/A - The constructor returns an instance of the <code>NativeSocket</code> class.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">import { NativeSocket } from './src/index';
+
+// Create a new NativeSocket instance with default configuration
+const socket = new NativeSocket();
+
+// Or with a custom configuration
+const config = {
+  socketPath: '/tmp/my_socket.sock',
+  maxPayloadSize: 2048, // 2KB
+  reconnectDelay: 5000, // 5 seconds
+  connectTimeout: 10000, // 10 seconds
+  maxRetries: 3
+};
+const customSocket = new NativeSocket(config);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> The class handles cases where the socket file already exists (attempting to delete it), connection timeouts, payload size limits, invalid message formats, and connection errors. It also manages reconnection attempts with a configurable delay and maximum number of retries. Platform differences (Windows vs. other OS) are handled for socket path and permissions.</li>
+<li><strong>Dependencies:</strong> eventemitter3, net (Socket, createServer, createConnection), fs/promises (chmod, unlink), os (platform), path (dirname, join), fs (lstatSync, mkdirSync)</li>
+</ul>
+<h2 id="socketconfigexport">### 📤 SocketConfig - EXPORT</h2>
+<p><strong>Description:</strong> Exports the SocketConfig interface.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface SocketConfig { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-8">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the <code>SocketConfig</code> interface, which is used to configure the <code>NativeSocket</code> class. It specifies optional parameters for customizing the socket's behavior, such as the socket path, maximum payload size, reconnection delay, connection timeout, and maximum reconnection attempts.</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const config: SocketConfig = {
+  socketPath: '/tmp/my_socket.sock',
+  maxPayloadSize: 2048,
+  reconnectDelay: 5000,
+  connectTimeout: 10000,
+  maxRetries: 3
+};
+
+const socket = new NativeSocket(config);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If no configuration is provided, default values are used for each property.  Invalid values (e.g., negative numbers for sizes or timeouts) are not explicitly validated by the interface itself, but the <code>NativeSocket</code> class may impose further restrictions.</li>
+<li><strong>Dependencies:</strong> None</li>
+</ul>
+<h2 id="interfaces">interfaces</h2>
+<h2 id="socketconfiginterface">### 🌉 SocketConfig - INTERFACE</h2>
+<p><strong>Description:</strong> Configuration interface for the socket.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>export interface SocketConfig { ... }
+</code></pre>
+<ul>
+<li><strong>Line:</strong> Could Not Verify Line</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> true</li>
+<li><strong>Private:</strong> Could Not Determine</li>
+</ul>
+<h6 id="annotationscomments-9">Annotations / Comments:</h6>
+<ul>
+<li><strong>Purpose:</strong> Defines the configuration options for the <code>NativeSocket</code> class, allowing customization of socket behavior.</li>
+<li><strong>Returns:</strong> void</li>
+<li><strong>Usage Example:</strong> </li>
+</ul>
+<pre><code class="typescript language-typescript">const config: SocketConfig = {
+  socketPath: '/tmp/my_socket.sock',
+  maxPayloadSize: 2048,
+  reconnectDelay: 5000,
+  connectTimeout: 10000,
+  maxRetries: 3
+};
+
+const socket = new NativeSocket(config);
+</code></pre>
+<ul>
+<li><strong>Edge Cases:</strong> If no configuration is provided, default values are used for all options. Invalid values (e.g., negative numbers for sizes or delays) are not explicitly validated by the interface itself, but the <code>NativeSocket</code> class should handle them appropriately.</li>
+<li><strong>Dependencies:</strong> None</li>
+</ul>
+<h6 id="subobjects-1">Sub Objects:</h6>
+<h2 id="socketpathvariable-1">  ### 🧮 socketPath - VARIABLE</h2>
+<p><strong>Description:</strong> The path to the socket.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>socketPath?: string;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 8</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="maxpayloadsizevariable-1">  ### 🧮 maxPayloadSize - VARIABLE</h2>
+<p><strong>Description:</strong> The maximum payload size.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>maxPayloadSize?: number;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 9</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="reconnectdelayvariable-1">  ### 🧮 reconnectDelay - VARIABLE</h2>
+<p><strong>Description:</strong> The delay between reconnection attempts.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>reconnectDelay?: number;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 10</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="connecttimeoutvariable-1">  ### 🧮 connectTimeout - VARIABLE</h2>
+<p><strong>Description:</strong> The connection timeout.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>connectTimeout?: number;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 11</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
+<h2 id="maxretriesvariable-1">  ### 🧮 maxRetries - VARIABLE</h2>
+<p><strong>Description:</strong> The maximum number of reconnection attempts.</p>
+<p><strong>Code Snippet:</strong></p>
+<pre><code>maxRetries?: number;
+</code></pre>
+<ul>
+<li><strong>Line:</strong> 12</li>
+<li><strong>Location:</strong> /Users/fterry/code/modSocketComm/src/index.ts (/Users/fterry/code/modSocketComm/src/index.ts)</li>
+<li><strong>Exported:</strong> Could Not Determine</li>
+<li><strong>Private:</strong> Could Not Determine
+###### Annotations / Comments:</li>
+</ul>
