@@ -311,7 +311,7 @@ export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string, r
     - **returns**: (For functions/methods) Explain what the function or method returns, including its data type. If it doesn't return a value (e.g., void), state "None" or "void".
     - **usageExample**: Provide a concise and correct code snippet demonstrating how to use this code object. Ensure all characters are properly escaped for a JSON string. For example, use '\u0060\u0060\u0060typescript\nconst x = 1;\u0060\u0060\u0060' for a TypeScript code block.
     - **edgeCases**: Identify and describe any known edge cases, limitations, or special conditions that affect this code object's behavior.
-    - **dependencies**: List any other code objects, modules, or external libraries that this code object directly depends on to function. If none, state "None".
+    - **dependencies**: List any other code objects, modules, or external libraries that this code object directly depends on to function, as a single comma-separated string if multiple. If none, state "None" or "Not applicable".
     - **errorHandling**: Describe how this code object handles potential errors or exceptional situations. Does it throw exceptions, return error codes, or have specific error recovery mechanisms?
     - **performance**: Note any important performance considerations related to this code object, such as time complexity, memory usage, or potential bottlenecks.
     - **bestPractices**: Highlight any recommended best practices, common patterns, or important considerations for developers when using or interacting with this code object.
@@ -329,7 +329,7 @@ export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string, r
         "returns": {"type": "boolean", "description": "True if the calculation was successful and the store was updated, false otherwise."},
         "usageExample": "\u0060\u0060\u0060typescript\nconst success = processData(myConfig, [1, 2, 3]);\nif (success) { console.log('Processed!'); }\u0060\u0060\u0060", // Ensuring correct escaping
         "edgeCases": "Handles empty 'dataPoints' array by returning false. Throws an error if 'configOptions' is null or undefined.",
-        "dependencies": ["CentralDataStoreModule", "UtilityFunctions.validateInput"],
+        "dependencies": "CentralDataStoreModule, UtilityFunctions.validateInput",
         "errorHandling": "Throws a TypeError for invalid input types and a CustomError if the CentralDataStoreModule is unavailable.",
         "performance": "Optimized for processing up to 1000 data points. For larger datasets, consider batching.",
         "bestPractices": "Ensure 'configOptions' is validated before calling. Call this function after initializing CentralDataStoreModule."

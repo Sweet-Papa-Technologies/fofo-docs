@@ -261,10 +261,28 @@ export async function annotateProject(
   for (const aFile of projectSummary.codeFiles) {
     const fileAnnotations: { codeObj: CodeObject; annotation: Annotation }[] = [];
 
+    // Defensive Check 1: Ensure aFile.codeObjects is an object
+    if (typeof aFile.codeObjects !== 'object' || aFile.codeObjects === null) {
+      console.error(`[Defensive Check] Skipping annotation for file ${aFile.fileName} because aFile.codeObjects is not an object:`, aFile.codeObjects);
+      continue; // Skips to the next aFile
+    }
+
     for (const key in aFile.codeObjects) {
       const codeObjects = aFile.codeObjects[key];
+
+      // Defensive Check 2: Ensure codeObjects is an array
+      if (!Array.isArray(codeObjects)) {
+        console.error(`[Defensive Check] Skipping annotation for file ${aFile.fileName}, key ${key} because codeObjects is not an array:`, codeObjects);
+        continue; // Skips to the next key in aFile.codeObjects
+      }
+
       // Annotate each object
       for (const obj of codeObjects) {
+        // Basic check to ensure 'obj' is an object and has a 'name' property before proceeding
+        if (typeof obj !== 'object' || obj === null || !obj.hasOwnProperty('name')) {
+            console.warn(`[Defensive Check] Skipping an item in file ${aFile.fileName}, key ${key} because it is not a valid code object:`, obj);
+            continue; // Skips to the next object in codeObjects
+        }
         try {
           const annotation = await annotateCodeObject(
             obj,

@@ -561,8 +561,19 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
             hasAnnotation = true;
         }
 
-        if (annotation.dependencies && annotation.dependencies.trim().length > 0) {
-            content += `\n${indentation}- **Dependencies:** ${escapeStringForMD(annotation.dependencies)}`;
+        // Standardize handling for annotation.dependencies
+        let dependenciesString = ""; // Default to empty string
+        if (typeof annotation.dependencies === 'string') {
+            dependenciesString = annotation.dependencies;
+        } else if (Array.isArray(annotation.dependencies)) {
+            dependenciesString = annotation.dependencies.join(', ');
+        } else if (annotation.dependencies !== null && annotation.dependencies !== undefined) {
+            // If it's some other non-null/undefined type, try to convert to string
+            dependenciesString = String(annotation.dependencies);
+        }
+
+        if (dependenciesString.trim().length > 0) {
+            content += `\n${indentation}- **Dependencies:** ${escapeStringForMD(dependenciesString)}`;
             hasAnnotation = true;
         }
         
