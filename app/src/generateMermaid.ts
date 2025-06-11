@@ -362,7 +362,7 @@ export async function generateMermaidCharts(projectSummary: ProjectSummary) {
     - **Simplicity:** Keep diagrams focused on a specific aspect (e.g., a particular user flow, data transformation, or component interaction). Avoid overly complex or cluttered diagrams.
     - **Styling:** You can use styling (e.g., colors, shapes) to enhance readability, but ensure it doesn't break the code.
     - **Escaping:** Properly escape any special characters within labels or descriptions. For example, use "#quot;" for quotes in node labels if needed.
-    - **Direction:** For flowcharts and similar diagrams, use appropriate direction indicators (e.g., `LR` for left-to-right, `TD` for top-down).
+    - **Direction:** For flowcharts and similar diagrams, use appropriate direction indicators (e.g., '\`LR\`' for left-to-right, '\`TD\`' for top-down).
 
     ### Sequence Diagram Example:
     sequenceDiagram
