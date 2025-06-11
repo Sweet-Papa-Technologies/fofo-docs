@@ -399,7 +399,8 @@ const walkSync = (dir: string, filelist: string[] = []) => {
 const markdownFiles = walkSync(projectFolder);
 
 markdownFiles.forEach((file) => {
-    const markdown = fs.readFileSync(file, 'utf-8');
+    let markdown = fs.readFileSync(file, 'utf-8');
+    markdown = markdown.replace(/]\(\.\/README\.md\)/g, '](./README.html)');
     const html = convertDat(markdown);
     const htmlFile = file.replace('.md', '.html');
     fs.writeFileSync(htmlFile, html);

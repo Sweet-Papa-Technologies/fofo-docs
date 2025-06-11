@@ -561,7 +561,7 @@ export async function parseCodebase(
 
     const codeFileSummary: CodeFileSummary = {
       fileName: filePath,
-      fileLocation: fullFilePath,
+      fileLocation: filePath,
       codeSummary: {} as codeSummary,
       language: fileLanguage.language || "Unknown",
       executionFlow: [],

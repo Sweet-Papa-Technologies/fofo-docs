@@ -286,8 +286,6 @@ function escapeMarkdownLine(line: string): string {
     // Escape basic markdown syntax
     result = result.replace(/\[/g, '\\[');
     result = result.replace(/\]/g, '\\]');
-    result = result.replace(/\(/g, '\\(');
-    result = result.replace(/\)/g, '\\)');
     result = result.replace(/\*/g, '\\*');
     result = result.replace(/\_/g, '\\_');
     
