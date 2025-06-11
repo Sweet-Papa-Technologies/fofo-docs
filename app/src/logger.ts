@@ -1,6 +1,14 @@
 import { appendFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
+const bVerbose = process.env.bVerbose?.toLowerCase() === 'true' || false;
+
+const traceCallback = () => {
+    const customDebug = new Error().stack || '';
+    originalConsole.debug(chalk.lightGray(`🔍 [TRACE=>] ${customDebug.replace('Error', 'Log trace line:')}`));
+    logToFile('TRACE', customDebug);
+}
+
 // ANSI color codes
 const colors = {
     reset: "\x1b[0m",
@@ -8,6 +16,7 @@ const colors = {
     red: "\x1b[31m",
     yellow: "\x1b[33m",
     gray: "\x1b[90m",
+    lightGray: "\x1b[37m",
 };
 
 const chalk = {
@@ -15,6 +24,7 @@ const chalk = {
     red: (text: string) => `${colors.red}${text}${colors.reset}`,
     yellow: (text: string) => `${colors.yellow}${text}${colors.reset}`,
     gray: (text: string) => `${colors.gray}${text}${colors.reset}`,
+    lightGray: (text: string) => `${colors.lightGray}${text}${colors.reset}`,
 }
 
 // Define log file path
@@ -52,18 +62,26 @@ export function customError(...args: any[]): void {
     const message = args.join(' ');
     originalConsole.error(chalk.red(`❌ [ERROR] ${message}`));
     logToFile('ERROR', message);
+    traceCallback();
 }
 
 export function customWarn(...args: any[]): void {
     const message = args.join(' ');
     originalConsole.warn(chalk.yellow(`⚠️ [WARN] ${message}`));
     logToFile('WARN', message);
+    if (bVerbose) {
+        traceCallback();
+    }
+    
 }
 
 export function customDebug(...args: any[]): void {
     const message = args.join(' ');
     originalConsole.debug(chalk.gray(`🐞 [DEBUG] ${message}`));
-    logToFile('DEBUG', message);
+    if (bVerbose) {
+        logToFile('DEBUG', message);
+        traceCallback();
+    }
 }
 
 // Replace console methods with custom log functions
@@ -72,3 +90,8 @@ console.error = customError;
 console.warn = customWarn;
 console.info = customLog;
 console.debug = customDebug;
+
+
+if (bVerbose) {
+    console.info(`Verbose mode enabled`);
+}

@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import fs from 'fs';
 import "dotenv/config";
 import "./logger";
+import path from 'path';
 
 export const API_COST_PER_CHARACTER = process.env.API_COST_PER_CHARACTER || 0.00025;
 export const API_COST_PER_CHARACTER_OUT = process.env.API_COST_PER_CHARACTER_OUT || 0.00075;
@@ -10,6 +11,134 @@ export const API_COST_PER_EMBEDDING = process.env.API_COST_PER_EMBEDDING || 0.00
 export async function getFileContentLen(filePath: string): Promise<number> {
     return await readFile(filePath, 'utf-8').then(content => content.length);
 }
+
+
+
+/**
+ * Custom error class for Base64 to PNG conversion errors
+ */
+class Base64ToPngError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'Base64ToPngError';
+    }
+}
+
+/**
+ * Configuration options for the conversion
+ */
+interface ConversionOptions {
+    /**
+     * Whether to create the output directory if it doesn't exist
+     * @default true
+     */
+    createDirectory?: boolean;
+    /**
+     * Whether to overwrite the file if it already exists
+     * @default false
+     */
+    overwrite?: boolean;
+}
+
+/**
+ * Result of the conversion process
+ */
+interface ConversionResult {
+    /** The path where the file was saved */
+    filePath: string;
+    /** The size of the written file in bytes */
+    size: number;
+}
+
+/**
+ * Converts a base64 string to a PNG file and saves it to the specified path
+ * @param base64String - The base64 string to convert (with or without data URI prefix)
+ * @param filePath - The full path where the PNG file should be saved
+ * @param options - Optional configuration for the conversion process
+ * @returns Promise resolving to the conversion result
+ * @throws {Base64ToPngError} If the conversion fails for any reason
+ */
+async function base64ToPngFile(
+    base64String: string,
+    filePath: string,
+    options: ConversionOptions = {}
+): Promise<ConversionResult> {
+    const {
+        createDirectory = true,
+        overwrite = false
+    } = options;
+
+    try {
+        // Input validation
+        if (!base64String) {
+            throw new Base64ToPngError('Base64 string is required');
+        }
+        if (!filePath) {
+            throw new Base64ToPngError('File path is required');
+        }
+
+        // Ensure the file extension is .png
+        if (path.extname(filePath).toLowerCase() !== '.png') {
+            throw new Base64ToPngError('File path must have .png extension');
+        }
+
+        // Check if file exists and handle overwrite option
+        try {
+            const stats = await fs.statSync(filePath);
+            if (stats.isFile() && !overwrite) {
+                throw new Base64ToPngError('File already exists and overwrite is not enabled');
+            }
+        } catch (error) {
+            // If error is anything other than 'file not found', rethrow it
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw error;
+            }
+        }
+
+        // Remove data URI prefix if it exists
+        let cleanBase64 = base64String;
+        if (base64String.startsWith('data:image/png;base64,')) {
+            cleanBase64 = base64String.replace(/^data:image\/png;base64,/, '');
+        }
+
+        // Validate base64 string format
+        if (!/^[A-Za-z0-9+/]+[=]{0,2}$/.test(cleanBase64)) {
+            throw new Base64ToPngError('Invalid base64 string format');
+        }
+
+        // Convert base64 to buffer
+        const buffer = Buffer.from(cleanBase64, 'base64');
+
+        // Verify PNG signature (first 8 bytes)
+        const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+        if (buffer.slice(0, 8).compare(pngSignature) !== 0) {
+            throw new Base64ToPngError('Invalid PNG format');
+        }
+
+        // Create directory if needed
+        if (createDirectory) {
+            const directory = path.dirname(filePath);
+            await fs.mkdirSync(directory, { recursive: true });
+        }
+
+        // Write the file
+        await fs.writeFileSync(filePath, buffer);
+
+        return {
+            filePath,
+            size: buffer.length
+        };
+    } catch (error) {
+        if (error instanceof Base64ToPngError) {
+            throw error;
+        }
+        throw new Base64ToPngError(
+            `Failed to convert base64 to PNG: ${(error as Error).message}`
+        );
+    }
+}
+
+export { base64ToPngFile, Base64ToPngError, type ConversionOptions, type ConversionResult };
 
 export const getCostOfAPICall = (characters: number): number => {
     characters = characters / 1000;
@@ -104,20 +233,97 @@ export function isArray(value: any): value is any[] {
     return Array.isArray(value);
 }
 
-export function escapeStringForMD(string:string|undefined){
-    if (typeof string != 'string'){
-        return "Data Not Available"
+export function escapeStringForMD(string: string | undefined): string {
+    // Handle undefined, null, or non-string values safely
+    if (typeof string !== 'string' || string === null) {
+        return "Data Not Available";
     }
 
-    const backtickCount = (string.match(/`/g) || []).length;
-  
-    // If the number of backticks is odd, it means they're not properly closed
+    // If string is empty, return it as is
+    if (string.trim() === '') {
+        return string;
+    }
+
+    let result = string;
+
+    // Skip escaping if this is already a code block (surrounded by triple backticks)
+    if (result.trim().startsWith('```') && result.trim().endsWith('```')) {
+        return result;
+    }
+
+    // Skip escaping if this is already an inline code (surrounded by single backticks)
+    if (result.trim().startsWith('`') && result.trim().endsWith('`') 
+        && (result.match(/`/g) || []).length === 2) {
+        return result;
+    }
+    
+    // Handle multiline code blocks more intelligently
+    const lines = result.split('\n');
+    let inCodeBlock = false;
+    const processedLines = lines.map(line => {
+        // Check if line is a code block delimiter
+        if (line.trim().startsWith('```')) {
+            inCodeBlock = !inCodeBlock;
+            return line;
+        }
+        
+        // Don't escape content inside code blocks
+        if (inCodeBlock) {
+            return line;
+        }
+        
+        // Escape markdown syntax outside code blocks
+        return escapeMarkdownLine(line);
+    });
+    
+    return processedLines.join('\n');
+}
+
+// Helper function to escape markdown syntax in a single line
+function escapeMarkdownLine(line: string): string {
+    let result = line;
+    
+    // Escape basic markdown syntax
+    result = result.replace(/\[/g, '\\[');
+    result = result.replace(/\]/g, '\\]');
+    result = result.replace(/\*/g, '\\*');
+    result = result.replace(/\_/g, '\\_');
+    
+    // Handle header markers at the beginning of lines
+    result = result.replace(/^(\s*)#/gm, '$1\\#');
+    
+    // Handle list markers at the beginning of lines
+    result = result.replace(/^(\s*)-/gm, '$1\\-');
+    
+    // Handle blockquote markers at the beginning of lines
+    result = result.replace(/^(\s*)>/gm, '$1\\>');
+    
+    // Handle inline backticks - escape only unpaired backticks
+    const backtickCount = (result.match(/`/g) || []).length;
     if (backtickCount % 2 !== 0) {
-      // Escape all backticks
-      return string.replace(/\`/g, '\\`')
+        // Find all paired backticks first
+        const pairedBacktickPattern = /`[^`]*`/g;
+        const pairedBackticks = result.match(pairedBacktickPattern) || [];
+        
+        // Replace paired backticks with a placeholder
+        let tempResult = result;
+        const placeholder = "__PAIRED_BACKTICK_PLACEHOLDER__";
+        pairedBackticks.forEach((pair, index) => {
+            tempResult = tempResult.replace(pair, `${placeholder}${index}`);
+        });
+        
+        // Escape remaining unpaired backticks
+        tempResult = tempResult.replace(/`/g, '\\`');
+        
+        // Restore paired backticks
+        pairedBackticks.forEach((pair, index) => {
+            tempResult = tempResult.replace(`${placeholder}${index}`, pair);
+        });
+        
+        result = tempResult;
     }
-
-    return string;  
+    
+    return result;
 }
 
 export function getContextFromFile() {
@@ -139,39 +345,55 @@ export function getContextFromFile() {
   }
 
   export function cleanBackticks(input: string): string {
-    const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c\\+\\+', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
-  
-    // Escape special characters in language names
-    const escapedLanguages = languages.map(lang => lang.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  
-    // Check if the input starts with a language identifier without backticks
-    const languageStartRegex = new RegExp(`^(${escapedLanguages.join('|')})\\s*[\n\r]`, 'i');
-    const match = input.match(languageStartRegex);
+    if (!input) return '';
     
-    if (match) {
-      const lang = match[1].toLowerCase();
-      input = `\`\`\`${lang}\n${input.slice(match[0].length)}`;
+    // List of common programming languages for code block syntax highlighting
+    const languages = ['javascript', 'typescript', 'python', 'java', 'c', 'c\\+\\+', 'c#', 'html', 'css', 'scss', 'less', 'json', 'yaml', 'xml', 'markdown', 'plaintext', 'shell', 'bash', 'powershell', 'dockerfile', 'sql', 'graphql', 'php', 'ruby', 'perl', 'go', 'rust', 'swift', 'kotlin', 'dart', 'r'];
+    
+    // Trim input and ensure we're working with clean text
+    let processedInput = input.trim();
+    
+    // Step 1: Handle any existing backticks in the content to prevent nested code blocks
+    // Replace any existing triple backticks inside the content with single backticks
+    // Only do this for content that isn't already a proper code block
+    if (!(processedInput.startsWith('```') && processedInput.endsWith('```'))) {
+      // Replace triple backticks with single backticks to avoid breaking markdown structure
+      processedInput = processedInput.replace(/```/g, '`');
     }
-  
-    // Add closing backticks if missing
-    if (input.startsWith('```') && !input.trim().endsWith('```')) {
-      input = input.trimEnd() + '\n```';
+    
+    // Step 2: Escape markdown special characters at the beginning of lines
+    // This prevents text within code blocks from being interpreted as markdown headers, lists, etc.
+    processedInput = processedInput.replace(/^(\s*)(#+|\*|-|>)/gm, '$1\\$2');
+    
+    // Step 3: Ensure the code block has proper language specification
+    if (!processedInput.startsWith('```')) {
+      // If we don't have opening backticks, add them with appropriate language
+      let languageSpec = '';
+      
+      // Try to detect language from the first line
+      const firstLine = processedInput.split('\n')[0].toLowerCase();
+      for (const lang of languages) {
+        if (firstLine.includes(lang)) {
+          languageSpec = lang;
+          break;
+        }
+      }
+      
+      // Default to plaintext if no language is detected
+      if (!languageSpec) {
+        languageSpec = 'plaintext';
+      }
+      
+      // Add proper opening code block with language
+      processedInput = `\`\`\`${languageSpec}\n${processedInput}`;
     }
-  
-    // Fix language specifier on newline
-    const incorrectFormatRegex = new RegExp(`\`\`\`\\s*[\\n\\r]+(${escapedLanguages.join('|')})\\s*[\\n\\r]+`, 'gi');
-    input = input.replace(incorrectFormatRegex, (match, lang) => `\`\`\`${lang.toLowerCase()}\n`);
-  
-    // IF closing backticks are not by themselves on a line, move them to a new line
-    input = input.replace(/```/g, '\n```');
-
-    // Remove extra newlines after opening backticks and before closing backticks
-    input = input.replace(/```(\w+)\s*[\n\r]+/g, '```$1\n');
-    input = input.replace(/[\n\r]+```/g, '\n```');
-
-
-  
-    return input;
+    
+    // Step 4: Ensure the code block has proper closing
+    if (!processedInput.endsWith('```')) {
+      processedInput = `${processedInput}\n\`\`\``;
+    }
+    
+    return processedInput;
   }
 //   export function cleanBackticks(input: string): string {
 
