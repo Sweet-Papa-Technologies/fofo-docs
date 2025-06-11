@@ -161,7 +161,7 @@ export interface Annotation {
     returns?: string;
     usageExample?: string;
     edgeCases?: string;
-    dependencies?: string;
+    dependencies?: string | string[];
     errorHandling?: string;
     performance?: string;
     bestPractices?: string;
