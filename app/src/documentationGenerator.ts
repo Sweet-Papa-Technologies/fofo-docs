@@ -530,13 +530,42 @@ function generateCodeObjectContent(codeObject: CodeObject, indent: number): stri
             hasAnnotation = true;
         }
 
-        if (annotation.parameters && annotation.parameters.trim().length > 0) {
-            content += `\n${indentation}- **Parameters:** ${escapeStringForMD(annotation.parameters)}`;
+        // Handle annotation.parameters
+        let parametersString = "";
+        if (typeof annotation.parameters === 'string') {
+            if (annotation.parameters.trim().length > 0 && annotation.parameters.toLowerCase() !== 'none' && annotation.parameters.toLowerCase() !== 'not applicable') {
+                parametersString = escapeStringForMD(annotation.parameters);
+            }
+        } else if (Array.isArray(annotation.parameters) && annotation.parameters.length > 0) {
+            parametersString = annotation.parameters.map(p => {
+                let paramLine = `- **${escapeStringForMD(p.name || 'unnamed')}**`;
+                if (p.type) paramLine += ` (\`${escapeStringForMD(p.type)}\`)`;
+                if (p.description) paramLine += `: ${escapeStringForMD(p.description)}`;
+                if (p.example) paramLine += ` (e.g., \`${escapeStringForMD(p.example)}\`)`;
+                return paramLine;
+            }).join(`\n${indentation}  `); // Indent subsequent lines
+        }
+
+        if (parametersString.length > 0) {
+            content += `\n${indentation}- **Parameters:**\n${indentation}  ${parametersString}`;
             hasAnnotation = true;
         }
 
-        if (annotation.returns && annotation.returns.trim().length > 0) {
-            content += `\n${indentation}- **Returns:** ${escapeStringForMD(annotation.returns)}`;
+        // Handle annotation.returns
+        let returnsString = "";
+        if (typeof annotation.returns === 'string') {
+            if (annotation.returns.trim().length > 0 && annotation.returns.toLowerCase() !== 'none' && annotation.returns.toLowerCase() !== 'not applicable' && annotation.returns.toLowerCase() !== 'void') {
+                returnsString = escapeStringForMD(annotation.returns);
+            }
+        } else if (typeof annotation.returns === 'object' && annotation.returns !== null) {
+            let returnLine = `- **Type:** \`${escapeStringForMD(annotation.returns.type || 'void')}\``;
+            if (annotation.returns.description) returnLine += `\n${indentation}  - **Description:** ${escapeStringForMD(annotation.returns.description)}`;
+            if (annotation.returns.example) returnLine += `\n${indentation}  - **Example:** \`${escapeStringForMD(annotation.returns.example)}\``;
+            returnsString = returnLine;
+        }
+
+        if (returnsString.length > 0) {
+            content += `\n${indentation}- **Returns:**\n${indentation}  ${returnsString}`;
             hasAnnotation = true;
         }
 

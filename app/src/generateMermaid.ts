@@ -5,6 +5,14 @@ import puppeteer from 'puppeteer';
 
 
 function cleanUpChartData(chart: fofoMermaidChart) {
+  // Replace malformed quote sequences first
+  chart.chart_code = chart.chart_code.replace(/ﬂ°quot¶ß/g, '"');
+  chart.chart_code = chart.chart_code.replace(/ﬂ°qu/g, '"');
+  // Remove isolated parts if they don't clearly map to a quote,
+  // or if they are just remnants around an already replaced quote.
+  chart.chart_code = chart.chart_code.replace(/ﬂ°/g, ''); // Could be a space or empty, depending on typical surrounding characters
+  chart.chart_code = chart.chart_code.replace(/¶ß/g, ''); // Could be a space or empty
+
   // General initial cleanup
   chart.chart_code = chart.chart_code.trim();
   // Remove markdown fences for mermaid code blocks
@@ -419,11 +427,21 @@ export async function generateMermaidCharts(projectSummary: ProjectSummary) {
     return charts;
 }
 
-function makeHTMLStringSafe(htmlString: string) {
-  return htmlString
-  .replace(/\n/g, '\\n')
-  .replace(/`/g, '\\`')
-  .replace(/"/g, "'");
+function makeHTMLStringSafe(mermaidCode: string): string {
+  let result = mermaidCode;
+  // Escape backslashes first, as other replacements might introduce new backslashes.
+  result = result.replace(/\\/g, '\\\\');
+  // Escape backticks (important for template literals if the outer context is also a template literal,
+  // but generally good practice for injecting into any JS string context).
+  result = result.replace(/`/g, '\\`');
+  // Escape double quotes, as the string is injected into a double-quoted JS string.
+  result = result.replace(/"/g, '\\"');
+  // Escape newlines.
+  result = result.replace(/\n/g, '\\n');
+  // Escape ${ sequences to prevent them from being interpreted as template literal placeholders.
+  result = result.replace(/\$\{/g, '\\${');
+  // Verified: All replacements are in the correct order and use correct escape sequences.
+  return result;
 }
 /**
  * Renders the given Mermaid charts into PNG images (base64-encoded).

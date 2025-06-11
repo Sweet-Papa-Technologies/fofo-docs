@@ -157,8 +157,8 @@ export type CodeObjectTypes = 'name' | 'type' | 'description' | 'codeSnippet' | 
 
 export interface Annotation {
     purpose: string;
-    parameters?: string;
-    returns?: string;
+    parameters?: string | FunctionParameter[]; // Allow string or array of FunctionParameter
+    returns?: string | FunctionReturn;        // Allow string or FunctionReturn object
     usageExample?: string;
     edgeCases?: string;
     dependencies?: string | string[];
