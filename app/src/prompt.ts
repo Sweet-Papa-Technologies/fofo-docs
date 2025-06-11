@@ -309,7 +309,7 @@ export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string, r
     - **purpose**: Clearly describe the primary goal and functionality of this code object. What does it do? Why does it exist?
     - **parameters**: (For functions/methods) Detail each parameter, including its name, expected data type, and its role in the function. If no parameters, state "None".
     - **returns**: (For functions/methods) Explain what the function or method returns, including its data type. If it doesn't return a value (e.g., void), state "None" or "void".
-    - **usageExample**: Provide a concise and correct code snippet demonstrating how to use this code object. Ensure all characters are properly escaped for a JSON string. For example, use '\\`\\`\\`typescript\\nconst x = 1;\\`\\`\\`' for a TypeScript code block.
+    - **usageExample**: Provide a concise and correct code snippet demonstrating how to use this code object. Ensure all characters are properly escaped for a JSON string. For example, use '\u0060\u0060\u0060typescript\nconst x = 1;\u0060\u0060\u0060' for a TypeScript code block.
     - **edgeCases**: Identify and describe any known edge cases, limitations, or special conditions that affect this code object's behavior.
     - **dependencies**: List any other code objects, modules, or external libraries that this code object directly depends on to function. If none, state "None".
     - **errorHandling**: Describe how this code object handles potential errors or exceptional situations. Does it throw exceptions, return error codes, or have specific error recovery mechanisms?
@@ -327,7 +327,7 @@ export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string, r
             {"name": "dataPoints", "type": "array", "description": "An array of data points to be processed."}
         ],
         "returns": {"type": "boolean", "description": "True if the calculation was successful and the store was updated, false otherwise."},
-        "usageExample": "\\`\\`\\`typescript\\nconst success = processData(myConfig, [1, 2, 3]);\\nif (success) { console.log('Processed!'); }\\`\\`\\`",
+        "usageExample": "\u0060\u0060\u0060typescript\nconst success = processData(myConfig, [1, 2, 3]);\nif (success) { console.log('Processed!'); }\u0060\u0060\u0060", // Ensuring correct escaping
         "edgeCases": "Handles empty 'dataPoints' array by returning false. Throws an error if 'configOptions' is null or undefined.",
         "dependencies": ["CentralDataStoreModule", "UtilityFunctions.validateInput"],
         "errorHandling": "Throws a TypeError for invalid input types and a CustomError if the CentralDataStoreModule is unavailable.",
@@ -340,7 +340,7 @@ export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string, r
         "purpose": "Stores the maximum number of retry attempts for network requests.",
         "parameters": "Not applicable",
         "returns": "Not applicable",
-        "usageExample": "\\`\\`\\`typescript\\nif (attempt < MAX_RETRIES) { /* ... */ }\\`\\`\\`",
+        "usageExample": "\u0060\u0060\u0060typescript\nif (attempt < MAX_RETRIES) { /* ... */ }\u0060\u0060\u0060", // Ensuring correct escaping
         "edgeCases": "Value should be a positive integer.",
         "dependencies": "None",
         "errorHandling": "Not applicable",
