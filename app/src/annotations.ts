@@ -124,18 +124,28 @@ async function annotateCodeObject(
     }
     // Check if parameters (if an array) has meaningful content
     if (Array.isArray(anno.parameters) && anno.parameters.length > 0) {
-        const firstParam = anno.parameters[0];
+        const firstParam = anno.parameters[0]; // firstParam is a FunctionParameter object
         if (typeof firstParam === 'object' && firstParam !== null) {
-            if ((!firstParam.name || firstParam.name.length < 1) && (!firstParam.type || firstParam.type.length < 1)) {
-                 console.warn(`Annotation for ${codeObj.name} deemed insufficient due to empty parameter object.`);
+            // Check if the first parameter object has a name and type with some content
+            if ((!firstParam.name || firstParam.name.trim().length < 1) &&
+                (!firstParam.type || firstParam.type.trim().length < 1)) {
+                 console.warn(`Annotation for ${codeObj.name} deemed insufficient due to sparsely populated first parameter object:`, firstParam);
                  return false;
             }
-        } else if (typeof firstParam === 'string' && firstParam.length < 5 && firstParam.toLowerCase() !== "none" && firstParam.toLowerCase() !== "not applicable" ) {
-            console.warn(`Annotation for ${codeObj.name} deemed insufficient due to short parameter string: "${firstParam}"`);
-            return false;
+            // Optionally, could add a check for firstParam.description if it's deemed critical
+            // if (!firstParam.description || firstParam.description.trim().length < 10) {
+            //      console.warn(`Annotation for ${codeObj.name} deemed insufficient due to short/missing description in first parameter object:`, firstParam);
+            //      return false;
+            // }
         }
-    } else if (typeof anno.parameters === 'string' && anno.parameters.length < 5 && anno.parameters.toLowerCase() !== "none" && anno.parameters.toLowerCase() !== "not applicable") {
-        console.warn(`Annotation for ${codeObj.name} deemed insufficient due to short parameters field: "${anno.parameters}"`);
+        // The 'else if (typeof firstParam === 'string')' block that was here has been removed
+        // as firstParam is an object when anno.parameters is an array of FunctionParameter.
+    } else if (typeof anno.parameters === 'string' &&
+               anno.parameters.trim().length < 5 &&
+               anno.parameters.toLowerCase() !== "none" &&
+               anno.parameters.toLowerCase() !== "not applicable") {
+        // This correctly handles when anno.parameters itself is a string
+        console.warn(`Annotation for ${codeObj.name} deemed insufficient due to short parameters field (string type): "${anno.parameters}"`);
         return false;
     }
 
