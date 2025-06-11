@@ -5,35 +5,59 @@ import puppeteer from 'puppeteer';
 
 
 function cleanUpChartData(chart: fofoMermaidChart) {
+  // General initial cleanup
   chart.chart_code = chart.chart_code.trim();
-  chart.chart_code = chart.chart_code.replace("```mermaid", '');
-  chart.chart_code = chart.chart_code.replace(/\`\`\`/g, '');
-  
+  // Remove markdown fences for mermaid code blocks
+  chart.chart_code = chart.chart_code.replace(/^```mermaid\s*/i, '');
+  chart.chart_code = chart.chart_code.replace(/\s*```$/, '');
+  // Remove any remaining triple backticks
+  chart.chart_code = chart.chart_code.replace(/```/g, '');
+  // Ensure diagram type declaration (e.g., graph TD, sequenceDiagram) is on its own line
+  chart.chart_code = chart.chart_code.replace(/^(graph\s+[LTRBTD]+|flowchart\s+[LTRBTD]+|sequenceDiagram|classDiagram|stateDiagram-v2|erDiagram|journey|gantt)\s*(.+)$/gm, '$1\n$2');
+  // Remove leading/trailing whitespace from each line
+  chart.chart_code = chart.chart_code.split('\n').map(line => line.trim()).join('\n');
+  // Remove multiple consecutive blank lines
+  chart.chart_code = chart.chart_code.replace(/\n{3,}/g, '\n\n');
+
+  const lines = chart.chart_code.split('\n');
+  const cleanedLines: string[] = [];
+  let diagramType = "";
+
+  if (lines.length > 0) {
+    const firstLineTrimmed = lines[0].trim();
+    if (firstLineTrimmed.startsWith("graph") || firstLineTrimmed.startsWith("flowchart")) {
+      diagramType = "graph"; // Catches graph TD, flowchart LR etc.
+    } else if (firstLineTrimmed.startsWith("sequenceDiagram")) {
+      diagramType = "sequenceDiagram";
+    } else if (firstLineTrimmed.startsWith("classDiagram")) {
+      diagramType = "classDiagram";
+    } else if (firstLineTrimmed.startsWith("stateDiagram-v2")) {
+      diagramType = "stateDiagram";
+    } else if (firstLineTrimmed.startsWith("erDiagram")) {
+      diagramType = "erDiagram";
+    } else if (firstLineTrimmed.startsWith("journey")) {
+      diagramType = "journey";
+    }
+    // Add more types as needed
+  }
+
   // Fix common class diagram syntax issues
-  if (chart.chart_code.includes('classDiagram')) {
-    // First ensure the classDiagram declaration is on its own line
-    chart.chart_code = chart.chart_code.replace(/classDiagram\s+/, 'classDiagram\n');
-    
-    const lines = chart.chart_code.split('\n');
-    const cleanedLines = [];
-    
+  if (diagramType === 'classDiagram') {
     let inClassDefinition = false;
-    let currentClassIndentation = '';
-    
+    // First ensure the classDiagram declaration is on its own line
+    if (!lines[0].trim().match(/^classDiagram$/i)) {
+        cleanedLines.push('classDiagram');
+    }
+
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trimRight();
-      
-      // Always keep the classDiagram declaration as is
-      if (line.trim() === 'classDiagram') {
-        cleanedLines.push(line);
-        continue;
-      }
-      
+      let line = lines[i];
+
+      if (line.trim().match(/^classDiagram$/i) && cleanedLines.length > 0) continue; // Already added or it's the first line
+
       // Check if entering a class definition block
       const classMatch = line.match(/(\s*)class\s+(\w+)\s*\{/);
       if (classMatch) {
         inClassDefinition = true;
-        currentClassIndentation = classMatch[1] || '';
         cleanedLines.push(line);
         continue;
       }
@@ -47,26 +71,119 @@ function cleanUpChartData(chart: fofoMermaidChart) {
       
       // Inside class definition, check for properties without type declarations
       if (inClassDefinition) {
-        // Find properties that don't have a type (end with identifier without colon)
-        const propertyMatch = line.match(/^(\s*)([-+]?\s*\w+)(\s*)$/);
-        if (propertyMatch) {
-          // Add type declaration
+        // Ensure properties are indented and correctly formatted
+        // Matches lines like "property" or "+ property" or "String property"
+        const propertyMatch = line.match(/^(\s*)([+-]?\s*\w+)(\s*)$/);
+        const propertyWithTypeMatch = line.match(/^(\s*)([+-]?\s*\w+\s+\w+)(\s*)$/); // e.g. String name
+        const methodMatch = line.match(/^(\s*)([+-]?\s*\w+\(.*\))(\s*)$/); // e.g. +method()
+
+        if (propertyMatch && !propertyWithTypeMatch && !methodMatch && !line.includes(':')) {
+          // Add default type "string" if missing and it's not a method
           cleanedLines.push(`${propertyMatch[1]}${propertyMatch[2]}: string`);
         } else {
           cleanedLines.push(line);
         }
       } else {
+         // Relationship fixes
+        line = line.replace(/--\|>\s+([^:]+)\s+:\s+has a/g, '--* $1 : has a'); // Aggregation
+        line = line.replace(/--o\s+([^:]+)\s+:\s+has a/g, '--o $1 : has a'); // Composition
+        line = line.replace(/--\|>\s+([^:]+)\s+:\s+uses/g, '--> $1 : uses'); // Association
+        line = line.replace(/<\|--\s+([^:]+)\s+:\s+is a/g, '<|-- $1 : is a'); // Inheritance
         cleanedLines.push(line);
       }
     }
-    
     chart.chart_code = cleanedLines.join('\n');
-    
-    // Fix relationship syntax issues - carefully with precise patterns
-    chart.chart_code = chart.chart_code.replace(/--|>\s+([^:]+)\s+:\s+has a/g, '--* $1 : has a');
-    chart.chart_code = chart.chart_code.replace(/--|>\s+([^:]+)\s+:\s+uses/g, '--> $1 : uses');
+  }
+  // Fix common flowchart/graph syntax issues
+  else if (diagramType === 'graph') {
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      // Ensure graph/flowchart declaration is present and on its own line
+      if (i === 0 && !line.match(/^(graph|flowchart)\s+(TD|LR|TB|RL|BT)/i)) {
+        cleanedLines.push('graph TD'); // Default to graph TD
+        if (line.trim() !== "") cleanedLines.push(line); // Add original line if it wasn't the declaration
+      } else if (i===0 && line.match(/^(graph|flowchart)\s+(TD|LR|TB|RL|BT)/i)) {
+         cleanedLines.push(line); // It's a valid declaration
+      }
+      else {
+        // Remove empty definitions like `id[]` or `id{}`
+        line = line.replace(/(\w+)\s*\[\s*\]/g, '$1');
+        line = line.replace(/(\w+)\s*\{\s*\}/g, '$1');
+        // Ensure valid node definitions: id["text"] or id("text") or id>"text"]
+        line = line.replace(/(\w+)\s*\[\s*([^"'\n\]]*)\s*\]/g, (match, id, text) => {
+          if (text.trim() === "") return id; // Handle empty brackets
+          return `${id}["${text.replace(/"/g, '#quot;')}"]`;
+        });
+         line = line.replace(/(\w+)\s*\(\s*([^"'\n)]*)\s*\)/g, (match, id, text) => {
+          if (text.trim() === "") return `${id}()`;
+          return `${id}("${text.replace(/"/g, '#quot;')}")`;
+        });
+        line = line.replace(/(\w+)\s*>\s*([^"'\n\]]*)\s*\]/g, (match, id, text) => {
+          if (text.trim() === "") return `${id}>]`;
+          return `${id}>"${text.replace(/"/g, '#quot;')}"]`;
+        });
+
+
+        // Fix broken links (e.g. "A -- > B" to "A --> B")
+        line = line.replace(/(--)\s+(>)/g, '$1$2');
+        line = line.replace(/(-)\s+(-)/g, '$1$2');
+        line = line.replace(/(<)\s+(--)/g, '$1$2');
+        // Ensure text on links is correctly quoted if it contains special characters or spaces
+        // e.g. A -- text --> B  to A -- "text" --> B
+        line = line.replace(/(--(?:>|x|o)?)\s*([^-\s>][^-=>]+?[^-\s>])\s*(--(?:>|x|o)?)/g, (match, startArrow, text, endArrow) => {
+            if (text.startsWith('"') && text.endsWith('"')) return match; // Already quoted
+            if (text.startsWith("'") && text.endsWith("'")) return match; // Already quoted
+            if (text.match(/^[a-zA-Z0-9_]+$/)) return match; // Simple text, no quotes needed
+            return `${startArrow} "${text.replace(/"/g, '#quot;')}" ${endArrow}`;
+        });
+        line = line.replace(/(-->)\s*([^-\s>][^-=>]+?[^-\s>])\s*$/g, (match, startArrow, text) => {
+             if (text.startsWith('"') && text.endsWith('"')) return match; // Already quoted
+             if (text.startsWith("'") && text.endsWith("'")) return match; // Already quoted
+             if (text.match(/^[a-zA-Z0-9_]+$/)) return match; // Simple text, no quotes needed
+            return `${startArrow} "${text.replace(/"/g, '#quot;')}"`;
+        });
+
+
+        cleanedLines.push(line);
+      }
+    }
+    chart.chart_code = cleanedLines.join('\n');
+  }
+  // Sequence Diagram specific cleanups
+  else if (diagramType === 'sequenceDiagram') {
+     if (!lines[0].trim().match(/^sequenceDiagram$/i)) {
+        cleanedLines.push('sequenceDiagram');
+    }
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      if (line.trim().match(/^sequenceDiagram$/i) && cleanedLines.length > 0) continue;
+
+      // Ensure participant declarations are correct
+      line = line.replace(/^participant\s+(.+)\s+as\s+(.+)/i, 'participant $2 as $1'); // Common mistake: "participant Long Name as LN" instead of "participant LN as Long Name"
+      line = line.replace(/^actor\s+(.+)\s+as\s+(.+)/i, 'actor $2 as $1');
+
+      // Ensure messages have valid arrow types and participant names are not quoted unless they contain spaces
+      // e.g. "Alice"->>"Bob": Hello should be Alice->>Bob: Hello
+      line = line.replace(/^"?([\w\s]+)"?\s*(-->>|->>|-->>|->|-x|--x)\s*"?([\w\s]+)"?\s*:\s*(.+)$/, (match, p1, arrow, p2, msg) => {
+        const cleanP1 = p1.includes(" ") ? `"${p1}"` : p1;
+        const cleanP2 = p2.includes(" ") ? `"${p2}"` : p2;
+        return `${cleanP1}${arrow}${cleanP2}: ${msg}`;
+      });
+
+      // Remove extra spaces around colons for messages
+      line = line.replace(/\s*:\s*/, ': ');
+      cleanedLines.push(line);
+    }
+    chart.chart_code = cleanedLines.join('\n');
+  }
+  // For other diagram types or if type is not identified, just use the initial cleaned lines
+  else {
+    chart.chart_code = lines.join('\n');
   }
   
+  // Final pass: remove multiple consecutive blank lines again and ensure no leading/trailing newlines on the whole code
+  chart.chart_code = chart.chart_code.replace(/\n{2,}/g, '\n').trim();
+
   return chart;
 }
 
@@ -214,9 +331,14 @@ export async function generateMermaidCharts(projectSummary: ProjectSummary) {
     // Now we do le prompt:
     const prompt = `
     ## Instructions:
-    Please analyze the following codebase (summarized as a JSON object detailing the structure and complexity of the codebase) and generate some mermaid charts:
+    Please analyze the following codebase (summarized as a JSON object detailing the structure and complexity of the codebase) and generate Mermaid charts.
 
-    Feel free to use charts relevant to Software Development, but not necessarily relevant to the codebase. For instance, flow charts, UML, decision trees, etc.
+    Focus on creating diagrams that illustrate:
+    - **Control flow:** Show the sequence of operations and decisions within the code.
+    - **Data flow:** Depict how data moves through the system and is transformed.
+    - **Component interactions:** Visualize the relationships and communication between different parts of the software.
+
+    Ensure the generated Mermaid code is clean, valid, and adheres to Mermaid syntax best practices. Use clear and concise labels for nodes and edges.
 
     For your response, please use the following JSON schema and format, and ONLY respond with the json object (do not add anything else):
     {
@@ -227,42 +349,49 @@ export async function generateMermaidCharts(projectSummary: ProjectSummary) {
     }
 
     ## Acceptable Chart Types to Choose From:
-        - Flowchart (flowchart LR) or (graph LR)
-        - Sequence Diagram (sequenceDiagram)
-        - Class Diagram (classDiagram)
-        - State Machine (stateDiagram-v2)
-        - Entity Relationship (erDiagram)
-        - Architecture Diagram (architecture-beta)
+        - Flowchart (flowchart LR or graph LR) - Ideal for control flow and data flow.
+        - Sequence Diagram (sequenceDiagram) - Excellent for showing component interactions and message passing.
+        - Class Diagram (classDiagram) - Useful for representing the static structure and relationships of classes.
+        - State Machine Diagram (stateDiagram-v2) - Good for modeling the states and transitions of an object.
+        - Entity Relationship Diagram (erDiagram) - Suitable for database schema representation.
+        - C4-style Architecture Diagrams (journey, context, container, component, deployment) - For visualizing software architecture at different levels of detail. Use 'graph TD' or 'graph LR' for these if no direct C4 syntax is available, and structure them accordingly.
 
-    ## Chart Syntax Rules and Examples:
-    Please be sure to use proper formatting, syntax, and string escaping for titles. Also feel free to add colors and styling, but ensure not to break the code.
-    ### Sequence Diagram
+    ## Chart Syntax Rules and General Guidelines:
+    - **Validity:** Ensure all generated code is valid Mermaid syntax. Test against common pitfalls.
+    - **Clarity:** Use meaningful names for nodes and clear descriptions for relationships.
+    - **Simplicity:** Keep diagrams focused on a specific aspect (e.g., a particular user flow, data transformation, or component interaction). Avoid overly complex or cluttered diagrams.
+    - **Styling:** You can use styling (e.g., colors, shapes) to enhance readability, but ensure it doesn't break the code.
+    - **Escaping:** Properly escape any special characters within labels or descriptions. For example, use "#quot;" for quotes in node labels if needed.
+    - **Direction:** For flowcharts and similar diagrams, use appropriate direction indicators (e.g., `LR` for left-to-right, `TD` for top-down).
+
+    ### Sequence Diagram Example:
     sequenceDiagram
-        Alice ->> Bob: Hello Bob, how are you?
-        Bob-->>John: How about you John?
-        Bob--x Alice: I am good thanks!
-        Bob-x John: I am good thanks!
-        Note right of John: Bob thinks a long<br/>long time, so long<br/>that the text does<br/>not fit on a row.
-        
-        Bob-->Alice: Checking with John...
-        Alice->John: Yes... John, how are you?
+        participant User
+        participant WebServer
+        participant Database
+        User->>WebServer: Request data
+        WebServer->>Database: Query data
+        Database-->>WebServer: Return data
+        WebServer-->>User: Display data
 
-
-    ### Flowchart
+    ### Flowchart Example (Control Flow):
     flowchart TD
-        Alice-->Bob: Hello Bob, how are you?
-        Bob-->John: How about you John?
-        Bob-->Alice: I am good thanks!
-        Alice-->John: I am good thanks!
-        Note right of John: Bob thinks a long<br/>long time, so long<br/>that the text does<br/>not fit on a row.
+        A[Start] --> B{Decision?};
+        B -- Yes --> C[Process 1];
+        B -- No --> D[Process 2];
+        C --> E[End];
+        D --> E;
 
-    ### Class Diagram
+    ### Class Diagram Example:
     classDiagram
-        Alice <-- Bob
-        Alice <-- John
-        Alice <-- Bob
-        Bob <-- Alice
-        Bob <-- John
+        class Animal {
+          +String name
+          +speak()
+        }
+        class Dog {
+          +bark()
+        }
+        Animal <|-- Dog
 
     
     ## Codebase:

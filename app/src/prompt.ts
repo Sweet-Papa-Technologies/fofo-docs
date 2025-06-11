@@ -304,35 +304,51 @@ export function annotateCodeObjectPrompt(codeObj: CodeObject, context: string, r
 
     ## Annotation Guidelines
 
-    Based on the full context of the code, detail the following:
+    Based on the full context of the code, provide comprehensive and detailed information for EACH of the following fields. Do not skip any fields; if information is not directly present, infer it based on the context or state "Not applicable" or "None".
     
-    - Purpose: Describe what this code object does.
-    - Parameters: Explain the parameters of functions, their types, and their purpose.
-    - Returns: Explain what the function returns.
-    - Usage Example: Provide a usage example. DO NOT add additional code blocks within the response. And escape all characters properly.
-    - Edge Cases: Mention any edge cases or special conditions.
-    - Dependencies: List any dependencies.
-    - Error Handling: Explain how errors are handled.
-    - Performance: Mention any performance considerations.
-    - Best Practices: Highlight best practices for using this code object.
+    - **purpose**: Clearly describe the primary goal and functionality of this code object. What does it do? Why does it exist?
+    - **parameters**: (For functions/methods) Detail each parameter, including its name, expected data type, and its role in the function. If no parameters, state "None".
+    - **returns**: (For functions/methods) Explain what the function or method returns, including its data type. If it doesn't return a value (e.g., void), state "None" or "void".
+    - **usageExample**: Provide a concise and correct code snippet demonstrating how to use this code object. Ensure all characters are properly escaped for a JSON string. For example, use '\\`\\`\\`typescript\\nconst x = 1;\\`\\`\\`' for a TypeScript code block.
+    - **edgeCases**: Identify and describe any known edge cases, limitations, or special conditions that affect this code object's behavior.
+    - **dependencies**: List any other code objects, modules, or external libraries that this code object directly depends on to function. If none, state "None".
+    - **errorHandling**: Describe how this code object handles potential errors or exceptional situations. Does it throw exceptions, return error codes, or have specific error recovery mechanisms?
+    - **performance**: Note any important performance considerations related to this code object, such as time complexity, memory usage, or potential bottlenecks.
+    - **bestPractices**: Highlight any recommended best practices, common patterns, or important considerations for developers when using or interacting with this code object.
 
     # Response Format
-    Respond with a JSON object containing the annotations. For example:
+    Respond ONLY with a single, well-formed JSON object containing the annotations. Ensure all string values are properly escaped.
+
+    Example for a function:
     {
-        "purpose": "This function calculates the sum of two numbers...etc",
-        "parameters": "num1: number, num2: number...etd",
-        "returns": "number",
-        "usageExample": "\`\`\`typescript\nconst sum = add(1, 2);\n\`\`\`",
-        "edgeCases": "Negative numbers are not supported...etc",
-        "dependencies": "someDependency, anotherDependency...etc",
-        "errorHandling": "Throws an error if the input is not a number...etc",
-        "performance": "Optimized for speed...etc",
-        "bestPractices": "Use this function for adding numbers to...etc"
+        "purpose": "This function performs a specific calculation based on input parameters and updates a central store.",
+        "parameters": [
+            {"name": "configOptions", "type": "object", "description": "Configuration object for the calculation process."},
+            {"name": "dataPoints", "type": "array", "description": "An array of data points to be processed."}
+        ],
+        "returns": {"type": "boolean", "description": "True if the calculation was successful and the store was updated, false otherwise."},
+        "usageExample": "\\`\\`\\`typescript\\nconst success = processData(myConfig, [1, 2, 3]);\\nif (success) { console.log('Processed!'); }\\`\\`\\`",
+        "edgeCases": "Handles empty 'dataPoints' array by returning false. Throws an error if 'configOptions' is null or undefined.",
+        "dependencies": ["CentralDataStoreModule", "UtilityFunctions.validateInput"],
+        "errorHandling": "Throws a TypeError for invalid input types and a CustomError if the CentralDataStoreModule is unavailable.",
+        "performance": "Optimized for processing up to 1000 data points. For larger datasets, consider batching.",
+        "bestPractices": "Ensure 'configOptions' is validated before calling. Call this function after initializing CentralDataStoreModule."
     }
 
-    If there is no information available for a specific section, you can set the value to an empty string.
+    Example for a variable or a non-function code object (some fields might be "Not applicable"):
+    {
+        "purpose": "Stores the maximum number of retry attempts for network requests.",
+        "parameters": "Not applicable",
+        "returns": "Not applicable",
+        "usageExample": "\\`\\`\\`typescript\\nif (attempt < MAX_RETRIES) { /* ... */ }\\`\\`\\`",
+        "edgeCases": "Value should be a positive integer.",
+        "dependencies": "None",
+        "errorHandling": "Not applicable",
+        "performance": "Not applicable",
+        "bestPractices": "Do not modify this value at runtime unless specifically required by advanced configuration."
+    }
 
-    Please properly escape backticks used in your key-value pairs.
+    Please properly escape backticks and other special characters in your response strings.
 
     ONLY respond with the JSON object containing the annotations.
 `;
