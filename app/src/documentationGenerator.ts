@@ -855,6 +855,10 @@ export async function generateDocumentation(folderPath: string, projectContext: 
                         const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
                         
                         const parseAndAddDeps = (deps: Record<string, string> | undefined, type: string) => { // Typed deps
+                            if (!projectContext) { // Null check for projectContext
+                                console.warn(`[parseAndAddDeps] projectContext is null. Skipping processing for ${type}.`);
+                                return;
+                            }
                             if (deps && typeof deps === 'object') {
                                 const depArray = Object.entries(deps).map(([name, version]) => ({
                                     name,
