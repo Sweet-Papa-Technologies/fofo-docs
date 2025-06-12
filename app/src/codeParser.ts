@@ -562,6 +562,7 @@ export async function parseCodebase(
     const codeFileSummary: CodeFileSummary = {
       fileName: filePath, // Relative path
       fileLocation: fullFilePath, // Absolute path
+      fileContent: "", // Initialize fileContent
       codeSummary: {}, // Fields within are optional
       language: fileLanguage.language || "Unknown",
       executionFlow: [], // Initialize as empty, populated if applicable
