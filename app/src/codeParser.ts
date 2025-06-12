@@ -14,9 +14,13 @@ import {
   ProjectSummary,
   RagData,
   codeSummary,
-  globResult,
-  moduleObject,
+  // globResult, // Not directly used in this file after changes, but could be in objectSchemas
+  // moduleObject, // Will be handled by the GroupedDependencies structure
 } from "./objectSchemas";
+
+// Define GroupedDependencies and moduleObject structure here for clarity if not in objectSchemas
+// For the purpose of this change, we'll assume ProjectSummary's projectDependencies will be GroupedDependencies
+// and items within will conform to a structure like: { name: string, version: string, description: string, type: string }
 
 import {
   callLLM,
@@ -60,6 +64,8 @@ import {
   fofoDocsBuiltInGlobSearch,
   isNoNoFile,
 } from "./appData";
+import path from 'path'; // Added for path.join
+import { glob as globPromise } from 'glob'; // For async glob operations
 
 // -------------------------------------
 // Environment Variables / Constants
@@ -419,7 +425,7 @@ export async function parseCodebase(
   const projectSummary: ProjectSummary = {
     projectName: projectName,
     projectDescription: {} as codeSummary,
-    projectDependencies: [],
+    projectDependencies: {}, // Changed to an object for grouped dependencies
     projectLocation: projectPath,
     projectTechStackDescription: "",
     codeFiles: [],
@@ -443,7 +449,8 @@ export async function parseCodebase(
   ];
 
   // Retrieve extra context from a file, if any
-  projectSummary.teamContext = getContextFromFile();
+  // projectSummary.teamContext = getContextFromFile(); // Replaced by extractProjectContext
+  projectSummary.teamContext = "Initial context - will be populated by extractProjectContext."; // Placeholder
 
   // Collect file paths
   let filePaths: string[] = [];
@@ -478,8 +485,8 @@ export async function parseCodebase(
       undefined,
       undefined,
       llmToUse
-    )) as any;
-    projectSummary.projectTechStackDescription = projectStackLang.response || "";
+    )) as any; // Keep as any or define a proper type
+    projectSummary.projectTechStackDescription = projectStackLang?.response || "";
 
     // Gather potential dependency files
     console.log("Looking for known dependency files...");
@@ -493,29 +500,92 @@ export async function parseCodebase(
 
     for (const depFileName of dependencyFiles) {
       const depFile = `${projectPath}/${depFileName}`;
-      try {
-        const depFileContent = await readFile(depFile, "utf-8");
-        const relevantPackagesModules = (await infer(
-          determineModulesPackagesFromFile(depFileContent),
-          "JSON object",
-          undefined,
-          false,
-          undefined,
-          undefined,
-          llmToUse
-        )) as moduleObject;
+      if (depFileName.endsWith('package.json')) {
+        try {
+          const depFileContent = await readFile(depFile, "utf-8");
+          const packageJson = JSON.parse(depFileContent);
 
-        // flatten
-        const flattened = Array.isArray(relevantPackagesModules)
-          ? relevantPackagesModules
-          : [relevantPackagesModules];
-        projectSummary.projectDependencies.push(...flattened);
-      } catch (err) {
-        console.warn(`Error reading dependency file: ${depFileName}`, err);
+          const processDeps = (deps: any, type: string) => {
+            if (deps) {
+              for (const name in deps) {
+                const version = deps[name];
+                if (!projectSummary.projectDependencies[type]) {
+                  projectSummary.projectDependencies[type] = [];
+                }
+                // Ensure the pushed object matches the expected structure for dependencies
+                projectSummary.projectDependencies[type]!.push({
+                  name,
+                  version,
+                  description: "", // Will be filled later
+                  type
+                });
+              }
+            }
+          };
+
+          processDeps(packageJson.dependencies, 'dependencies');
+          processDeps(packageJson.devDependencies, 'devDependencies');
+          processDeps(packageJson.peerDependencies, 'peerDependencies');
+          processDeps(packageJson.optionalDependencies, 'optionalDependencies');
+
+        } catch (err) {
+          console.warn(`Error reading or parsing package.json: ${depFileName}`, err);
+        }
+      } else {
+        // Handle other dependency files if necessary, e.g., requirements.txt, pom.xml
+        // This part might require specific parsers or different LLM prompts
+        try {
+            const depFileContent = await readFile(depFile, "utf-8");
+            // Assuming determineModulesPackagesFromFile can give {name, version, type, description?}
+            const relevantPackagesModules = (await infer(
+              determineModulesPackagesFromFile(depFileContent), // This prompt might need adjustment
+              "JSON object", // Expecting an array of { name, version, description?, type? }
+              undefined, false, undefined, undefined, llmToUse
+            )) as any[]; // Cast to array of any for now
+
+            relevantPackagesModules.forEach(dep => {
+                const type = dep.type || 'unknown'; // Default type if not provided by LLM
+                if (!projectSummary.projectDependencies[type]) {
+                    projectSummary.projectDependencies[type] = [];
+                }
+                projectSummary.projectDependencies[type]!.push({
+                    name: dep.name,
+                    version: dep.version,
+                    description: dep.description || "",
+                    type: type
+                });
+            });
+        } catch (err) {
+            console.warn(`Error processing generic dependency file: ${depFileName}`, err);
+        }
       }
     }
-    // flatten one more time in case there's nesting
-    projectSummary.projectDependencies = projectSummary.projectDependencies.flat(1);
+
+    // Fetch missing descriptions for dependencies
+    console.log("Fetching missing descriptions for dependencies...");
+    for (const depType in projectSummary.projectDependencies) {
+        const depsOfType = projectSummary.projectDependencies[depType];
+        if (depsOfType && Array.isArray(depsOfType)) {
+            for (const dep of depsOfType) {
+                // Ensure dep is an object and has a name property
+                if (dep && typeof dep.name === 'string' && (dep.description === undefined || dep.description === "")) {
+                    try {
+                        const packageJsonPath = path.join(projectPath, 'node_modules', dep.name, 'package.json');
+                        if (fs.existsSync(packageJsonPath)) {
+                            const packageJsonContent = await readFile(packageJsonPath, 'utf-8');
+                            const packageJsonDetails = JSON.parse(packageJsonContent);
+                            dep.description = packageJsonDetails.description || 'N/A';
+                        } else {
+                            dep.description = 'N/A (package.json not found in node_modules)';
+                        }
+                    } catch (error) {
+                        console.warn(`Error reading package.json for ${dep.name}:`, error);
+                        dep.description = 'N/A (error reading package.json)';
+                    }
+                }
+            }
+        }
+    }
 
     // Now refine the filePaths to just code files we want
     filePaths = await glob(
@@ -799,4 +869,150 @@ export async function parseCodebase(
 
 
   return projectSummary;
+}
+
+// -------------------------------------
+// NEW FUNCTION: extractProjectContext
+// -------------------------------------
+export async function extractProjectContext(
+  projectPath: string,
+  projectSummary: ProjectSummary
+): Promise<string> {
+  const contextStrings: string[] = [];
+  const llm = llmToUse;
+
+  // 1. Read README files
+  try {
+    const readmeFileNames = ['README.md', 'README.txt', 'readme.md', 'readme.txt', 'Readme.md'];
+    const readmePaths = await globPromise(readmeFileNames, {
+      cwd: projectPath,
+      absolute: true,
+      nodir: true,
+      ignore: ['node_modules/**'],
+    });
+    for (const readmePath of readmePaths) {
+      try {
+        const content = await readFile(readmePath, 'utf-8');
+        contextStrings.push(`README Content (${path.basename(readmePath)}):\n${content}`);
+      } catch (readError) {
+        console.warn(`[Context Extractor] Could not read README file ${readmePath}:`, readError);
+      }
+    }
+  } catch (globError) {
+    console.warn(`[Context Extractor] Error finding README files:`, globError);
+  }
+
+  // 2. Read package.json description, name, keywords
+  try {
+    const packageJsonPath = path.join(projectPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJsonContent = await readFile(packageJsonPath, 'utf-8');
+      const packageJson = JSON.parse(packageJsonContent);
+      if (packageJson.name) {
+        contextStrings.push(`Project Name (from package.json):\n${packageJson.name}`);
+      }
+      if (packageJson.description) {
+        contextStrings.push(`Project Description (from package.json):\n${packageJson.description}`);
+      }
+      if (packageJson.keywords && Array.isArray(packageJson.keywords)) {
+        contextStrings.push(`Project Keywords (from package.json):\n${packageJson.keywords.join(', ')}`);
+      }
+    }
+  } catch (pkgError) {
+    console.warn(`[Context Extractor] Error reading or parsing package.json:`, pkgError);
+  }
+
+  // 3. Extract summaries and descriptions from projectSummary.codeFiles
+  if (projectSummary.codeFiles && projectSummary.codeFiles.length > 0) {
+    const allCodeDerivedContext: string[] = [];
+    projectSummary.codeFiles.forEach(codeFile => {
+      if (codeFile.codeSummary) {
+        if (codeFile.codeSummary.goal) {
+          allCodeDerivedContext.push(`File ${codeFile.fileName} - Goal: ${codeFile.codeSummary.goal}`);
+        }
+        if (codeFile.codeSummary.features_functions) {
+          allCodeDerivedContext.push(`File ${codeFile.fileName} - Features/Functions: ${codeFile.codeSummary.features_functions}`);
+        }
+      }
+      if (codeFile.codeObjects) {
+        for (const key in codeFile.codeObjects) {
+          const codeObjectArray = (codeFile.codeObjects as any)[key] as CodeObject[];
+          if (Array.isArray(codeObjectArray)) {
+            codeObjectArray.forEach(obj => {
+              if (obj.description) {
+                allCodeDerivedContext.push(`Object "${obj.name}" (${obj.type} in ${codeFile.fileName}) - Description: ${obj.description}`);
+              }
+              if (obj.annotation?.purpose) {
+                 allCodeDerivedContext.push(`Object "${obj.name}" (${obj.type} in ${codeFile.fileName}) - Annotated Purpose: ${obj.annotation.purpose}`);
+              }
+            });
+          }
+        }
+      }
+    });
+    if (allCodeDerivedContext.length > 0) {
+      contextStrings.push(`\n## Collected Code Summaries and Object Descriptions:\n${allCodeDerivedContext.join('\n')}`);
+    }
+  }
+
+  // 4. Identify known patterns/keywords
+  const keywords = [
+    'compliance', 'security', 'performance', 'regulatory', 'api key',
+    'confidential', 'authentication', 'authorization', 'encryption', 'privacy',
+    'payment', 'pci', 'gdpr', 'hipaa', 'user data', 'financial'
+  ];
+  const foundPatterns: string[] = [];
+  const combinedTextForKeywordSearch = contextStrings.join('\n\n').toLowerCase();
+
+  keywords.forEach(keyword => {
+    if (combinedTextForKeywordSearch.includes(keyword)) {
+      foundPatterns.push(keyword);
+    }
+  });
+
+  if (foundPatterns.length > 0) {
+    contextStrings.push(`\n## Potential Contextual Keywords Found:\n${foundPatterns.join(', ')}. This may indicate areas of focus such as ${foundPatterns.join(', ')}.`);
+  }
+
+  // 5. Combine all gathered data
+  const fullContextText = contextStrings.join('\n\n---\n\n');
+
+  if (fullContextText.trim() === "") {
+    return "No specific project context could be automatically extracted. Defaulting to generic context.";
+  }
+
+  // 6. LLM for context generation
+  const promptForLLM = `
+Based on the following information extracted from a software project (including README content, package.json details, code summaries, and identified keywords), please generate a concise project context summary.
+This summary should highlight the project's main purpose, key characteristics, and any notable aspects like security, performance, or regulatory needs if hinted at by the provided text.
+Synthesize this information into a 2-5 sentence summary. If the provided data is very sparse, a shorter summary is fine.
+
+Extracted Information:
+<<< EXTRACTED DATA START >>>
+${fullContextText}
+<<< EXTRACTED DATA END >>>
+
+Concise Project Context Summary (2-5 sentences):`;
+
+  try {
+    // Using 'infer' as it's a common function in this codebase for LLM calls.
+    // Ensure projectSummary is passed if 'infer' uses it for cost tracking or other metadata.
+    const llmResponseResult = (await infer(
+      promptForLLM,
+      "TEXT STRING",
+      "projectContextSummary", // field name for logging/tracking
+      false, // RAG not needed for this specific call
+      projectSummary,
+      fullContextText, // The actual text to process
+      llm // llmToUse
+    )) as any;
+
+    const finalContext = typeof llmResponseResult === 'string' ? llmResponseResult : llmResponseResult?.response;
+
+    return finalContext || "LLM could not generate a project context summary. Using extracted information as fallback.";
+  } catch (llmError) {
+    console.error(`[Context Extractor] Error calling LLM for context summary:`, llmError);
+    // Return a truncated version of the gathered text as a fallback if LLM fails
+    return "Error generating project context summary via LLM. Fallback: " + fullContextText.substring(0, Math.min(fullContextText.length, 1500)) + (fullContextText.length > 1500 ? "..." : "");
+  }
 }

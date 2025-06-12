@@ -49,34 +49,56 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
     
     // List out dependencies:
     toc.push(`\n## Project Dependencies / Modules:`);
-    // Enhanced dependency handling with better fallback display
-    if (Array.isArray(projectSummary.projectDependencies) && projectSummary.projectDependencies.length > 0) {
-        projectSummary.projectDependencies.forEach(dep => {
-            if (dep && dep.name) {
-                let description = dep.description ? ` - ${escapeStringForMD(dep.description)}` : '';
-                toc.push(`  - **${escapeStringForMD(dep.name)}** (${escapeStringForMD(dep.version || 'latest')})${description}`);
+    if (projectSummary.projectDependencies && Object.keys(projectSummary.projectDependencies).length > 0) {
+        for (const depType in projectSummary.projectDependencies) {
+            const dependencies = projectSummary.projectDependencies[depType];
+            if (dependencies && dependencies.length > 0) {
+                // Create a more readable header, e.g., "Dev Dependencies" from "devDependencies"
+                const typeHeader = depType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                toc.push(`\n### ${escapeStringForMD(typeHeader)}`);
+                dependencies.forEach((dep: any) => { // Assuming dep structure { name, version, description }
+                    if (dep && dep.name) {
+                        let depLine = `  - **${escapeStringForMD(dep.name)}** (${escapeStringForMD(dep.version || 'latest')})`;
+                        // Check if description is meaningful before appending
+                        if (dep.description && dep.description.trim() !== '' && !dep.description.toLowerCase().startsWith('n/a')) {
+                            depLine += ` - ${escapeStringForMD(dep.description)}`;
+                        }
+                        toc.push(depLine);
+                    }
+                });
             }
-        });
+        }
     } else {
-        // Try to extract from package.json if dependencies array is empty
+        toc.push(`  - No dependencies found or specified.`);
+        // Fallback: Try to extract from package.json if projectDependencies is empty or not structured as expected
         const packageJsonPath = path.join(projectSummary.projectLocation, 'package.json');
         try {
             if (fs.existsSync(packageJsonPath)) {
                 const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-                const dependencies = { ...packageData.dependencies || {}, ...packageData.devDependencies || {} };
-                if (Object.keys(dependencies).length > 0) {
-                    Object.entries(dependencies).forEach(([name, version]) => {
+                const mainDependencies = packageData.dependencies;
+                const devDependencies = packageData.devDependencies;
+
+                if (mainDependencies && Object.keys(mainDependencies).length > 0) {
+                    toc.push(`\n### Dependencies (from package.json)`);
+                    Object.entries(mainDependencies).forEach(([name, version]) => {
                         toc.push(`  - **${escapeStringForMD(name)}** (${escapeStringForMD(version as string)})`);
                     });
-                } else {
-                    toc.push(`  - No dependencies found in package.json`);
+                }
+                if (devDependencies && Object.keys(devDependencies).length > 0) {
+                    toc.push(`\n### Dev Dependencies (from package.json)`);
+                    Object.entries(devDependencies).forEach(([name, version]) => {
+                        toc.push(`  - **${escapeStringForMD(name)}** (${escapeStringForMD(version as string)})`);
+                    });
+                }
+                if ((!mainDependencies || Object.keys(mainDependencies).length === 0) && (!devDependencies || Object.keys(devDependencies).length === 0)) {
+                     toc.push(`  - No dependencies listed in package.json.`);
                 }
             } else {
-                toc.push(`  - No dependencies found or specified`);
+                // Already covered by "No dependencies found or specified" if primary method fails.
             }
         } catch (err) {
-            console.warn("Error loading dependencies from package.json:", err);
-            toc.push(`  - No dependencies found or specified`);
+            console.warn("Error loading dependencies from package.json as fallback:", err);
+            // toc.push(`  - Error parsing package.json for fallback dependencies.`); // Avoid redundant messages
         }
     }
 
@@ -810,29 +832,52 @@ export async function generateDocumentation(folderPath: string, projectContext: 
 
         // Enhance the project context with additional information if missing
         if (projectContext) {
-            // Ensure team context has useful information
-            if (!projectContext.teamContext || projectContext.teamContext === 'N/A') {
-                projectContext.teamContext = 'This documentation was automatically generated based on code analysis.'
-            }
+            // The teamContext is now populated by extractProjectContext in codeParser.ts,
+            // which has its own more specific fallbacks. So, the generic fallback below is removed.
+            // if (!projectContext.teamContext || projectContext.teamContext === 'N/A') {
+            //     projectContext.teamContext = 'This documentation was automatically generated based on code analysis.'
+            // }
             
             // If dependencies are missing, try to extract from package.json
-            if (!projectContext.projectDependencies || projectContext.projectDependencies.length === 0) {
+            // If dependencies are missing or not in the new grouped format, try to extract from package.json
+            // This check needs to be adapted for the new structure of projectDependencies (object with types)
+            const hasGroupedDependencies = projectContext.projectDependencies &&
+                                           typeof projectContext.projectDependencies === 'object' &&
+                                           Object.keys(projectContext.projectDependencies).length > 0 &&
+                                           Object.values(projectContext.projectDependencies).some(group => Array.isArray(group) && group.length > 0);
+
+            if (!hasGroupedDependencies) {
+                console.log("Attempting to populate projectDependencies from package.json as it's missing or not in grouped format.");
+                projectContext.projectDependencies = {}; // Initialize if not already an object
                 try {
                     const packageJsonPath = path.join(projectContext.projectLocation, 'package.json');
                     if (fs.existsSync(packageJsonPath)) {
                         const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-                        const dependencies = { ...packageData.dependencies || {}, ...packageData.devDependencies || {} };
                         
-                        if (Object.keys(dependencies).length > 0) {
-                            projectContext.projectDependencies = Object.entries(dependencies).map(([name, version]) => ({
-                                name,
-                                version: version as string,
-                                description: ''
-                            }));
-                        }
+                        const parseAndAddDeps = (deps: any, type: string) => {
+                            if (deps && typeof deps === 'object') {
+                                const depArray = Object.entries(deps).map(([name, version]) => ({
+                                    name,
+                                    version: version as string,
+                                    description: '', // Will be fetched by codeParser logic if run again
+                                    type
+                                }));
+                                if (depArray.length > 0) {
+                                    if (!projectContext.projectDependencies[type]) {
+                                        projectContext.projectDependencies[type] = [];
+                                    }
+                                    projectContext.projectDependencies[type]!.push(...depArray);
+                                }
+                            }
+                        };
+
+                        parseAndAddDeps(packageData.dependencies, 'dependencies');
+                        parseAndAddDeps(packageData.devDependencies, 'devDependencies');
+                        parseAndAddDeps(packageData.peerDependencies, 'peerDependencies');
+                        parseAndAddDeps(packageData.optionalDependencies, 'optionalDependencies');
                     }
                 } catch (err) {
-                    console.warn("Error loading dependencies from package.json:", err);
+                    console.warn("Error loading dependencies from package.json during generateDocumentation:", err);
                 }
             }
         }

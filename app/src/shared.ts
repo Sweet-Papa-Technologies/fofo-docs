@@ -246,6 +246,9 @@ export function escapeStringForMD(string: string | undefined): string {
 
     let result = string;
 
+    // Convert escaped newlines to actual newlines
+    result = result.replace(/\\n/g, '\n');
+
     // Skip escaping if this is already a code block (surrounded by triple backticks)
     if (result.trim().startsWith('```') && result.trim().endsWith('```')) {
         return result;
