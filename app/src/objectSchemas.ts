@@ -100,6 +100,7 @@ export interface codeSummary { // Renamed from CodeSummary to codeSummary to mat
 export interface CodeFileSummary {
     fileName: string;
     fileLocation: string;
+    fileContent: string; // Added field
     codeSummary: codeSummary;
     language: string;
     executionFlow: ExecutionFlow[];

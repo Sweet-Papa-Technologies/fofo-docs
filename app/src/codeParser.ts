@@ -799,9 +799,3 @@ export async function parseCodebase(
 
   return projectSummary;
 }
-    "# Summaries of Code Files: \n" + combinedDescription,
-    llmToUse
-  );
-
-  return projectSummary;
-}
