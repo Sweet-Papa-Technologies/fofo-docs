@@ -133,7 +133,7 @@ describe('Dependency Processing in codeParser', () => {
                         version,
                         description: "", // Initially empty
                         type,
-                    } as any); // Cast to any to match ProjectSummary's flexible moduleObject
+                    }); // Removed 'as any' - object should conform to moduleObject
                 }
             }
         };

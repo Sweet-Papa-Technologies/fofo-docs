@@ -1001,10 +1001,10 @@ Concise Project Context Summary (2-5 sentences):`;
       promptForLLM,
       "TEXT STRING",
       "projectContextSummary", // field name for logging/tracking
-      false, // RAG not needed for this specific call
-      projectSummary,
-      fullContextText, // The actual text to process
-      llm // llmToUse
+      false,                // bPro (boolean for pro model)
+      true,                 // bRetry (boolean for retry logic)
+      { fullContextText },  // supplementalData (can pass an object with context or projectSummary if needed by infer)
+      llm                   // model
     )) as any;
 
     const finalContext = typeof llmResponseResult === 'string' ? llmResponseResult : llmResponseResult?.response;

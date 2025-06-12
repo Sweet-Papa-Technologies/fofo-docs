@@ -56,7 +56,7 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
                 // Create a more readable header, e.g., "Dev Dependencies" from "devDependencies"
                 const typeHeader = depType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                 toc.push(`\n### ${escapeStringForMD(typeHeader)}`);
-                dependencies.forEach((dep: any) => { // Assuming dep structure { name, version, description }
+                dependencies.forEach((dep: import("./objectSchemas").moduleObject) => { // Typed dep
                     if (dep && dep.name) {
                         let depLine = `  - **${escapeStringForMD(dep.name)}** (${escapeStringForMD(dep.version || 'latest')})`;
                         // Check if description is meaningful before appending
@@ -854,7 +854,7 @@ export async function generateDocumentation(folderPath: string, projectContext: 
                     if (fs.existsSync(packageJsonPath)) {
                         const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
                         
-                        const parseAndAddDeps = (deps: any, type: string) => {
+                        const parseAndAddDeps = (deps: Record<string, string> | undefined, type: string) => { // Typed deps
                             if (deps && typeof deps === 'object') {
                                 const depArray = Object.entries(deps).map(([name, version]) => ({
                                     name,

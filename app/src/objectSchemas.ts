@@ -45,13 +45,14 @@ export interface moduleObject {
     name: string;
     version: string;
     description: string;
+    type?: string; // Added to store the type of dependency (e.g., "dependencies", "devDependencies")
 }
 export interface ProjectSummary {
     projectName: string;
     projectDescription: codeSummary
     projectLocation: string;
     projectTechStackDescription: string,
-    projectDependencies: moduleObject[];
+    projectDependencies: Record<string, moduleObject[]>; // Changed to group dependencies by type
     codeFiles: CodeFileSummary[];
     ragData: RagData[];
     teamContext: string;
