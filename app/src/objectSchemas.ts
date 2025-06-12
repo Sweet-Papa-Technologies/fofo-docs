@@ -90,9 +90,12 @@ export interface RagData {
     }
 }
 
-export interface codeSummary {
-    goal: string,
-    features_functions: string,
+export interface codeSummary { // Renamed from CodeSummary to codeSummary to match usage
+    goal?: string;
+    features_functions?: string;
+    // Assuming other fields like mainTechnologies, dependencies, functionality, usage might be part of this.
+    // If they were intended to be separate, they'd need to be added here as optional.
+    // For now, only existing fields are made optional.
   }
 export interface CodeFileSummary {
     fileName: string;
@@ -102,7 +105,9 @@ export interface CodeFileSummary {
     executionFlow: ExecutionFlow[];
     codeObjects: {
         [key : string]: CodeObject[]
-    }
+    };
+    processingStatus: 'success' | 'empty' | 'error_read' | 'error_parse' | 'error_llm_summary';
+    processingError: string | null;
 }
 
 export interface ExecutionFlow {

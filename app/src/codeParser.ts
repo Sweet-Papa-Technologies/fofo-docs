@@ -560,11 +560,11 @@ export async function parseCodebase(
     );
 
     const codeFileSummary: CodeFileSummary = {
-      fileName: filePath,
-      fileLocation: filePath,
-      codeSummary: {} as codeSummary,
+      fileName: filePath, // Relative path
+      fileLocation: fullFilePath, // Absolute path
+      codeSummary: {}, // Fields within are optional
       language: fileLanguage.language || "Unknown",
-      executionFlow: [],
+      executionFlow: [], // Initialize as empty, populated if applicable
       codeObjects: {
         classes: [],
         functions: [],
@@ -574,12 +574,43 @@ export async function parseCodebase(
         imports: [],
         exports: [],
       },
+      processingStatus: 'success', // Default status
+      processingError: null,       // Default error state
     };
 
-    let currentLine = 1;
-    const fileContent = await readFile(fullFilePath, "utf-8");
-    const totalLines = getTotalLines(fileContent);
+    let fileContent = "";
+    let totalLines = 0;
 
+    try {
+      fileContent = await readFile(fullFilePath, "utf-8");
+      totalLines = getTotalLines(fileContent);
+
+      if (fileContent.trim().length === 0) {
+        console.warn(`[Parser] File is empty or contains only whitespace: ${fullFilePath}`);
+        codeFileSummary.processingStatus = 'empty';
+        codeFileSummary.processingError = "File is empty or contains only whitespace.";
+        codeFileSummary.codeSummary = {
+            goal: "File is empty or contains only whitespace.",
+            features_functions: "Not applicable as file is empty."
+        };
+        projectSummary.codeFiles.push(codeFileSummary); // Add summary even for empty files
+        return; // Skip further processing for this file
+      }
+      // If content is valid, processingStatus remains 'success' for now
+    } catch (error: any) {
+      console.error(`[Parser] Error reading file ${fullFilePath}:`, error);
+      codeFileSummary.processingStatus = 'error_read';
+      codeFileSummary.processingError = error.message;
+      codeFileSummary.fileContent = ""; // Ensure fileContent is empty on read error
+      codeFileSummary.codeSummary = {
+          goal: `File unreadable: ${error.message}`,
+          features_functions: "Not applicable due to file read error."
+      };
+      projectSummary.codeFiles.push(codeFileSummary); // Add summary even for unreadable files
+      return; // Skip further processing for this file
+    }
+
+    let currentLine = 1;
     // If large, break into chunks
     const largeFile = await isFileTooLarge(fullFilePath, 3000, breakNum);
     if (largeFile) {
@@ -676,7 +707,21 @@ export async function parseCodebase(
       );
 
       // Summarize entire file
-      const fileSummary = await getCodeSummaryFromLLM(fileContent, llmToUse);
+      let fileSummaryForLLM: codeSummary = { goal: "Default goal if not overwritten by LLM", features_functions: "Default features if not overwritten" };
+      try {
+        fileSummaryForLLM = await getCodeSummaryFromLLM(fileContent, llmToUse);
+        // If LLM summary was successful, codeFileSummary.processingStatus remains 'success'
+      } catch (llmError: any) {
+        console.error(`[Parser] Error getting LLM summary for ${fullFilePath}:`, llmError);
+        codeFileSummary.processingStatus = 'error_llm_summary';
+        codeFileSummary.processingError = llmError.message;
+        // Populate codeSummary with error placeholders
+        fileSummaryForLLM = { // Assign to the local variable that gets used for codeFileSummary.codeSummary
+            goal: `LLM summary generation failed: ${llmError.message}`,
+            features_functions: "Not applicable due to LLM summary error."
+        };
+      }
+
 
       const ragData: RagData = {
         metadata: {
@@ -686,7 +731,7 @@ export async function parseCodebase(
           codeChunkLineEnd: totalLines,
           codeObjects: updatedObjects,
           codeChunkSummary:
-            fileSummary.goal + "\n" + fileSummary.features_functions,
+            (fileSummaryForLLM.goal || "") + "\n" + (fileSummaryForLLM.features_functions || ""),
         },
         documentData: fileContent,
         allSearchResults: {
@@ -704,9 +749,11 @@ export async function parseCodebase(
         },
       };
       projectSummary.ragData.push(ragData);
-      await saveToVectorDatabase(projectName, fileContent, ragData);
-
-      codeFileSummary.codeSummary = fileSummary;
+      // Consider if saveToVectorDatabase should be skipped if LLM summary failed
+      if (codeFileSummary.processingStatus === 'success') { // Only save if no prior critical error
+         await saveToVectorDatabase(projectName, fileContent, ragData);
+      }
+      codeFileSummary.codeSummary = fileSummaryForLLM;
     }
 
     projectSummary.codeFiles.push(codeFileSummary);
@@ -730,11 +777,28 @@ export async function parseCodebase(
   // -------------------------------------
   let combinedDescription = "";
   for (const codeFile of projectSummary.codeFiles) {
-    combinedDescription += `## ${codeFile.fileName}\n`;
-    combinedDescription += codeFile.codeSummary.goal + "\n";
-    combinedDescription += codeFile.codeSummary.features_functions + "\n\n";
+    if (codeFile.codeSummary) { // Check if codeSummary exists
+      combinedDescription += `## ${codeFile.fileName}\n`;
+      combinedDescription += (codeFile.codeSummary.goal || "N/A") + "\n";
+      combinedDescription += (codeFile.codeSummary.features_functions || "N/A") + "\n\n";
+    }
   }
-  projectSummary.projectDescription = await getCodeSummaryFromLLM(
+  try {
+    projectSummary.projectDescription = await getCodeSummaryFromLLM(
+      "# Summaries of Code Files: \n" + combinedDescription,
+      llmToUse
+    );
+  } catch (llmError: any) {
+    console.error(`[Parser] Error getting LLM project description:`, llmError);
+    projectSummary.projectDescription = {
+      goal: "Error generating project description.",
+      features_functions: "Could not generate project features due to LLM error."
+    };
+  }
+
+
+  return projectSummary;
+}
     "# Summaries of Code Files: \n" + combinedDescription,
     llmToUse
   );

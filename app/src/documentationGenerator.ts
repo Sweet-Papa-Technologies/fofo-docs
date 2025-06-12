@@ -109,66 +109,96 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
     projectSummary.codeFiles.forEach(file => {
         const fileName = `${file.fileName}.md`;
         const filePath = path.join(projectFolder, fileName);
-        toc.push(`\n- [${file.fileName}](./${fileName})`);
+        toc.push(`\n- [${escapeStringForMD(file.fileName)}](./${fileName})`);
 
         let fileContent = `[Back to Readme](./README.md)\n\n`; 
 
-        fileContent += `# ${file.fileName} - ${projectSummary.projectName}\n`;
-        fileContent += `\n**Summary:** ${file.codeSummary.goal}\n`;
-        fileContent += `\n- **File Location:** ${file.fileLocation}`;
-        fileContent += `\n- **Language:** ${file.language}`;
-        
-        // Add enhanced file information based on file type
-        const isTestFile = file.fileName.includes('.test.') || file.fileName.includes('.spec.') || 
-                          file.fileLocation.includes('/test/') || file.fileLocation.includes('/tests/');
-                          
-        if (isTestFile) {
-            fileContent += `\n- **Type:** Test File`;
-            fileContent += `\n\n## Test Summary\n`;
-            fileContent += `This file contains tests for validating the functionality of the application.\n`;
-            
-            if (file.codeSummary && file.codeSummary.features_functions) {
-                fileContent += `\n### Tests Overview\n${file.codeSummary.features_functions}\n`;
+        fileContent += `# ${escapeStringForMD(file.fileName)} - ${escapeStringForMD(projectSummary.projectName)}\n`;
+        fileContent += `\n- **File Location:** ${escapeStringForMD(file.fileLocation)}`;
+        fileContent += `\n- **Language:** ${escapeStringForMD(file.language)}`;
+        fileContent += `\n- **Processing Status:** ${escapeStringForMD(file.processingStatus)}`;
+        if (file.processingError) {
+            fileContent += `\n- **Processing Error:** ${escapeStringForMD(file.processingError)}`;
+        }
+
+        fileContent += `\n\n## Summary\n`;
+        if (file.processingStatus === 'success') {
+            fileContent += `${escapeStringForMD(file.codeSummary?.goal || 'Goal not provided.')}\n`;
+            if (file.codeSummary?.features_functions) {
+                fileContent += `\n### Key Functionality\n${escapeStringForMD(file.codeSummary.features_functions)}\n`;
             }
+        } else {
+            fileContent += `Summary not available. Status: ${escapeStringForMD(file.processingStatus)}.`;
+            if (file.processingError) {
+                fileContent += ` Reason: ${escapeStringForMD(file.processingError)}`;
+            }
+            fileContent += "\n";
+        }
+
+        // Add enhanced file information based on file type (only if successfully processed)
+        if (file.processingStatus === 'success') {
+            const isTestFile = file.fileName.includes('.test.') || file.fileName.includes('.spec.') ||
+                              file.fileLocation.includes('/test/') || file.fileLocation.includes('/tests/');
+
+            if (isTestFile) {
+                fileContent += `\n- **Type:** Test File`;
+                fileContent += `\n\n## Test Summary\n`;
+                fileContent += `This file contains tests for validating the functionality of the application.\n`;
+
+                // Key Functionality for test files might be the overview of tests.
+                // This was previously under 'if (file.codeSummary && file.codeSummary.features_functions)'
+                // It's now part of the main summary section if status is 'success'
+                // So, we might not need to repeat it unless it's specifically for "Tests Overview"
+                // if (file.codeSummary && file.codeSummary.features_functions) {
+                //    fileContent += `\n### Tests Overview\n${escapeStringForMD(file.codeSummary.features_functions)}\n`;
+                // }
             
-            fileContent += `\n### Key Components Being Tested\n`;
+                fileContent += `\n### Key Components Being Tested\n`;
             // Extract component names from code objects to list what's being tested
             const testTargets = new Set<string>();
-            if (file.codeObjects && Array.isArray(file.codeObjects)) {
-                file.codeObjects.forEach((obj: CodeObject) => {
-                    if (obj.name && (obj.type === 'function' || obj.type === 'method')) {
-                        const name = obj.name.toLowerCase();
-                        if (name.startsWith('test') || name.includes('should') || name.includes('expect')) {
-                            // Try to extract what's being tested from the name
-                            const words = obj.name.split(/(?=[A-Z])|\s|_|(?=\d)/).filter(Boolean);
-                            const targetIndex = words.findIndex((w: string) => 
-                                w.toLowerCase() === 'test' || 
-                                w.toLowerCase() === 'should' || 
-                                w.toLowerCase() === 'expect'
-                            );
-                            
-                            if (targetIndex >= 0 && words.length > targetIndex + 1) {
-                                testTargets.add(words.slice(targetIndex + 1).join(' '));
-                            }
+                const testTargets = new Set<string>();
+                // Ensure file.codeObjects is an object before trying to iterate over its properties
+                if (typeof file.codeObjects === 'object' && file.codeObjects !== null) {
+                    Object.values(file.codeObjects).forEach(objArray => {
+                        if (Array.isArray(objArray)) {
+                            objArray.forEach((obj: CodeObject) => {
+                                if (obj.name && (obj.type === 'function' || obj.type === 'method')) {
+                                    const name = obj.name.toLowerCase();
+                                    if (name.startsWith('test') || name.includes('should') || name.includes('expect')) {
+                                        const words = obj.name.split(/(?=[A-Z])|\s|_|(?=\d)/).filter(Boolean);
+                                        const targetIndex = words.findIndex((w: string) =>
+                                            w.toLowerCase() === 'test' ||
+                                            w.toLowerCase() === 'should' ||
+                                            w.toLowerCase() === 'expect'
+                                        );
+                                        if (targetIndex >= 0 && words.length > targetIndex + 1) {
+                                            testTargets.add(words.slice(targetIndex + 1).join(' '));
+                                        }
+                                    }
+                                }
+                            });
                         }
-                    }
-                });
+                    });
+                }
+
+                if (testTargets.size > 0) {
+                    Array.from(testTargets).forEach(target => {
+                        fileContent += `- ${escapeStringForMD(target)}\n`;
+                    });
+                } else {
+                    fileContent += `- Components being tested are not explicitly identified in the test names.\n`;
+                }
             }
-            
-            if (testTargets.size > 0) {
-                Array.from(testTargets).forEach(target => {
-                    fileContent += `- ${target}\n`;
-                });
-            } else {
-                fileContent += `- Components being tested are not explicitly identified in the test names.\n`;
-            }
-        } else if (file.codeSummary && file.codeSummary.features_functions) {
-            fileContent += `\n\n## Key Functionality\n${file.codeSummary.features_functions}\n`;
+            // This was part of the original 'else if' for non-test files, already handled by the main summary section if status is 'success'
+            // else if (file.codeSummary && file.codeSummary.features_functions) {
+            //     fileContent += `\n\n## Key Functionality\n${escapeStringForMD(file.codeSummary.features_functions)}\n`;
+            // }
         }
         
-        fileContent += `\n## Table of Contents\n`;
-
-        const sectionLinks: string[] = [];
+        // Only add Table of Contents and detailed code objects if processing was successful
+        if (file.processingStatus === 'success') {
+            fileContent += `\n## Table of Contents\n`;
+            const sectionLinks: string[] = [];
 
         const sectionContent = {
             classes: '',
@@ -274,63 +304,65 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
             return false;
         };
 
-        if (typeof file.codeObjects !== 'undefined' || file.codeObjects) {
-        Object.keys(file.codeObjects).forEach(key => {
-            const baseObject = file.codeObjects as any;
-            const obj = baseObject[key] as any[];
-            if (obj) {
-                obj.forEach((codeObject: CodeObject) => {
+            // Ensure file.codeObjects is an object before trying to iterate over its properties
+            if (typeof file.codeObjects === 'object' && file.codeObjects !== null) {
+                Object.keys(file.codeObjects).forEach(key => {
+                    const codeObjectArray = (file.codeObjects as any)[key] as CodeObject[];
+                    if (Array.isArray(codeObjectArray)) {
+                        codeObjectArray.forEach((codeObject: CodeObject) => {
+                            if (duplicateCheck(codeObject, codeObject.type) === true) {
+                                console.warn(`Duplicate object found: ${codeObject.name || 'Unnamed Object'} in ${file.fileName}`);
+                                return;
+                            }
 
-                    if (duplicateCheck(codeObject, codeObject.type) === true) {
-                        console.warn(`Duplicate object found: ${codeObject.name}`);
-                        return;
-                    }
-    
-                    const content = generateCodeObjectContent(codeObject, 0);
-                    switch (codeObject.type) {
-                        case 'class':
-                            sectionContent.classes += content;
-                            break;
-                        case 'function':
-                            sectionContent.functions += content;
-                            break;
-                        case 'variable':
-                            sectionContent.variables += content;
-                            break;
-                        case 'type':
-                            sectionContent.types += content;
-                            break;
-                        // case 'comment':
-                        //     sectionContent.comments += content;
-                        //     break;
-                        case 'import':
-                            sectionContent.imports += content;
-                            break;
-                        case 'export':
-                            sectionContent.exports += content;
-                            break;
-                        case 'interface':
-                            sectionContent.interfaces += content;
-                            break;
-                        default:
-                            break;
+                            const content = generateCodeObjectContent(codeObject, 0);
+                            switch (codeObject.type) {
+                                case 'class':
+                                    sectionContent.classes += content;
+                                    break;
+                                case 'function':
+                                    sectionContent.functions += content;
+                                    break;
+                                case 'variable':
+                                    sectionContent.variables += content;
+                                    break;
+                                case 'type':
+                                    sectionContent.types += content;
+                                    break;
+                                case 'import':
+                                    sectionContent.imports += content;
+                                    break;
+                                case 'export':
+                                    sectionContent.exports += content;
+                                    break;
+                                case 'interface':
+                                    sectionContent.interfaces += content;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
                     }
                 });
             }
 
-        });
-    }
-
-        for (const [section, content] of Object.entries(sectionContent)) {
-            if (content) {
-                const sectionString = `${section}`
-                const sectionTitle = `## ${sectionString}`;
-                fileContent += `${sectionTitle}\n${content}\n`;
-                sectionLinks.push(`- [${sectionString}](#${sectionString})`);
+            for (const [section, content] of Object.entries(sectionContent)) {
+                if (content) {
+                    const sectionString = `${section}`;
+                    const sectionTitle = `## ${escapeStringForMD(sectionString.charAt(0).toUpperCase() + sectionString.slice(1))}`;
+                    fileContent += `\n${sectionTitle}\n${content}\n`;
+                    sectionLinks.push(`- [${escapeStringForMD(sectionString.charAt(0).toUpperCase() + sectionString.slice(1))}](#${sectionString.toLowerCase()})`);
+                }
             }
+            if (sectionLinks.length > 0) {
+              fileContent = fileContent.replace('## Table of Contents\n', `## Table of Contents\n${sectionLinks.join('\n')}\n`);
+            } else {
+              fileContent = fileContent.replace('## Table of Contents\n', '## Table of Contents\nNo code objects identified for table of contents.\n');
+            }
+        } else {
+            // If processingStatus is not 'success', we don't add detailed code objects or TOC for them.
+            fileContent = fileContent.replace('## Table of Contents\n', ''); // Remove TOC placeholder if no details are added
         }
-
-        fileContent = fileContent.replace('## Table of Contents\n', `## Table of Contents\n${sectionLinks.join('\n')}\n`);
 
         // Make sure the folder path for the file exists
         const fileFolder = path.dirname(filePath);
@@ -362,6 +394,47 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
     toc.push(`### Usage\n`);
     toc.push(`Please refer to the individual file documentation for specific usage examples.\n`);
     
+    // Add File Processing Report to main README
+    toc.push(`\n## File Processing Report\n`);
+    const successfullyProcessed: string[] = [];
+    const emptyFiles: string[] = [];
+    const failedFiles: { filePath: string, error: string | null }[] = [];
+
+    projectSummary.codeFiles.forEach(file => {
+        switch (file.processingStatus) {
+            case 'success':
+                successfullyProcessed.push(file.fileLocation);
+                break;
+            case 'empty':
+                emptyFiles.push(`${file.fileLocation} (Reason: ${file.processingError || 'File is empty or contains only whitespace.'})`);
+                break;
+            case 'error_read':
+            case 'error_parse':
+            case 'error_llm_summary':
+                failedFiles.push({ filePath: file.fileLocation, error: file.processingError });
+                break;
+        }
+    });
+
+    if (successfullyProcessed.length > 0) {
+        toc.push(`\n### Successfully Processed Files (${successfullyProcessed.length})\n`);
+        successfullyProcessed.forEach(filePath => toc.push(`- ${escapeStringForMD(filePath)}`));
+    }
+
+    if (emptyFiles.length > 0) {
+        toc.push(`\n### Empty Files (${emptyFiles.length})\n`);
+        emptyFiles.forEach(fileInfo => toc.push(`- ${escapeStringForMD(fileInfo)}`));
+    }
+
+    if (failedFiles.length > 0) {
+        toc.push(`\n### Failed Files (${failedFiles.length})\n`);
+        failedFiles.forEach(file => toc.push(`- ${escapeStringForMD(file.filePath)} (Error: ${escapeStringForMD(file.error || 'Unknown error')})`));
+    }
+
+    if (successfullyProcessed.length === 0 && emptyFiles.length === 0 && failedFiles.length === 0) {
+        toc.push(`\nNo files were processed or found.\n`);
+    }
+
 
     // Write TOC
     const tocPath = path.join(projectFolder, 'README.md');
