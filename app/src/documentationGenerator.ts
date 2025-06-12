@@ -156,7 +156,6 @@ async function jsonToMarkdown(projectSummary: ProjectSummary, outputFolder: stri
                 fileContent += `\n### Key Components Being Tested\n`;
             // Extract component names from code objects to list what's being tested
             const testTargets = new Set<string>();
-                const testTargets = new Set<string>();
                 // Ensure file.codeObjects is an object before trying to iterate over its properties
                 if (typeof file.codeObjects === 'object' && file.codeObjects !== null) {
                     Object.values(file.codeObjects).forEach(objArray => {
