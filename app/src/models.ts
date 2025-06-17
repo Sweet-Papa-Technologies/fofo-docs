@@ -179,4 +179,9 @@ export const MODEL_MODES_BASE:llmModel[] = [
       model: "gemini-1.5-pro-preview-0514",
       backend: "VERTEX",
     },
+    {
+      name: "gemini-2.5-flash-preview-05-20",
+      model: "gemini-2.5-flash-preview-05-20",
+      backend: "VERTEX",
+    },
   ];
