@@ -1,6 +1,6 @@
 import { ProjectSummary, fofoMermaidChart, chartPNG } from "./objectSchemas";
 import { infer } from "./llmInterface";
-let iRetryCounter = 0;
+// let iRetryCounter = 0; // Will be replaced by local retry logic
 import puppeteer from 'puppeteer';
 
 
@@ -241,26 +241,32 @@ async function breakCodeIntoChunks(code: string, maxChunkSize: number, projectSu
     return chunks;
 }
 
-async function askAItoHelpFixError(charts: fofoMermaidChart[], error: any) {
+async function askAItoHelpFixError(chart: fofoMermaidChart, error: any): Promise<fofoMermaidChart> {
   
   if (typeof error !== 'string') {
     error = error.message;
   }
 
-  for (let i = 0; i < charts.length; i++) {
-    let chart = charts[i];
+  //Removed for loop, as we are now passing a single chart object
+  // for (let i = 0; i < charts.length; i++) {
+    // let chart = charts[i]; //Not needed
     const prompt = `
-    I have this MermaidJS code that I am trying to render, but I am getting this error: 
+    An error occurred during MermaidJS rendering.
+    Please analyze the error message and the provided MermaidJS code, then return a corrected version of the code.
+
+    Error message:
     "${error}"
 
-    Please help me fix this code, so that I can render it using MermaidJS.
-
-    Reply ONLY with the fixed code, and nothing else. Be sure to use proper formatting and escaping to meet MermaidJS requirements.
-
-    (NOTE, this error MAY not be related to the code provided below, so please only use the error message as something to look out for)
-    
-    Code to Be Fixed: 
+    Original MermaidJS code to be fixed:
+    \`\`\`mermaid
     ${chart.chart_code}
+    \`\`\`
+
+    Instructions:
+    - Carefully review both the error message and the code.
+    - Provide ONLY the corrected MermaidJS code.
+    - Do NOT include any explanations, apologies, or markdown formatting (e.g., \`\`\`mermaid) around the code in your response.
+    - Ensure the corrected code is ready to be directly rendered by MermaidJS.
     `
   const fixedCode = await infer(prompt, 'TEXT STRING') as {
     response: string
@@ -270,10 +276,10 @@ async function askAItoHelpFixError(charts: fofoMermaidChart[], error: any) {
   chart.chart_code = fixedCode.response;
   chart = cleanUpChartData(chart)
 
-  charts[i] = chart;
-  }
+  // charts[i] = chart; // Not needed
+  // }
 
-  return charts;
+  return chart; // Return the modified chart
 
 
 }
@@ -450,17 +456,20 @@ function makeHTMLStringSafe(mermaidCode: string): string {
  * to load the web-based Mermaid library and render the diagram.
  */
 export async function createPNGfromMermaidCharts(
-    charts: fofoMermaidChart[],
-    bRetry=true
+    charts: fofoMermaidChart[]
+    // bRetry parameter removed, retry logic is now handled by the loop
   ): Promise<{ chartData: fofoMermaidChart; base64PNG: string }[]> {
     const chartPNGs: chartPNG[] = [];
     const browser = await puppeteer.launch({ headless: true });
+    const maxRetries = 3; // Maximum number of retries for each chart
   
     try {
-      for (const chart of charts) {
-        try {
-        const page = await browser.newPage();
-        let parseError: string | null = null;
+      for (let chart of charts) { // Changed to let for potential reassignment after AI fix
+        let success = false;
+        for (let iRetryCounter = 0; iRetryCounter < maxRetries; iRetryCounter++) {
+          try {
+            const page = await browser.newPage();
+            let parseError: string | null = null;
   
         // Set up error handlers before loading content
         page.on('console', (msg) => {
@@ -565,29 +574,46 @@ export async function createPNGfromMermaidCharts(
         })) as string;
   
         chartPNGs.push({ chartData: chart, base64PNG });
-        await page.close();
-        }
-        catch (error) {
-          console.error('Error during Puppeteer operation:', error);
-          if (bRetry) {
-            // Let's ask the A.I. to help fix the issue
-            iRetryCounter++;
-            if (iRetryCounter >= 4) {
-              bRetry = false;
+        // chartPNGs.push({ chartData: chart, base64PNG }); // Removed duplicate line
+            await page.close();
+            success = true; // Mark as success
+            break; // Exit retry loop if successful
+          } catch (error) {
+            console.error(`Attempt ${iRetryCounter + 1}/${maxRetries} failed for chart "${chart.shortDescription}":`, error);
+            await page.close(); // Ensure page is closed on error
+
+            if (iRetryCounter < maxRetries - 1) {
+              console.log(`Retrying chart "${chart.shortDescription}" after AI fix.`);
+              try {
+                chart = await askAItoHelpFixError(chart, error as any); // Pass single chart
+                // cleanUpChartData is already called within askAItoHelpFixError
+              } catch (aiFixError) {
+                console.error(`AI failed to fix the chart "${chart.shortDescription}":`, aiFixError);
+                // If AI fix fails, we break and move to the next chart (or handle as final failure for this chart)
+                break;
+              }
+            } else {
+              console.error(`All ${maxRetries} attempts failed for chart "${chart.shortDescription}". Skipping this chart.`);
+              // Optionally, collect information about failed charts
             }
-            charts = await askAItoHelpFixError(charts, error as any);
-
-            return await createPNGfromMermaidCharts(charts, false);
-
           }
-          continue;
+        } // End of retry loop
+        if (!success) {
+          // If all retries failed for a chart, ensure we continue to the next chart.
+          // This is implicitly handled by the loop structure, but adding a log.
+          console.log(`Moving to next chart after failing to render "${chart.shortDescription}".`);
         }
-      }
+      } // End of for...of charts loop
     } catch (error) {
-      console.error('Error during Puppeteer operation:', error);
+      // This catch block is for errors outside the chart processing loop, e.g., browser launch.
+      console.error('Critical error during Puppeteer operation (e.g., browser launch):', error);
+      // We might want to return chartPNGs collected so far, or an empty array,
+      // depending on desired behavior for catastrophic failures.
       return chartPNGs;
     } finally {
-      await browser.close();
+      if (browser) { // Ensure browser is defined before trying to close
+        await browser.close();
+      }
     }
   
     return chartPNGs;

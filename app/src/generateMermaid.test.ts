@@ -12,9 +12,10 @@ const tempDir = path.join(os.tmpdir(), 'fofo-mermaid-test');
 jest.setTimeout(30000);
 
 // Mock the 'infer' function from 'llmInterface'
-// jest.mock('./llmInterface', () => ({
-//     infer: jest.fn(),
-// }));
+jest.mock('./llmInterface', () => ({
+    infer: jest.fn(),
+}));
+import { infer as mockedInfer } from './llmInterface'; // Import the mocked function
 
 // Create temp directory before tests
 beforeAll(async () => {
@@ -1678,21 +1679,71 @@ describe('createPNGfromMermaidCharts', () => {
         expect(results.length).toBe(2);
         expect(results[0].chartData.shortDescription).toBe('Chart 1');
         expect(results[0].base64PNG.length).toBeGreaterThan(0);
+        expect(results[0].base64PNG).toMatch(/^[a-zA-Z0-9+/]+=*$/); // Basic Base64 check
         expect(results[1].chartData.shortDescription).toBe('Chart 2');
         expect(results[1].base64PNG.length).toBeGreaterThan(0);
+        expect(results[1].base64PNG).toMatch(/^[a-zA-Z0-9+/]+=*$/); // Basic Base64 check
     });
 
-    it('should handle errors during PNG creation', async () => {
-        const chart: fofoMermaidChart = {
-            shortDescription: 'Error Chart',
-            longDescription: 'This chart will cause an error.',
-            relevantFiles: [],
-            chart_code: 'invalid mermaid code',
-        };
-        console.log("SHOULD SEE AN ERROR BEYOND HERE: ===>")
-        const test = createPNGfromMermaidCharts([chart])
-        console.log(test);
-        await expect(test).resolves.not.toThrow();
+    it('should handle errors gracefully for a single invalid chart among valid ones', async () => {
+        const charts: fofoMermaidChart[] = [
+            {
+                shortDescription: 'Valid Chart 1',
+                longDescription: 'Description 1',
+                relevantFiles: [],
+                chart_code: 'graph TD; A-->B;',
+            },
+            {
+                shortDescription: 'Error Chart',
+                longDescription: 'This chart will cause an error and should be skipped.',
+                relevantFiles: [],
+                chart_code: 'invalid mermaid code that will fail rendering',
+            },
+            {
+                shortDescription: 'Valid Chart 2',
+                longDescription: 'Description 2',
+                relevantFiles: [],
+                chart_code: 'sequenceDiagram; Alice->>Bob: Hi; Bob-->>Alice: Hello;',
+            },
+        ];
+
+        // We expect console.error to be called for the invalid chart
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        const results = await createPNGfromMermaidCharts(charts);
+
+        expect(results.length).toBe(2); // Should process the two valid charts
+        expect(results.map(r => r.chartData.shortDescription)).toContain('Valid Chart 1');
+        expect(results.map(r => r.chartData.shortDescription)).toContain('Valid Chart 2');
+        expect(results.map(r => r.chartData.shortDescription)).not.toContain('Error Chart');
+        expect(consoleErrorSpy).toHaveBeenCalled(); // Check that an error was logged for the problematic chart
+
+        consoleErrorSpy.mockRestore();
+    });
+
+    it('should return an empty array if all charts fail initial rendering (without AI fix)', async () => {
+        const charts: fofoMermaidChart[] = [
+            {
+                shortDescription: 'Error Chart 1',
+                longDescription: 'This chart will cause an error.',
+                relevantFiles: [],
+                chart_code: 'invalid mermaid code 1',
+            },
+            {
+                shortDescription: 'Error Chart 2',
+                longDescription: 'This chart will also cause an error.',
+                relevantFiles: [],
+                chart_code: 'invalid mermaid code 2',
+            },
+        ];
+         // We expect console.error to be called for the invalid charts
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        const results = await createPNGfromMermaidCharts(charts);
+        expect(results.length).toBe(0);
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(charts.length * 3); // Each chart fails 3 times (maxRetries)
+
+        consoleErrorSpy.mockRestore();
     });
 
     it('should save the PNGs to disk', async () => {
@@ -1714,8 +1765,149 @@ describe('createPNGfromMermaidCharts', () => {
 
         const results = await createPNGfromMermaidCharts(charts);
 
-        const bSaveCharts = await base64ToPngFile(results[0].base64PNG, 'chart1.png');
+        const bSaveCharts = await base64ToPngFile(results[0].base64PNG, path.join(tempDir, 'chart1.png'));
 
-        expect(bSaveCharts).toBeDefined();
+        expect(bSaveCharts).toBe(true);
+        const fileExists = await fs.access(path.join(tempDir, 'chart1.png')).then(() => true).catch(() => false);
+        expect(fileExists).toBe(true);
     })
+});
+
+// New test suite for self-correction
+describe('createPNGfromMermaidCharts with self-correction', () => {
+    const validMermaidCode = 'graph TD; A-->B;';
+    const invalidMermaidCode = 'graph TD; A---B;'; // Invalid link
+
+    beforeEach(() => {
+        // Clear mocks before each test in this suite
+        mockedInfer.mockClear();
+        // jest.clearAllMocks(); // Already in global beforeEach, but can be specific if needed
+    });
+
+    it('should successfully correct a chart within retry limits', async () => {
+        const chartsToProcess: fofoMermaidChart[] = [
+            {
+                shortDescription: 'Test Chart Correctable',
+                longDescription: 'This chart is initially invalid but AI can fix it.',
+                relevantFiles: ['test.ts'],
+                chart_code: invalidMermaidCode,
+            },
+        ];
+
+        // Mock infer to return the valid code on the first call (which will be the first retry attempt)
+        mockedInfer.mockResolvedValueOnce({ response: validMermaidCode });
+
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+
+
+        const results = await createPNGfromMermaidCharts(chartsToProcess);
+
+        expect(results.length).toBe(1);
+        expect(results[0].base64PNG).toBeDefined();
+        expect(results[0].base64PNG.length).toBeGreaterThan(0);
+        expect(results[0].chartData.shortDescription).toBe('Test Chart Correctable');
+        // Check if the chart_code in the result was updated (it should be, as `askAItoHelpFixError` modifies it)
+        // This depends on whether `createPNGfromMermaidCharts` returns the chart object that was modified by `askAItoHelpFixError`.
+        // Assuming `chart` object is modified in place or replaced with the fixed one.
+        expect(results[0].chartData.chart_code).toBe(validMermaidCode);
+
+        expect(mockedInfer).toHaveBeenCalledTimes(1);
+        // Verify the prompt sent to the AI (optional, but good for thoroughness)
+        expect(mockedInfer).toHaveBeenCalledWith(
+            expect.stringContaining("An error occurred during MermaidJS rendering."),
+            'TEXT STRING'
+        );
+        expect(mockedInfer).toHaveBeenCalledWith(
+            expect.stringContaining(invalidMermaidCode),
+            'TEXT STRING'
+        );
+
+        // It should have logged an error for the initial failure
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Attempt 1/3 failed"), expect.any(Error));
+        // It should have logged info about the fix
+        expect(consoleInfoSpy).toHaveBeenCalledWith("Fixed Code:", { response: validMermaidCode });
+
+
+        consoleErrorSpy.mockRestore();
+        consoleInfoSpy.mockRestore();
+    });
+
+    it('should fail after exceeding max retries if AI cannot correct', async () => {
+        const chartsToProcess: fofoMermaidChart[] = [
+            {
+                shortDescription: 'Test Chart Uncorrectable',
+                longDescription: 'This chart is invalid and AI cannot fix it.',
+                relevantFiles: ['test.ts'],
+                chart_code: invalidMermaidCode,
+            },
+        ];
+
+        // Mock infer to repeatedly return the same invalid code
+        mockedInfer.mockResolvedValue({ response: invalidMermaidCode });
+
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        const results = await createPNGfromMermaidCharts(chartsToProcess);
+
+        expect(results.length).toBe(0); // Chart should be skipped
+
+        // maxRetries is 3. askAItoHelpFixError is called if iRetryCounter < maxRetries - 1.
+        // So, for 3 retries (0, 1, 2):
+        // Attempt 0 fails -> askAItoHelpFixError (call 1)
+        // Attempt 1 fails -> askAItoHelpFixError (call 2)
+        // Attempt 2 fails -> no more AI call, logs "All 3 attempts failed"
+        expect(mockedInfer).toHaveBeenCalledTimes(2);
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Attempt 1/3 failed"), expect.any(Error));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Attempt 2/3 failed"), expect.any(Error));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Attempt 3/3 failed"), expect.any(Error));
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.stringContaining("All 3 attempts failed for chart \"Test Chart Uncorrectable\". Skipping this chart.")
+        );
+        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("Moving to next chart after failing to render \"Test Chart Uncorrectable\"."));
+
+
+        consoleErrorSpy.mockRestore();
+        consoleLogSpy.mockRestore();
+    });
+
+    it('should handle AI failing to fix the chart (e.g. AI returns another invalid chart)', async () => {
+        const initiallyInvalidCode = "graph TD; A-- B"; // Invalid
+        const aiReturnsInvalidCode = "graph TD; A B C D"; // Still invalid
+
+        const chartsToProcess: fofoMermaidChart[] = [{
+            shortDescription: 'AI Fails to Fix',
+            longDescription: 'AI attempts to fix but returns invalid code.',
+            relevantFiles: ['test.ts'],
+            chart_code: initiallyInvalidCode,
+        }];
+
+        mockedInfer.mockResolvedValueOnce({ response: aiReturnsInvalidCode }); // First AI attempt
+        mockedInfer.mockResolvedValueOnce({ response: aiReturnsInvalidCode }); // Second AI attempt
+
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+
+        const results = await createPNGfromMermaidCharts(chartsToProcess);
+
+        expect(results.length).toBe(0); // Chart should ultimately fail and be skipped
+        expect(mockedInfer).toHaveBeenCalledTimes(2); // Called for the first two failed attempts
+
+        // Check logs:
+        // Initial failure
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(`Attempt 1/3 failed for chart "AI Fails to Fix"`), expect.any(Error));
+        // AI "fix" attempt (which is still bad)
+        expect(consoleInfoSpy).toHaveBeenCalledWith("Fixed Code:", { response: aiReturnsInvalidCode });
+        // Second failure (after AI's bad fix)
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(`Attempt 2/3 failed for chart "AI Fails to Fix"`), expect.any(Error));
+        // Third failure (after AI's second bad fix)
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(`Attempt 3/3 failed for chart "AI Fails to Fix"`), expect.any(Error));
+        // Final message
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('All 3 attempts failed for chart "AI Fails to Fix". Skipping this chart.'));
+
+        consoleErrorSpy.mockRestore();
+        consoleInfoSpy.mockRestore();
+    });
 });
