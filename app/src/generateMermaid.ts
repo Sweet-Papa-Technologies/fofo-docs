@@ -467,8 +467,9 @@ export async function createPNGfromMermaidCharts(
       for (let chart of charts) { // Changed to let for potential reassignment after AI fix
         let success = false;
         for (let iRetryCounter = 0; iRetryCounter < maxRetries; iRetryCounter++) {
+          let page: puppeteer.Page | undefined; // Declare page with broader scope
           try {
-            const page = await browser.newPage();
+            page = await browser.newPage(); // Assign to the broader scoped page
             let parseError: string | null = null;
   
         // Set up error handlers before loading content
@@ -580,7 +581,9 @@ export async function createPNGfromMermaidCharts(
             break; // Exit retry loop if successful
           } catch (error) {
             console.error(`Attempt ${iRetryCounter + 1}/${maxRetries} failed for chart "${chart.shortDescription}":`, error);
-            await page.close(); // Ensure page is closed on error
+            if (page) { // Check if page was initialized before closing
+              await page.close();
+            }
 
             if (iRetryCounter < maxRetries - 1) {
               console.log(`Retrying chart "${chart.shortDescription}" after AI fix.`);
