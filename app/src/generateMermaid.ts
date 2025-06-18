@@ -1,7 +1,7 @@
 import { ProjectSummary, fofoMermaidChart, chartPNG } from "./objectSchemas";
 import { infer } from "./llmInterface";
 // let iRetryCounter = 0; // Will be replaced by local retry logic
-import puppeteer from 'puppeteer';
+import puppeteer, { Page, ConsoleMessage } from 'puppeteer';
 
 
 function cleanUpChartData(chart: fofoMermaidChart) {
@@ -467,13 +467,13 @@ export async function createPNGfromMermaidCharts(
       for (let chart of charts) { // Changed to let for potential reassignment after AI fix
         let success = false;
         for (let iRetryCounter = 0; iRetryCounter < maxRetries; iRetryCounter++) {
-          let page: puppeteer.Page | undefined; // Declare page with broader scope
+          let page: Page | undefined; // Declare page with broader scope, using imported Page type
           try {
             page = await browser.newPage(); // Assign to the broader scoped page
             let parseError: string | null = null;
   
         // Set up error handlers before loading content
-        page.on('console', (msg) => {
+        page.on('console', (msg: ConsoleMessage) => {
           const msgText = msg.text();
           console.log(`Page console [${msg.type()}]: ${msgText}`);
           
@@ -483,12 +483,12 @@ export async function createPNGfromMermaidCharts(
           }
         });
   
-        page.on('error', (error) => {
+        page.on('error', (error: Error) => {
           console.log(`Page error: ${error}`);
           parseError = error.message;
         });
   
-        page.on('pageerror', (error) => {
+        page.on('pageerror', (error: Error) => {
           console.log(`Page error: ${error}`);
           parseError = error.message;
         });
@@ -563,7 +563,7 @@ export async function createPNGfromMermaidCharts(
         // Check if we got an error message instead of a diagram
         const errorDiv = await page.$('div[style="color: red"]');
         if (errorDiv) {
-          const errorText = await page.evaluate(el => el.textContent, errorDiv);
+          const errorText = await page.evaluate((el: Element) => el.textContent, errorDiv);
           await page.close();
           throw new Error(`Failed to render chart "${chart.shortDescription}": ${errorText}`);
         }
